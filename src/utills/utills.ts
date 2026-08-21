@@ -89,7 +89,6 @@ const SECRET_KEY = process.env.NEXT_PUBLIC_CRYPTO_SECRET || "your-secret-key";
 
 export const decryptData = (ciphertext: any) => {
   try {
-    console.log(ciphertext, 'Decryption error', SECRET_KEY)
     const bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY);
     const originalText = bytes.toString(CryptoJS.enc.Utf8);
 
@@ -99,7 +98,6 @@ export const decryptData = (ciphertext: any) => {
 
     return originalText;
   } catch (error: any) {
-    console.log("Decryption error:", error.message || error);
     return "Decryption failed";
   }
 };

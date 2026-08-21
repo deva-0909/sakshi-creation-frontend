@@ -49,7 +49,6 @@ const CompanyNamePage = () => {
   const dispatch = useAppDispatch()
   const { companyNames, loading, error, successMessage } = useAppSelector((state: RootState) => state.companyNames)
 
-  console.log("companyNamescompanyNames", companyNames)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [form, setForm] = useState<FormData>({

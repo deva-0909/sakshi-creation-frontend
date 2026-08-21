@@ -194,9 +194,7 @@ export const createOrderThunk = createAsyncThunk(
   "order/create",
   async (data: CreateOrderData, { rejectWithValue }) => {
     try {
-      console.log("Redux: Creating order with data:", data);
       const response = await orderService.createOrder(data);
-      console.log("Redux: Create order response:", response);
 
       if (response.success && response.data) {
         return response.data;
@@ -226,7 +224,6 @@ export const getAllOrdersThunk = createAsyncThunk(
   ) => {
     try {
       const response = await orderService.getAllOrders(params);
-      console.log("Redux: Get all orders response:", response);
 
       if (response.success && Array.isArray(response.data)) {
         return {
@@ -251,7 +248,6 @@ export const getOrderByIdThunk = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await orderService.getOrderById(id);
-      console.log("Redux: Get order by ID response:", response);
 
       if (response.success && response.data) {
         return response.data;
@@ -292,7 +288,6 @@ export const updateOrderThunk = createAsyncThunk(
   ) => {
     try {
       const response = await orderService.updateOrder(id, data);
-      console.log("Redux: Update order response:", response);
 
       if (response.success && response.data) {
         return response.data;
@@ -312,7 +307,6 @@ export const deleteOrderThunk = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await orderService.deleteOrder(id);
-      console.log("Redux: Delete order response:", response);
 
       if (response.success) {
         return id; // Return the deleted ID

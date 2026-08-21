@@ -240,7 +240,6 @@ const InvoicePDFGenerator: React.FC<InvoicePDFGeneratorProps> = ({
 
     // Add Signature Image if available
     if (formData.signature) {
-      console.log("🚀 ~ generateInvoice ~ formData.signature:", formData.signature);
       try {
         const img = new Image();
         img.src = formData.signature;

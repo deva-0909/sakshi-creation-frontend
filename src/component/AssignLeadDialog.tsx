@@ -104,9 +104,6 @@ const AssignLeadDialog: React.FC<AssignLeadDialogProps> = ({ open, onClose, lead
         setIsLoading(true);
         try {
             // Log form values for debugging
-            console.log("Form Values:", values);
-            console.log("partyIds:", partyIds);
-            console.log("accountMasters:", accountMasters);
 
             if (partyIds && partyIds.length > 0) {
             // Bulk lead creation
@@ -135,13 +132,11 @@ const AssignLeadDialog: React.FC<AssignLeadDialogProps> = ({ open, onClose, lead
             callFeedback: values.callFeedback || undefined,
             rescheduleDate: values.rescheduleDate || undefined,
         };
-        console.log("Lead Data for partyId", partyId, ":", leadData);
         return leadData;
         });
 
             // Dispatch bulk create and handle response
             const response: any = await dispatch(bulkCreateLeadsThunk(leadsData)).unwrap();
-            console.log("Bulk Create Response:", response);
 
             // Check for errors in the response
             if (response.errors && response.errors.length > 0) {

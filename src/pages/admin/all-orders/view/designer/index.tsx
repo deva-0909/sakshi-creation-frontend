@@ -616,7 +616,6 @@ const ViewOrderDesigner = () => {
   const { id: orderId } = router.query
   const dispatch = useAppDispatch()
   const { singleOrder } = useAppSelector((state) => state.orders)
-  console.log(":singleorder", singleOrder)
   const [pageLoading, setPageLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [files, setFiles] = useState<

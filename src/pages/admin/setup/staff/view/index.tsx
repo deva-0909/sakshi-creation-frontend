@@ -299,7 +299,6 @@ const handleEmailChange = (value: string) => {
   }
 
   const handleDiscard = () => {
-    console.log("🚀 ~ handleDiscard ~ currentStaff:", currentStaff)
     if (mode === "edit" && currentStaff) {
       const editData = {
         firstName: currentStaff.firstName || "",

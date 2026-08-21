@@ -60,8 +60,6 @@ const LoginPage: React.FC = () => {
       });
 
       // Log response status and headers for debugging
-      console.log('Response Status:', response.status);
-      console.log('Response Headers:', [...response.headers.entries()]);
 
       // Check if response is JSON
       const contentType = response.headers.get('content-type');
@@ -72,7 +70,6 @@ const LoginPage: React.FC = () => {
       }
 
       const data: LoginResponse = await response.json();
-      console.log('API Response:', data);
 
       if (data.success && data.data) {
         const { token, id, firstName, lastName, email, role } = data.data;
@@ -98,15 +95,10 @@ const LoginPage: React.FC = () => {
         dispatch(setAuth({ token, user: user as any }));
 
         // Debug: Log stored values
-        console.log('Cookies - auth_token:', Cookies.get('auth_token'));
-        console.log('Cookies - user:', Cookies.get('user'));
-        console.log('localStorage - auth_token:', localStorage.getItem('auth_token'));
-        console.log('localStorage - user:', localStorage.getItem('user'));
 
         // Redirect to intended page or default
         const redirectPath = (router.query.redirect as string) || '/';
         setTimeout(() => {
-          console.log('Redirecting after login to:', redirectPath);
           router.push(redirectPath);
         }, 100);
       } else {

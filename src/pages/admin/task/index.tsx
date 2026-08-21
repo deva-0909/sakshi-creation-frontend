@@ -49,7 +49,6 @@ const Index = () => {
   );
   const { user } = useAppSelector((state) => state.auth);
   const { orders } = useAppSelector((state) => state.orders);
-  console.log("🚀 ~ Index ~ singleOrder:", orders);
   const getRoleSpecificTasks = () => {
     if (!orders || orders.length === 0) return [];
 
@@ -85,7 +84,6 @@ const Index = () => {
   };
 
   // const designerStatus = orders[0]?.designerStatus;
-  // console.log("🚀 ~ Index ~ orders?.designerStatus:", orders?.designerStatus)
 
   // Get role name in lowercase for consistent comparison
   const role = user?.role?.roleName?.toLowerCase();
@@ -96,7 +94,6 @@ const Index = () => {
       ...order,
       designerStatus: order.designerStatus || "",
     }));
-    console.log(`Tasks for ${role}:`, tasks);
     switch (role) {
       case "designer":
         return <DesignerTask tasks={tasks} />;

@@ -96,14 +96,12 @@
           if (fileUploadRef.current && typeof fileUploadRef.current.getSelectedFiles === "function") {
             const selectedFiles = fileUploadRef.current.getSelectedFiles() || [];
             if (selectedFiles.length > 0) {
-              console.log("Uploading files before update...");
               const uploadedFileResults = await fileUploadRef.current.uploadSelectedFiles();
               newFilePaths = uploadedFileResults.map((file: any) => ({
                 path: file.path || `/${file.folder}/${file.filename}`, // Ensure path starts with /
                 remark: "",
                 uploadedAt: new Date(),
               }));
-              console.log("New file paths:", newFilePaths);
               setUploadedFiles((prev) => [...prev, ...newFilePaths]);
             }
           }
@@ -124,7 +122,6 @@
             ],
           };
 
-          console.log("Updating order with data:", updateData);
 
           await dispatch(updateOrderThunk({ id: orderId, data: updateData })).unwrap();
           toast.success("Order updated successfully");
@@ -149,9 +146,7 @@
 
         try {
           setPageLoading(true)
-          console.log("Fetching order with ID:", orderId)
           const result = await dispatch(getOrderByIdThunk(orderId)).unwrap()
-          console.log("Thunk Result:", result)
         } catch (err: any) {
           console.error("Failed to fetch order:", err)
           toast.error(err.message || "Failed to load order data")
@@ -166,7 +161,6 @@
     useEffect(() => {
       if (singleOrder) {
         try {
-          console.log("singleOrder:", JSON.stringify(singleOrder, null, 2))
           const pType = typeof singleOrder.pType === "string" && ["Offset", "Screen Printing"].includes(singleOrder.pType)
             ? singleOrder.pType
             : "Other"
@@ -212,7 +206,6 @@
     }
 
     const handleFilesSelected = (files: File[]) => {
-      console.log("Files selected:", files)
     }
 
     const handleUploadError = (error: string) => {

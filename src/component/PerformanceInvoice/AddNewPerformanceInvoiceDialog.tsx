@@ -346,7 +346,6 @@ const AddNewPerformanceInvoiceDialog: React.FC<AddNewPerformanceInvoiceDialogPro
             paymentTerms: result.paymentTerms || "",
             signature: result.signature || "",
           });
-          console.log("Signature URL in edit mode:", result.signature); // Debug log
           setIsSaved(true);
         }
       } catch (err: any) {
