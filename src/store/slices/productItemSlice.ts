@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
-import { productItemService } from "@/services/productItem.service";
+import { productItemService, BulkImportResponse } from "@/services/productItem.service";
 
 interface ProductItem {
   _id: string;
@@ -129,8 +129,11 @@ export const bulkCreateProductItemsThunk = createAsyncThunk(
     try {
       const response = await productItemService.bulkCreateProductItems(formData);
 
-      if (response.success && Array.isArray(response.data)) {
-        return response.data;
+      if (response.success) {
+        // §77: return the whole response (not just `.data`) so the caller
+        // can read `count`/`errors` for per-row reporting, not just the
+        // list of successfully-created records.
+        return response;
       } else {
         return rejectWithValue(response.message || "Failed to bulk create product items");
       }
@@ -242,10 +245,16 @@ const productItemSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(bulkCreateProductItemsThunk.fulfilled, (state, action: PayloadAction<ProductItem[]>) => {
+      .addCase(bulkCreateProductItemsThunk.fulfilled, (state, action: PayloadAction<BulkImportResponse<ProductItem[]>>) => {
         state.loading = false;
-        state.productItems = [...state.productItems, ...action.payload];
-        state.successMessage = "Bulk product items created successfully";
+        if (Array.isArray(action.payload.data)) {
+          state.productItems = [...state.productItems, ...action.payload.data];
+        }
+        const failed = action.payload.errors?.length || 0;
+        state.successMessage =
+          failed > 0
+            ? `Bulk upload finished: ${action.payload.count || 0} succeeded, ${failed} failed`
+            : "Bulk product items created successfully";
         state.error = null;
       })
       .addCase(bulkCreateProductItemsThunk.rejected, (state, action) => {

@@ -6,6 +6,10 @@ import { toast } from 'react-toastify';
 import CustomDialog from '@/component/customdialog';
 import ThemeButton from '@/component/common_component/themebutton';
 import ThemeSelect from '@/component/common_component/themeselect';
+import ImportErrorsTable, { ImportRowError } from '@/component/bulkImport/ImportErrorsTable';
+import ImportHistoryDialog from '@/component/bulkImport/ImportHistoryDialog';
+import { downloadBulkTemplate } from '@/utils/downloadTemplate';
+import Endpoint from '@/API/apiConfig';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   bulkCreatePurchasesThunk,
@@ -59,6 +63,9 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
   const [materialName, setMaterialName] = useState<string>('');
   const [materialGSM, setMaterialGSM] = useState<string>('');
   const [materialSize, setMaterialSize] = useState<string>('');
+  const [importErrors, setImportErrors] = useState<ImportRowError[]>([]);
+  const [importSuccessCount, setImportSuccessCount] = useState(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const formik = useFormik<FormData>({
     initialValues: {
@@ -77,6 +84,7 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
       }
 
       setIsLoading(true);
+      setImportErrors([]);
       try {
         const formData = new FormData();
         formData.append('file', file);
@@ -88,15 +96,21 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
         if (materialGSM) formData.append('materialGSM', materialGSM);
         if (materialSize) formData.append('materialSize', materialSize);
 
-        await dispatch(bulkCreatePurchasesThunk(formData)).unwrap();
-        toast.success('Bulk upload completed successfully');
+        const result = await dispatch(bulkCreatePurchasesThunk(formData)).unwrap();
+        const errors = result.errors || [];
+        setImportErrors(errors);
+        setImportSuccessCount(result.count || 0);
         if (refreshData) refreshData();
         setFile(null);
         setMaterialName('');
         setMaterialGSM('');
         setMaterialSize('');
-        formik.resetForm();
-        onClose();
+        // Keep the dialog open when some rows failed, so the user can see
+        // which rows to fix; only close on a fully clean import.
+        if (errors.length === 0) {
+          formik.resetForm();
+          onClose();
+        }
       } catch (err: any) {
         toast.error(err.message || 'Bulk upload failed');
       } finally {
@@ -170,6 +184,8 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
       setMaterialName('');
       setMaterialGSM('');
       setMaterialSize('');
+      setImportErrors([]);
+      setImportSuccessCount(0);
     }
   }, [open, dispatch]);
 
@@ -192,17 +208,12 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
     }
   }, [formik.values.for, dispatch]);
 
-  const handleDownloadSample = () => {
-    const csvContent = `billNumber,quantity,ratePerSheet,kg\nBILL123,100,10,50\nBILL124,200,15,75`;
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'bulk_purchase_template.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownloadTemplateClick = async () => {
+    try {
+      await downloadBulkTemplate(Endpoint.BULK_PURCHASE_TEMPLATE, 'purchase-bulk-import-template.csv');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to download template');
+    }
   };
 
   return (
@@ -359,12 +370,17 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
             )}
           </Box>
         </Box>
-        <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end">
+        <ImportErrorsTable
+          successCount={importSuccessCount}
+          failedCount={importErrors.length}
+          errors={importErrors}
+        />
+        <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end" flexWrap="wrap" useFlexGap>
           <ThemeButton
             variant="outlined"
             onClick={onClose}
           >
-            Cancel
+            {importErrors.length > 0 ? 'Close' : 'Cancel'}
           </ThemeButton>
           <ThemeButton
             disabled={
@@ -393,13 +409,26 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
           </ThemeButton>
           <ThemeButton
             variant="outlined"
-            onClick={handleDownloadSample}
+            onClick={handleDownloadTemplateClick}
             sx={{ minWidth: 180 }}
           >
             Download Sample CSV
           </ThemeButton>
+          <ThemeButton
+            variant="outlined"
+            onClick={() => setHistoryOpen(true)}
+            sx={{ minWidth: 180 }}
+          >
+            Import History
+          </ThemeButton>
         </Stack>
       </Box>
+      <ImportHistoryDialog
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        module="purchase"
+        title="Purchase Import History"
+      />
     </CustomDialog>
   );
 };

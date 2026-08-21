@@ -38,6 +38,21 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+export interface ImportRowError {
+  row: number;
+  message: string;
+}
+
+// §77: the bulk-create endpoint's response now carries per-row outcomes
+// alongside the created records, instead of an all-or-nothing result.
+export interface BulkImportResponse<T> {
+  success: boolean;
+  message?: string;
+  count?: number;
+  errors?: ImportRowError[];
+  data?: T;
+}
+
 export const vendorService = {
   async getVendors(): Promise<ApiResponse<Vendor[]>> {
     try {
@@ -142,13 +157,13 @@ export const vendorService = {
     }
   },
 
-  async bulkCreateVendors(formData: FormData): Promise<ApiResponse<Vendor[]>> {
+  async bulkCreateVendors(formData: FormData): Promise<BulkImportResponse<Vendor[]>> {
     try {
       const token = authService.getToken();
       if (!token) {
         throw new Error('No authentication token found');
       }
-      const response: AxiosResponse<ApiResponse<Vendor[]>> = await axios.post(
+      const response: AxiosResponse<BulkImportResponse<Vendor[]>> = await axios.post(
         Endpoint.BULK_CREATE_VENDORS,
         formData,
         {

@@ -8,9 +8,11 @@ const Endpoint = {
   UPDATE_STAFF_STATUS: `${BaseURL}/api/staff/updatestatus`,
   DELETE_STAFF: `${BaseURL}/api/staff/delete`,
   BULK_CREATE_STAFF:`${BaseURL}/api/staff/bulk`,
+  BULK_STAFF_TEMPLATE: `${BaseURL}/api/staff/bulk/template`,
   UPDATE_STAFF_PASSWORD: `${BaseURL}/api/staff/updatepassword`,
   GET_ALL_ACCOUNT_MASTERS: `${BaseURL}/api/account-master/getall`,
   BULK_CREATE_ACCOUNT_MASTERS: `${BaseURL}/api/account-master/bulk-create`,
+  BULK_ACCOUNT_MASTER_TEMPLATE: `${BaseURL}/api/account-master/bulk-create/template`,
   GET_ACCOUNT_MASTER_BY_ID: `${BaseURL}/api/account-master/getbyid`,
   GET_ACCOUNT_MASTER_BY_STAFF_ID: `${BaseURL}/api/account-master/getbystaffid`,
   CREATE_ACCOUNT_MASTER: `${BaseURL}/api/account-master/create`,
@@ -44,6 +46,7 @@ const Endpoint = {
   GET_PURCHASES_BY_DATE_RANGE: `${BaseURL}/api/purchase/getbydaterange`,
   GET_STAFF_BY__ROLE_ID: `${BaseURL}/api/purchase/getstaffbyrole`,
   BULK_CREATE_PURCHASES: `${BaseURL}/api/purchase/bulk`,
+  BULK_PURCHASE_TEMPLATE: `${BaseURL}/api/purchase/bulk/template`,
 
   //Inventory
 
@@ -70,6 +73,7 @@ const Endpoint = {
   GET_PRODUCT_ITEM_WITH_ID: `${BaseURL}/api/productItem/update`,
   UPDATE_PRODUCT_ITEM: `${BaseURL}/api/productItem/update`,
   BULK_CREATE_PRODUCT_ITEMS: `${BaseURL}/api/productItem/bulk`,
+  BULK_PRODUCT_ITEM_TEMPLATE: `${BaseURL}/api/productItem/bulk/template`,
 
 
   //company name 
@@ -124,6 +128,7 @@ const Endpoint = {
   UPDATE_MATERIAL: `${BaseURL}/api/material/update`,
   DELETE_MATERIAL: `${BaseURL}/api/material/delete`,
   BULK_CREATE_MATERIALS: `${BaseURL}/api/material/bulk`,
+  BULK_MATERIAL_TEMPLATE: `${BaseURL}/api/material/bulk/template`,
 
 
     // New vendor endpoints
@@ -133,6 +138,8 @@ const Endpoint = {
   UPDATE_VENDOR: `${BaseURL}/api/vendor/update`,
   DELETE_VENDOR: `${BaseURL}/api/vendor/delete`,
   BULK_CREATE_VENDORS: `${BaseURL}/api/vendor/bulk`,
+  BULK_VENDOR_TEMPLATE: `${BaseURL}/api/vendor/bulk/template`,
+  IMPORT_HISTORY: `${BaseURL}/api/import-history`,
 
   // ComapnyName
   COMPANY_NAME_GET_ALL: `${BaseURL}/api/company/getall`,

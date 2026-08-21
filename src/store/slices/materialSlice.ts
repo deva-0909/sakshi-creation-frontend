@@ -4,6 +4,7 @@ import {
   Material,
   CreateMaterial,
   UpdateMaterial,
+  BulkImportResponse,
 } from '@/services/material.service';
 
 export const getAllMaterialsThunk = createAsyncThunk(
@@ -81,8 +82,11 @@ export const bulkCreateMaterialsThunk = createAsyncThunk(
   async (formData: FormData, { rejectWithValue }) => {
     try {
       const response = await materialService.bulkCreateMaterials(formData);
-      if (response.success && response.data) {
-        return response.data;
+      if (response.success) {
+        // §77: return the whole response (not just `.data`) so the caller
+        // can read `count`/`errors` for per-row reporting, not just the
+        // list of successfully-created records.
+        return response;
       }
       return rejectWithValue(response.message || 'Failed to bulk create materials');
     } catch (error: any) {
@@ -220,10 +224,16 @@ const materialSlice = createSlice({
       })
       .addCase(
         bulkCreateMaterialsThunk.fulfilled,
-        (state, action: PayloadAction<Material[]>) => {
+        (state, action: PayloadAction<BulkImportResponse<Material[]>>) => {
           state.loading = false;
-          state.materials = [...state.materials, ...action.payload];
-          state.successMessage = 'Bulk materials created successfully';
+          if (Array.isArray(action.payload.data)) {
+            state.materials = [...state.materials, ...action.payload.data];
+          }
+          const failed = action.payload.errors?.length || 0;
+          state.successMessage =
+            failed > 0
+              ? `Bulk upload finished: ${action.payload.count || 0} succeeded, ${failed} failed`
+              : 'Bulk materials created successfully';
         }
       )
       .addCase(bulkCreateMaterialsThunk.rejected, (state, action) => {

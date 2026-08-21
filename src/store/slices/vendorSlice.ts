@@ -4,6 +4,7 @@ import {
   Vendor,
   CreateVendor,
   UpdateVendor,
+  BulkImportResponse,
 } from '@/services/vendor.service';
 
 export const getAllVendorsThunk = createAsyncThunk(
@@ -81,8 +82,11 @@ export const bulkCreateVendorsThunk = createAsyncThunk(
   async (formData: FormData, { rejectWithValue }) => {
     try {
       const response = await vendorService.bulkCreateVendors(formData);
-      if (response.success && response.data) {
-        return response.data;
+      if (response.success) {
+        // §77: return the whole response (not just `.data`) so the caller
+        // can read `count`/`errors` for per-row reporting, not just the
+        // list of successfully-created records.
+        return response;
       }
       return rejectWithValue(response.message || 'Failed to bulk create vendors');
     } catch (error: any) {
@@ -214,10 +218,16 @@ const vendorSlice = createSlice({
       })
       .addCase(
         bulkCreateVendorsThunk.fulfilled,
-        (state, action: PayloadAction<Vendor[]>) => {
+        (state, action: PayloadAction<BulkImportResponse<Vendor[]>>) => {
           state.loading = false;
-          state.vendors = [...state.vendors, ...action.payload];
-          state.successMessage = 'Bulk vendors created successfully';
+          if (Array.isArray(action.payload.data)) {
+            state.vendors = [...state.vendors, ...action.payload.data];
+          }
+          const failed = action.payload.errors?.length || 0;
+          state.successMessage =
+            failed > 0
+              ? `Bulk upload finished: ${action.payload.count || 0} succeeded, ${failed} failed`
+              : 'Bulk vendors created successfully';
         }
       )
       .addCase(bulkCreateVendorsThunk.rejected, (state, action) => {

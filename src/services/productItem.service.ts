@@ -27,6 +27,21 @@ interface ApiResponse<T> {
   };
 }
 
+export interface ImportRowError {
+  row: number;
+  message: string;
+}
+
+// §77: the bulk-create endpoint's response now carries per-row outcomes
+// alongside the created records, instead of an all-or-nothing result.
+export interface BulkImportResponse<T> {
+  success: boolean;
+  message?: string;
+  count?: number;
+  errors?: ImportRowError[];
+  data?: T;
+}
+
 export const productItemService = {
   // Create Product Item
   async createProductItem(data: CreateProductItemData): Promise<ApiResponse<ProductItem>> {
@@ -202,7 +217,7 @@ export const productItemService = {
     }
   },
 
-  async bulkCreateProductItems(formData: FormData): Promise<ApiResponse<ProductItem[]>> {
+  async bulkCreateProductItems(formData: FormData): Promise<BulkImportResponse<ProductItem[]>> {
     try {
       const token = authService.getToken();
       if (!token) {
@@ -210,7 +225,7 @@ export const productItemService = {
       }
 
 
-      const response: AxiosResponse<ApiResponse<ProductItem[]>> = await axios.post(
+      const response: AxiosResponse<BulkImportResponse<ProductItem[]>> = await axios.post(
         Endpoint.BULK_CREATE_PRODUCT_ITEMS,
         formData,
         {
@@ -227,6 +242,8 @@ export const productItemService = {
         success: response.data.success,
         data: response.data.data,
         message: response.data.message,
+        count: response.data.count,
+        errors: response.data.errors,
       };
     } catch (error: any) {
       console.error("Bulk Create Product Items Service Error:", error);

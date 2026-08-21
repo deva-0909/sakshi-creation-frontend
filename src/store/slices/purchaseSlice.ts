@@ -7,6 +7,7 @@ import {
   CompanyName,
   Role,
   Staff,
+  BulkImportResponse,
 } from '@/services/purchase.service';
 
 // Thunks
@@ -180,10 +181,13 @@ export const bulkCreatePurchasesThunk = createAsyncThunk(
   async (formData: FormData, { rejectWithValue }) => {
     try {
       const response = await purchaseService.bulkCreatePurchases(formData);
-      if (response.success && Array.isArray(response.data)) {
-        return response.data;
+      if (response.success) {
+        // §77: return the whole response (not just `.data`) so the caller
+        // can read `count`/`errors` for per-row reporting, not just the
+        // list of successfully-created records.
+        return response;
       } else {
-        return rejectWithValue('Invalid response format: data array not found');
+        return rejectWithValue(response.message || 'Failed to upload purchases');
       }
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to upload purchases');
@@ -440,10 +444,16 @@ const purchaseSlice = createSlice({
       })
       .addCase(
         bulkCreatePurchasesThunk.fulfilled,
-        (state, action: PayloadAction<Purchase[]>) => {
+        (state, action: PayloadAction<BulkImportResponse<Purchase[]>>) => {
           state.loading = false;
-          state.purchases = [...action.payload, ...state.purchases];
-          state.successMessage = 'Bulk purchases uploaded successfully';
+          if (Array.isArray(action.payload.data)) {
+            state.purchases = [...action.payload.data, ...state.purchases];
+          }
+          const failed = action.payload.errors?.length || 0;
+          state.successMessage =
+            failed > 0
+              ? `Bulk upload finished: ${action.payload.count || 0} succeeded, ${failed} failed`
+              : 'Bulk purchases uploaded successfully';
         }
       )
       .addCase(bulkCreatePurchasesThunk.rejected, (state, action) => {

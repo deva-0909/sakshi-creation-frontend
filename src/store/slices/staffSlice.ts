@@ -37,7 +37,23 @@ interface StaffState {
   roleDetails: RoleDetails | null;
   loading: boolean;
   error: string | null;
+  successMessage: string | null;
   currentStaff: any | null; // For detailed staff view
+}
+
+export interface ImportRowError {
+  row: number;
+  message: string;
+}
+
+// §77: the bulk-create endpoint's response now carries per-row outcomes
+// alongside the created records, instead of an all-or-nothing result.
+export interface BulkImportResponse<T> {
+  success: boolean;
+  message?: string;
+  count?: number;
+  errors?: ImportRowError[];
+  data?: T;
 }
 
 const initialState: StaffState = {
@@ -46,6 +62,7 @@ const initialState: StaffState = {
   currentStaff: null,
   loading: false,
   error: null,
+  successMessage: null,
 };
 
 // Helper function for API calls
@@ -245,7 +262,10 @@ export const bulkCreateStaffThunk = createAsyncThunk(
       if (!response.data.success) {
         throw new Error(response.data.message || 'Bulk create failed');
       }
-      return response.data.data;
+      // §77: return the whole response (not just `.data`) so the caller
+      // can read `count`/`errors` for per-row reporting, not just the
+      // list of successfully-created records.
+      return response.data as BulkImportResponse<Staff[]>;
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to bulk create staff');
     }
@@ -292,7 +312,10 @@ const staffSlice = createSlice({
     },
     clearCurrentStaff(state) {
       state.currentStaff = null;
-    }
+    },
+    clearSuccessMessage(state) {
+      state.successMessage = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -427,9 +450,16 @@ const staffSlice = createSlice({
           state.loading = true;
           state.error = null;
         })
-        .addCase(bulkCreateStaffThunk.fulfilled, (state, action: PayloadAction<Staff[]>) => {
+        .addCase(bulkCreateStaffThunk.fulfilled, (state, action: PayloadAction<BulkImportResponse<Staff[]>>) => {
           state.loading = false;
-          state.staffList = [...state.staffList, ...action.payload];
+          if (Array.isArray(action.payload.data)) {
+            state.staffList = [...state.staffList, ...action.payload.data];
+          }
+          const failed = action.payload.errors?.length || 0;
+          state.successMessage =
+            failed > 0
+              ? `Bulk upload finished: ${action.payload.count || 0} succeeded, ${failed} failed`
+              : 'Bulk staff created successfully';
         })
         .addCase(bulkCreateStaffThunk.rejected, (state, action) => {
           state.loading = false;
@@ -450,5 +480,5 @@ const staffSlice = createSlice({
         
 })
 
-export const { clearError, clearCurrentStaff } = staffSlice.actions
+export const { clearError, clearCurrentStaff, clearSuccessMessage } = staffSlice.actions
 export default staffSlice.reducer

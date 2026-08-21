@@ -4,6 +4,10 @@ import { toast } from 'react-toastify';
 import CustomDialog from '@/component/customdialog';
 import ThemeButton from '@/component/common_component/themebutton';
 import CompanySelect from '@/component/reusablecomponents/CompanyWithPartyName';
+import ImportErrorsTable, { ImportRowError } from '@/component/bulkImport/ImportErrorsTable';
+import ImportHistoryDialog from '@/component/bulkImport/ImportHistoryDialog';
+import { downloadBulkTemplate } from '@/utils/downloadTemplate';
+import Endpoint from '@/API/apiConfig';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   bulkCreateVendorsThunk,
@@ -27,6 +31,9 @@ const AddNewVendorBulkDialog: React.FC<AddNewVendorBulkDialogProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [companyName, setCompanyName] = useState<string>('');
+  const [importErrors, setImportErrors] = useState<ImportRowError[]>([]);
+  const [importSuccessCount, setImportSuccessCount] = useState(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const handleSubmit = async () => {
     if (!file) {
@@ -39,21 +46,36 @@ const AddNewVendorBulkDialog: React.FC<AddNewVendorBulkDialogProps> = ({
     }
 
     setIsLoading(true);
+    setImportErrors([]);
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('companyName', companyName);
 
-      await dispatch(bulkCreateVendorsThunk(formData)).unwrap();
-      toast.success('Bulk vendor upload completed successfully');
+      const result = await dispatch(bulkCreateVendorsThunk(formData)).unwrap();
+      const errors = result.errors || [];
+      setImportErrors(errors);
+      setImportSuccessCount(result.count || 0);
       if (refreshData) refreshData();
       setFile(null);
-      setCompanyName('');
-      onClose();
+      // Keep the dialog open when some rows failed, so the user can see
+      // which rows to fix; only close on a fully clean import.
+      if (errors.length === 0) {
+        setCompanyName('');
+        onClose();
+      }
     } catch (err: any) {
       toast.error(err.message || 'Bulk upload failed');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDownloadTemplateClick = async () => {
+    try {
+      await downloadBulkTemplate(Endpoint.BULK_VENDOR_TEMPLATE, 'vendor-bulk-import-template.csv');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to download template');
     }
   };
 
@@ -63,6 +85,8 @@ const AddNewVendorBulkDialog: React.FC<AddNewVendorBulkDialogProps> = ({
       dispatch(clearError());
       setFile(null);
       setCompanyName('');
+      setImportErrors([]);
+      setImportSuccessCount(0);
     }
   }, [open, dispatch]);
 
@@ -76,19 +100,6 @@ const AddNewVendorBulkDialog: React.FC<AddNewVendorBulkDialogProps> = ({
       dispatch(clearSuccessMessage());
     }
   }, [error, successMessage, dispatch]);
-
-  const handleDownloadSample = () => {
-    const csvContent = `name,contactNumber,whatsappNumber,gst,address\n"Vendor One","9876543210","9876543210","27AAAAA0000A1Z5","123 Street, City"\n"Vendor Two","8765432109","8765432109","","456 Road, Town"`;
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'bulk_vendor_template.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   return (
     <CustomDialog open={open} maxWidth="sm" onClose={onClose} title="Bulk Upload Vendors">
@@ -172,7 +183,12 @@ const AddNewVendorBulkDialog: React.FC<AddNewVendorBulkDialogProps> = ({
             )}
           </Box>
         </Box>
-        <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end">
+        <ImportErrorsTable
+          successCount={importSuccessCount}
+          failedCount={importErrors.length}
+          errors={importErrors}
+        />
+        <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end" flexWrap="wrap" useFlexGap>
           <ThemeButton
             variant="outlined"
             onClick={onClose}
@@ -182,7 +198,7 @@ const AddNewVendorBulkDialog: React.FC<AddNewVendorBulkDialogProps> = ({
               '&:hover': { borderColor: '#7B06C2', color: '#7B06C2' },
             }}
           >
-            Cancel
+            {importErrors.length > 0 ? 'Close' : 'Cancel'}
           </ThemeButton>
           <ThemeButton
             disabled={!file || !companyName || isLoading}
@@ -201,7 +217,7 @@ const AddNewVendorBulkDialog: React.FC<AddNewVendorBulkDialogProps> = ({
           </ThemeButton>
           <ThemeButton
             variant="outlined"
-            onClick={handleDownloadSample}
+            onClick={handleDownloadTemplateClick}
             sx={{
               borderColor: '#A409F8',
               color: '#A409F8',
@@ -214,8 +230,29 @@ const AddNewVendorBulkDialog: React.FC<AddNewVendorBulkDialogProps> = ({
           >
             Download Sample CSV
           </ThemeButton>
+          <ThemeButton
+            variant="outlined"
+            onClick={() => setHistoryOpen(true)}
+            sx={{
+              borderColor: '#A409F8',
+              color: '#A409F8',
+              fontWeight: 600,
+              fontSize: 16,
+              borderRadius: 2,
+              py: 1.2,
+              '&:hover': { borderColor: '#7B06C2', color: '#7B06C2' },
+            }}
+          >
+            Import History
+          </ThemeButton>
         </Stack>
       </Box>
+      <ImportHistoryDialog
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        module="vendor"
+        title="Vendor Import History"
+      />
     </CustomDialog>
   );
 };

@@ -5,7 +5,8 @@ import {
   CreateAccountMaster,
   UpdateAccountMaster,
   PartySuggestion,
-  AccountMasterByCompanyParty
+  AccountMasterByCompanyParty,
+  BulkImportResponse,
 } from "@/services/accountMaster.service";
 import { toast } from "react-toastify";
 
@@ -94,9 +95,11 @@ export const bulkCreateAccountMastersThunk = createAsyncThunk(
   async (formData: FormData, { rejectWithValue }) => {
     try {
       const response = await accountMasterService.bulkCreateAccountMasters(formData);
-      toast.success(response.message);
-      if (response.success && response.data) {
-        return response.data;
+      if (response.success) {
+        // §77: return the whole response (not just `.data`) so the caller
+        // can read `count`/`errors` for per-row reporting, not just the
+        // list of successfully-created records.
+        return response;
       }
       return rejectWithValue(response.message || "Failed to bulk create account masters");
     } catch (error: any) {
@@ -304,10 +307,16 @@ const accountMasterSlice = createSlice({
       })
       .addCase(
         bulkCreateAccountMastersThunk.fulfilled,
-        (state, action: PayloadAction<AccountMaster[]>) => {
+        (state, action: PayloadAction<BulkImportResponse<AccountMaster[]>>) => {
           state.loading = false;
-          state.accountMasters = [...state.accountMasters, ...action.payload];
-          state.successMessage = "Account masters created successfully";
+          if (Array.isArray(action.payload.data)) {
+            state.accountMasters = [...state.accountMasters, ...action.payload.data];
+          }
+          const failed = action.payload.errors?.length || 0;
+          state.successMessage =
+            failed > 0
+              ? `Bulk upload finished: ${action.payload.count || 0} succeeded, ${failed} failed`
+              : "Account masters created successfully";
         }
       )
       .addCase(bulkCreateAccountMastersThunk.rejected, (state, action) => {

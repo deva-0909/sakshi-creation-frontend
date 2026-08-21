@@ -6,8 +6,12 @@ import CustomDialog from "@/component/customdialog";
 import ThemeButton from "@/component/common_component/themebutton";
 import ThemeSelect from "@/component/common_component/themeselect";
 import CompanySelect from "@/component/reusablecomponents/CompanyWithPartyName";
+import ImportErrorsTable, { ImportRowError } from "@/component/bulkImport/ImportErrorsTable";
+import ImportHistoryDialog from "@/component/bulkImport/ImportHistoryDialog";
+import { downloadBulkTemplate } from "@/utils/downloadTemplate";
+import Endpoint from "@/API/apiConfig";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { bulkCreateStaffThunk, clearError } from "@/store/slices/staffSlice";
+import { bulkCreateStaffThunk, clearError, clearSuccessMessage } from "@/store/slices/staffSlice";
 import { getAllRolesThunk } from "@/store/slices/roleSlice";
 
 interface AddNewStaffBulkDialogProps {
@@ -23,13 +27,16 @@ interface RoleOption {
 
 const AddNewStaffBulkDialog: React.FC<AddNewStaffBulkDialogProps> = ({ open, onClose, refreshData }) => {
   const dispatch = useAppDispatch();
-  const { loading, error } = useAppSelector((state) => state.staff);
+  const { loading, error, successMessage } = useAppSelector((state) => state.staff);
   const { roles, loading: rolesLoading } = useAppSelector((state) => state.roles);
   const [isLoading, setIsLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [selectedRole, setSelectedRole] = useState<RoleOption | null>(null);
   const [companyName, setCompanyName] = useState<string>("");
   const [roleOptions, setRoleOptions] = useState<RoleOption[]>([]);
+  const [importErrors, setImportErrors] = useState<ImportRowError[]>([]);
+  const [importSuccessCount, setImportSuccessCount] = useState(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   useEffect(() => {
     dispatch(getAllRolesThunk());
@@ -48,9 +55,12 @@ const AddNewStaffBulkDialog: React.FC<AddNewStaffBulkDialogProps> = ({ open, onC
   useEffect(() => {
     if (open) {
       dispatch(clearError());
+      dispatch(clearSuccessMessage());
       setFile(null);
       setSelectedRole(null);
       setCompanyName("");
+      setImportErrors([]);
+      setImportSuccessCount(0);
     }
   }, [open, dispatch]);
 
@@ -59,7 +69,11 @@ const AddNewStaffBulkDialog: React.FC<AddNewStaffBulkDialogProps> = ({ open, onC
       toast.error(error);
       dispatch(clearError());
     }
-  }, [error, dispatch]);
+    if (successMessage) {
+      toast.success(successMessage);
+      dispatch(clearSuccessMessage());
+    }
+  }, [error, successMessage, dispatch]);
 
   const handleSubmit = async () => {
     if (!file) {
@@ -76,23 +90,26 @@ const AddNewStaffBulkDialog: React.FC<AddNewStaffBulkDialogProps> = ({ open, onC
     }
 
     setIsLoading(true);
+    setImportErrors([]);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("role", selectedRole.value);
     formData.append("companyName", companyName);
 
-    // Log FormData for debugging
-    for (let [key, value] of formData.entries()) {
-    }
-
     try {
-      await dispatch(bulkCreateStaffThunk(formData)).unwrap();
-      toast.success("Bulk staff upload completed successfully");
+      const result = await dispatch(bulkCreateStaffThunk(formData)).unwrap();
+      const errors = result.errors || [];
+      setImportErrors(errors);
+      setImportSuccessCount(result.count || 0);
       if (refreshData) refreshData();
       setFile(null);
       setSelectedRole(null);
       setCompanyName("");
-      onClose();
+      // Keep the dialog open when some rows failed, so the user can see
+      // which rows to fix; only close on a fully clean import.
+      if (errors.length === 0) {
+        onClose();
+      }
     } catch (err: any) {
       toast.error(err.message || "Bulk upload failed");
     } finally {
@@ -100,17 +117,12 @@ const AddNewStaffBulkDialog: React.FC<AddNewStaffBulkDialogProps> = ({ open, onC
     }
   };
 
-  const handleDownloadSample = () => {
-    const csvContent = `# Instructions: Ensure aadharNo is exactly 12 digits (no scientific notation, e.g., 123456789012). Dates must be in YYYY-MM-DD format (e.g., 2025-08-22). Save as CSV without formatting changes.\nfirstName,lastName,email,mobileNo,whatsappNo,address,aadharNo,joiningDate,birthDay,password\n"John","Doe","john@example.com","9876543210","9876543210","123 Street","123456789012","2025-08-22","1990-01-01","password123"\n"Jane","Doe","","8765432109","8765432109","456 Road","987654321098","2025-02-01","","password456"`;
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", "bulk_staff_template.csv");
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownloadTemplateClick = async () => {
+    try {
+      await downloadBulkTemplate(Endpoint.BULK_STAFF_TEMPLATE, "staff-bulk-import-template.csv");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to download template");
+    }
   };
 
   return (
@@ -214,8 +226,14 @@ const AddNewStaffBulkDialog: React.FC<AddNewStaffBulkDialogProps> = ({ open, onC
           </Box>
         </Box>
 
+        <ImportErrorsTable
+          successCount={importSuccessCount}
+          failedCount={importErrors.length}
+          errors={importErrors}
+        />
+
         {/* Buttons */}
-        <Stack direction="row" spacing={2} justifyContent="flex-end">
+        <Stack direction="row" spacing={2} justifyContent="flex-end" flexWrap="wrap" useFlexGap>
           <ThemeButton
             variant="outlined"
             onClick={onClose}
@@ -225,7 +243,7 @@ const AddNewStaffBulkDialog: React.FC<AddNewStaffBulkDialogProps> = ({ open, onC
               "&:hover": { borderColor: "#5B3FB4", color: "#5B3FB4" },
             }}
           >
-            Cancel
+            {importErrors.length > 0 ? "Close" : "Cancel"}
           </ThemeButton>
           <ThemeButton
             disabled={!file || !selectedRole || !companyName || isLoading}
@@ -244,7 +262,7 @@ const AddNewStaffBulkDialog: React.FC<AddNewStaffBulkDialogProps> = ({ open, onC
           </ThemeButton>
           <ThemeButton
             variant="outlined"
-            onClick={handleDownloadSample}
+            onClick={handleDownloadTemplateClick}
             sx={{
               borderColor: "#7F56D9",
               color: "#7F56D9",
@@ -257,8 +275,29 @@ const AddNewStaffBulkDialog: React.FC<AddNewStaffBulkDialogProps> = ({ open, onC
           >
             Download Sample CSV
           </ThemeButton>
+          <ThemeButton
+            variant="outlined"
+            onClick={() => setHistoryOpen(true)}
+            sx={{
+              borderColor: "#7F56D9",
+              color: "#7F56D9",
+              fontWeight: 600,
+              fontSize: 16,
+              borderRadius: 2,
+              py: 1.2,
+              "&:hover": { borderColor: "#5B3FB4", color: "#5B3FB4" },
+            }}
+          >
+            Import History
+          </ThemeButton>
         </Stack>
       </Box>
+      <ImportHistoryDialog
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        module="staff"
+        title="Staff Import History"
+      />
     </CustomDialog>
   );
 };

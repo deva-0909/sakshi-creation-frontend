@@ -9,6 +9,10 @@ import CustomDialog from "@/component/customdialog";
 import ThemeInput from "@/component/common_component/themeinput";
 import ThemeSelect from "@/component/common_component/themeselect";
 import ThemeButton from "@/component/common_component/themebutton";
+import ImportErrorsTable, { ImportRowError } from "@/component/bulkImport/ImportErrorsTable";
+import ImportHistoryDialog from "@/component/bulkImport/ImportHistoryDialog";
+import { downloadBulkTemplate } from "@/utils/downloadTemplate";
+import Endpoint from "@/API/apiConfig";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   createAccountMasterThunk,
@@ -115,6 +119,9 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
   const [inputValue, setInputValue] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [hasReference, setHasReference] = useState("no");
+  const [importErrors, setImportErrors] = useState<ImportRowError[]>([]);
+  const [importSuccessCount, setImportSuccessCount] = useState(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const isEditMode = !!accountId;
 
   const currentUser = authService.getUser();
@@ -123,6 +130,9 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
     if (open) {
       dispatch(clearSuccessMessage());
       dispatch(clearError());
+      setFile(null);
+      setImportErrors([]);
+      setImportSuccessCount(0);
     }
   }, [open, dispatch]);
 
@@ -210,17 +220,12 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
   //   }
   // }, [isEditMode, formik.values.reference]);
 
-  const handleDownloadSample = () => {
-    const csvContent = `partyName,ownerName,ownerMobileNo,ownerWhatsAppNo,ownerEmail,contactPerson,personMobileNo,personWhatsAppNo,contactPersonEmail,contactForPayment,contactMobileNo,contactWhatsAppNo,contactForPaymentEmail,GSTNo,unitNo,marketName,streetAddress,landMark,area,pincode,reasonToVisit,reference,isRequestMode\nTest Party 1,John Doe,9876543210,9876543210,john.doe@example.com,Jane Smith,9123456789,9123456789,jane.smith@example.com,Payment Contact,9123456780,9123456780,payment@example.com,22AAAAA0000A1Z5,Unit 101,Market A,Street 1,Near Park,Area A,400001,Visit,Ref123,FALSE\nTest Party 2,Mary Jane,8765432109,8765432109,mary.jane@example.com,Tom Brown,9234567890,9234567890,tom.brown@example.com,Payment Contact 2,9234567880,9234567880,payment2@example.com,22AAAAA0000A1Z6,Unit 102,Market B,Street 2,Near Mall,Area B,400002,Order,Ref456,TRUE`;
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", "bulk_upload_template.csv");
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownloadTemplateClick = async () => {
+    try {
+      await downloadBulkTemplate(Endpoint.BULK_ACCOUNT_MASTER_TEMPLATE, "accountMaster-bulk-import-template.csv");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to download template");
+    }
   };
 
   useEffect(() => {
@@ -905,22 +910,36 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
                 )}
               </Box>
 
-              <Box display="flex" gap={2} alignItems="center" justifyContent="center" mt={2}>
+              <ImportErrorsTable
+                successCount={importSuccessCount}
+                failedCount={importErrors.length}
+                errors={importErrors}
+              />
+
+              <Box display="flex" gap={2} alignItems="center" justifyContent="center" mt={2} flexWrap="wrap">
                 <ThemeButton
                   disabled={!formik.values.companyName || !formik.values.createdBy || !file}
                   onClick={async () => {
                     if (file) {
                       setIsLoading(true);
+                      setImportErrors([]);
                       try {
                         const formData = new FormData();
                         formData.append("file", file);
                         formData.append("companyName", formik.values.companyName);
                         formData.append("createdBy", formik.values.createdBy);
-                        await dispatch(bulkCreateAccountMastersThunk(formData)).unwrap();
-                        toast.success("Bulk upload completed successfully");
+                        const result = await dispatch(bulkCreateAccountMastersThunk(formData)).unwrap();
+                        const errors = result.errors || [];
+                        setImportErrors(errors);
+                        setImportSuccessCount(result.count || 0);
                         if (refreshData) refreshData();
                         setFile(null);
-                        onClose();
+                        // Keep the dialog open when some rows failed, so the
+                        // user can see which rows to fix; only close on a
+                        // fully clean import.
+                        if (errors.length === 0) {
+                          onClose();
+                        }
                       } catch (err: any) {
                         toast.error(err.message || "Bulk upload failed");
                       } finally {
@@ -948,10 +967,17 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
                 )}
                 <ThemeButton
                   variant="outlined"
-                  onClick={handleDownloadSample}
+                  onClick={handleDownloadTemplateClick}
                   sx={{ minWidth: 180 }}
                 >
                   Download Sample CSV
+                </ThemeButton>
+                <ThemeButton
+                  variant="outlined"
+                  onClick={() => setHistoryOpen(true)}
+                  sx={{ minWidth: 180 }}
+                >
+                  Import History
                 </ThemeButton>
               </Box>
             </Box>
@@ -970,6 +996,14 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
           )}
         </Box>
       </Box>
+      {isBulkUpload && (
+        <ImportHistoryDialog
+          open={historyOpen}
+          onClose={() => setHistoryOpen(false)}
+          module="accountMaster"
+          title="Account Master Import History"
+        />
+      )}
     </CustomDialog>
   );
 };

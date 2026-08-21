@@ -3,6 +3,10 @@ import { Box, Typography, Stack } from '@mui/material';
 import { toast } from 'react-toastify';
 import CustomDialog from '@/component/customdialog';
 import ThemeButton from '@/component/common_component/themebutton';
+import ImportErrorsTable, { ImportRowError } from '@/component/bulkImport/ImportErrorsTable';
+import ImportHistoryDialog from '@/component/bulkImport/ImportHistoryDialog';
+import { downloadBulkTemplate } from '@/utils/downloadTemplate';
+import Endpoint from '@/API/apiConfig';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   bulkCreateMaterialsThunk,
@@ -25,6 +29,9 @@ const AddNewMaterialBulkDialog: React.FC<AddNewMaterialBulkDialogProps> = ({
   const { loading, error, successMessage } = useAppSelector((state) => state.materials);
   const [isLoading, setIsLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [importErrors, setImportErrors] = useState<ImportRowError[]>([]);
+  const [importSuccessCount, setImportSuccessCount] = useState(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const handleSubmit = async () => {
     if (!file) {
@@ -33,19 +40,34 @@ const AddNewMaterialBulkDialog: React.FC<AddNewMaterialBulkDialogProps> = ({
     }
 
     setIsLoading(true);
+    setImportErrors([]);
     try {
       const formData = new FormData();
       formData.append('file', file);
 
-      await dispatch(bulkCreateMaterialsThunk(formData)).unwrap();
-      toast.success('Bulk material upload completed successfully');
+      const result = await dispatch(bulkCreateMaterialsThunk(formData)).unwrap();
+      const errors = result.errors || [];
+      setImportErrors(errors);
+      setImportSuccessCount(result.count || 0);
       if (refreshData) refreshData();
       setFile(null);
-      onClose();
+      // Keep the dialog open when some rows failed, so the user can see
+      // which rows to fix; only close on a fully clean import.
+      if (errors.length === 0) {
+        onClose();
+      }
     } catch (err: any) {
       toast.error(err.message || 'Bulk upload failed');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDownloadTemplateClick = async () => {
+    try {
+      await downloadBulkTemplate(Endpoint.BULK_MATERIAL_TEMPLATE, 'material-bulk-import-template.csv');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to download template');
     }
   };
 
@@ -54,6 +76,8 @@ const AddNewMaterialBulkDialog: React.FC<AddNewMaterialBulkDialogProps> = ({
       dispatch(clearSuccessMessage());
       dispatch(clearError());
       setFile(null);
+      setImportErrors([]);
+      setImportSuccessCount(0);
     }
   }, [open, dispatch]);
 
@@ -67,19 +91,6 @@ const AddNewMaterialBulkDialog: React.FC<AddNewMaterialBulkDialogProps> = ({
       dispatch(clearSuccessMessage());
     }
   }, [error, successMessage, dispatch]);
-
-  const handleDownloadSample = () => {
-    const csvContent = `materialName,materialSize,materialGSM\nPaper,A4,80\nCardboard,A3,120`;
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'bulk_material_template.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   return (
     <CustomDialog open={open} maxWidth="sm" onClose={onClose} title="Bulk Upload Materials">
@@ -149,7 +160,12 @@ const AddNewMaterialBulkDialog: React.FC<AddNewMaterialBulkDialogProps> = ({
             )}
           </Box>
         </Box>
-        <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end">
+        <ImportErrorsTable
+          successCount={importSuccessCount}
+          failedCount={importErrors.length}
+          errors={importErrors}
+        />
+        <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end" flexWrap="wrap" useFlexGap>
           <ThemeButton
             variant="outlined"
             onClick={onClose}
@@ -159,7 +175,7 @@ const AddNewMaterialBulkDialog: React.FC<AddNewMaterialBulkDialogProps> = ({
               '&:hover': { borderColor: '#7B06C2', color: '#7B06C2' },
             }}
           >
-            Cancel
+            {importErrors.length > 0 ? 'Close' : 'Cancel'}
           </ThemeButton>
           <ThemeButton
             disabled={!file || isLoading}
@@ -178,7 +194,7 @@ const AddNewMaterialBulkDialog: React.FC<AddNewMaterialBulkDialogProps> = ({
           </ThemeButton>
           <ThemeButton
             variant="outlined"
-            onClick={handleDownloadSample}
+            onClick={handleDownloadTemplateClick}
             sx={{
               borderColor: '#A409F8',
               color: '#A409F8',
@@ -191,8 +207,29 @@ const AddNewMaterialBulkDialog: React.FC<AddNewMaterialBulkDialogProps> = ({
           >
             Download Sample CSV
           </ThemeButton>
+          <ThemeButton
+            variant="outlined"
+            onClick={() => setHistoryOpen(true)}
+            sx={{
+              borderColor: '#A409F8',
+              color: '#A409F8',
+              fontWeight: 600,
+              fontSize: 16,
+              borderRadius: 2,
+              py: 1.2,
+              '&:hover': { borderColor: '#7B06C2', color: '#7B06C2' },
+            }}
+          >
+            Import History
+          </ThemeButton>
         </Stack>
       </Box>
+      <ImportHistoryDialog
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        module="material"
+        title="Material Import History"
+      />
     </CustomDialog>
   );
 };

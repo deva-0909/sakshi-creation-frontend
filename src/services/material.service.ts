@@ -29,6 +29,21 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+export interface ImportRowError {
+  row: number;
+  message: string;
+}
+
+// §77: the bulk-create endpoint's response now carries per-row outcomes
+// alongside the created records, instead of an all-or-nothing result.
+export interface BulkImportResponse<T> {
+  success: boolean;
+  message?: string;
+  count?: number;
+  errors?: ImportRowError[];
+  data?: T;
+}
+
 export const materialService = {
   async getMaterials(): Promise<ApiResponse<Material[]>> {
     try {
@@ -133,13 +148,13 @@ export const materialService = {
     }
   },
 
-  async bulkCreateMaterials(formData: FormData): Promise<ApiResponse<Material[]>> {
+  async bulkCreateMaterials(formData: FormData): Promise<BulkImportResponse<Material[]>> {
     try {
       const token = authService.getToken();
       if (!token) {
         throw new Error('No authentication token found');
       }
-      const response: AxiosResponse<ApiResponse<Material[]>> = await axios.post(
+      const response: AxiosResponse<BulkImportResponse<Material[]>> = await axios.post(
         Endpoint.BULK_CREATE_MATERIALS,
         formData,
         {

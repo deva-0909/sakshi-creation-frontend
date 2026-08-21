@@ -3,6 +3,10 @@ import { Box, Typography, Stack } from '@mui/material';
 import { toast } from 'react-toastify';
 import CustomDialog from '@/component/customdialog';
 import ThemeButton from '@/component/common_component/themebutton';
+import ImportErrorsTable, { ImportRowError } from '@/component/bulkImport/ImportErrorsTable';
+import ImportHistoryDialog from '@/component/bulkImport/ImportHistoryDialog';
+import { downloadBulkTemplate } from '@/utils/downloadTemplate';
+import Endpoint from '@/API/apiConfig';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   bulkCreateProductItemsThunk,
@@ -25,6 +29,9 @@ const AddNewProductBulkDialog: React.FC<AddNewProductBulkDialogProps> = ({
   const { loading, error, successMessage } = useAppSelector((state) => state.productItems);
   const [isLoading, setIsLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [importErrors, setImportErrors] = useState<ImportRowError[]>([]);
+  const [importSuccessCount, setImportSuccessCount] = useState(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const handleSubmit = async () => {
     if (!file) {
@@ -33,19 +40,34 @@ const AddNewProductBulkDialog: React.FC<AddNewProductBulkDialogProps> = ({
     }
 
     setIsLoading(true);
+    setImportErrors([]);
     try {
       const formData = new FormData();
       formData.append('file', file);
 
-      await dispatch(bulkCreateProductItemsThunk(formData)).unwrap();
-      toast.success('Bulk product upload completed successfully');
+      const result = await dispatch(bulkCreateProductItemsThunk(formData)).unwrap();
+      const errors = result.errors || [];
+      setImportErrors(errors);
+      setImportSuccessCount(result.count || 0);
       if (refreshData) refreshData();
       setFile(null);
-      onClose();
+      // Keep the dialog open when some rows failed, so the user can see
+      // which rows to fix; only close on a fully clean import.
+      if (errors.length === 0) {
+        onClose();
+      }
     } catch (err: any) {
       toast.error(err.message || 'Bulk upload failed');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDownloadTemplateClick = async () => {
+    try {
+      await downloadBulkTemplate(Endpoint.BULK_PRODUCT_ITEM_TEMPLATE, 'productItem-bulk-import-template.csv');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to download template');
     }
   };
 
@@ -54,6 +76,8 @@ const AddNewProductBulkDialog: React.FC<AddNewProductBulkDialogProps> = ({
       dispatch(clearProductItemSuccessMessage());
       dispatch(clearProductItemError());
       setFile(null);
+      setImportErrors([]);
+      setImportSuccessCount(0);
     }
   }, [open, dispatch]);
 
@@ -67,19 +91,6 @@ const AddNewProductBulkDialog: React.FC<AddNewProductBulkDialogProps> = ({
       dispatch(clearProductItemSuccessMessage());
     }
   }, [error, successMessage, dispatch]);
-
-  const handleDownloadSample = () => {
-    const csvContent = `itemName\n"Product One"\n"Product Two"`;
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'bulk_product_template.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   return (
     <CustomDialog open={open} maxWidth="sm" onClose={onClose} title="Bulk Upload Products">
@@ -149,7 +160,12 @@ const AddNewProductBulkDialog: React.FC<AddNewProductBulkDialogProps> = ({
             )}
           </Box>
         </Box>
-        <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end">
+        <ImportErrorsTable
+          successCount={importSuccessCount}
+          failedCount={importErrors.length}
+          errors={importErrors}
+        />
+        <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end" flexWrap="wrap" useFlexGap>
           <ThemeButton
             variant="outlined"
             onClick={onClose}
@@ -159,7 +175,7 @@ const AddNewProductBulkDialog: React.FC<AddNewProductBulkDialogProps> = ({
               '&:hover': { borderColor: '#7B06C2', color: '#7B06C2' },
             }}
           >
-            Cancel
+            {importErrors.length > 0 ? 'Close' : 'Cancel'}
           </ThemeButton>
           <ThemeButton
             disabled={!file || isLoading}
@@ -178,7 +194,7 @@ const AddNewProductBulkDialog: React.FC<AddNewProductBulkDialogProps> = ({
           </ThemeButton>
           <ThemeButton
             variant="outlined"
-            onClick={handleDownloadSample}
+            onClick={handleDownloadTemplateClick}
             sx={{
               borderColor: '#A409F8',
               color: '#A409F8',
@@ -191,8 +207,29 @@ const AddNewProductBulkDialog: React.FC<AddNewProductBulkDialogProps> = ({
           >
             Download Sample CSV
           </ThemeButton>
+          <ThemeButton
+            variant="outlined"
+            onClick={() => setHistoryOpen(true)}
+            sx={{
+              borderColor: '#A409F8',
+              color: '#A409F8',
+              fontWeight: 600,
+              fontSize: 16,
+              borderRadius: 2,
+              py: 1.2,
+              '&:hover': { borderColor: '#7B06C2', color: '#7B06C2' },
+            }}
+          >
+            Import History
+          </ThemeButton>
         </Stack>
       </Box>
+      <ImportHistoryDialog
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        module="productItem"
+        title="Product Import History"
+      />
     </CustomDialog>
   );
 };
