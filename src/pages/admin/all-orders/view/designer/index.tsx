@@ -19,6 +19,7 @@ import {
 } from "@mui/material"
 import { MdEmail, MdRemoveRedEye, MdArrowBack, MdClose, MdEdit, MdDelete } from "react-icons/md"
 import { AiOutlineEye } from "react-icons/ai"
+import { withAuthToken } from "@/utills/utills"
 import { FaWhatsapp } from "react-icons/fa6"
 import { useRouter } from "next/router"
 import { toast } from "react-toastify"
@@ -60,7 +61,7 @@ const DesignFile: React.FC<{
           window.open(`${BaseURL}/uploads/${file.path}`, "_blank")
         } else {
           // Fallback to download endpoint
-          window.open(`${BaseURL}/api/filedownload/download/${encodeURIComponent(file.path)}?view=true`, "_blank")
+          window.open(withAuthToken(`${BaseURL}/api/filedownload/download?filePath=${encodeURIComponent(file.path)}&view=true`), "_blank")
         }
       }
     } catch (error) {
@@ -143,7 +144,7 @@ const ReworkEntry: React.FC<{ entry: any }> = ({ entry }) => {
         if (file.path.startsWith("design/")) {
           viewUrl = `${BaseURL}/uploads/${file.path}`
         } else {
-          viewUrl = `${BaseURL}/api/filedownload/download/${encodeURIComponent(file.path)}?view=true`
+          viewUrl = withAuthToken(`${BaseURL}/api/filedownload/download?filePath=${encodeURIComponent(file.path)}&view=true`)
         }
       }
       window.open(viewUrl, "_blank")
@@ -1110,7 +1111,7 @@ const ViewOrderDesigner = () => {
         if (file.path.startsWith("design/")) {
           viewUrl = `${BaseURL}/uploads/${file.path}`
         } else {
-          viewUrl = `${BaseURL}/api/filedownload/download/${encodeURIComponent(file.path)}?view=true`
+          viewUrl = withAuthToken(`${BaseURL}/api/filedownload/download?filePath=${encodeURIComponent(file.path)}&view=true`)
         }
       }
       window.open(viewUrl, "_blank")
@@ -1463,7 +1464,7 @@ const ViewOrderDesigner = () => {
                           viewUrl = `${BaseURL}${file.path}`
                         } else {
                           // Fallback to download endpoint
-                          viewUrl = `${BaseURL}/api/filedownload/download/${encodeURIComponent(file.path)}?view=true`
+                          viewUrl = withAuthToken(`${BaseURL}/api/filedownload/download?filePath=${encodeURIComponent(file.path)}&view=true`)
                         }
 
                         window.open(viewUrl, "_blank")
@@ -1712,7 +1713,7 @@ const ViewOrderDesigner = () => {
                           if (file.path.startsWith("design/")) {
                             viewUrl = `${BaseURL}/uploads/${file.path}`
                           } else {
-                            viewUrl = `${BaseURL}/api/filedownload/download/${encodeURIComponent(file.path)}?view=true`
+                            viewUrl = withAuthToken(`${BaseURL}/api/filedownload/download?filePath=${encodeURIComponent(file.path)}&view=true`)
                           }
                         }
                         window.open(viewUrl, "_blank")
@@ -1781,7 +1782,7 @@ const ViewOrderDesigner = () => {
                               if (file.path.startsWith("design/")) {
                                 viewUrl = `${BaseURL}/Uploads/${file.path}`
                               } else {
-                                viewUrl = `${BaseURL}/api/filedownload/download/${encodeURIComponent(file.path)}?view=true`
+                                viewUrl = withAuthToken(`${BaseURL}/api/filedownload/download?filePath=${encodeURIComponent(file.path)}&view=true`)
                               }
                             }
                             window.open(viewUrl, "_blank")

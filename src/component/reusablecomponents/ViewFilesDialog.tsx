@@ -21,6 +21,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { authService } from "@/services/auth.service";
+import { withAuthToken } from "@/utills/utills";
 
 const BaseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8383";
 
@@ -121,7 +122,7 @@ const handleDownloadFile = async (filePath: string) => {
         window.open(`${BaseURL}/uploads/${filePath}`, '_blank');
       } else {
         window.open(
-          `${BaseURL}/api/filedownload/download/${encodeURIComponent(filePath)}?view=true`,
+          withAuthToken(`${BaseURL}/api/filedownload/download?filePath=${encodeURIComponent(filePath)}&view=true`),
           '_blank'
         );
       }

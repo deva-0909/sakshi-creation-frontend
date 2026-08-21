@@ -12,6 +12,7 @@ import { toast } from "react-toastify"
 import FileViewerModal from "@/component/FileViewerModal"
 import AddNewStaffBulkDialog from '@/component/AddNewStaffBulkDialog';
 import PasswordUpdateDialog from "@/component/PasswordUpdateDialog"
+import { withAuthToken } from "@/utills/utills"
 const tabLabels = ["Sakshi Creation", "Quality Packaging"]
 const columns = [
   { id: "name", label: "Staff" },
@@ -91,7 +92,7 @@ const StaffPage = () => {
       return
     }
 
-    const fileUrl = `${baseUrl}/api/fileDownload/download?filePath=${encodeURIComponent(filePath)}&view=true`
+    const fileUrl = withAuthToken(`${baseUrl}/api/fileDownload/download?filePath=${encodeURIComponent(filePath)}&view=true`)
 console.log("File URL:", fileUrl)
     let type: "image" | "pdf" | "other"
     if (["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(extension || "")) {
@@ -244,7 +245,7 @@ console.log("File URL:", fileUrl)
                         >
                           {["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(extension || "") ? (
                             <img
-                              src={`${process.env.NEXT_PUBLIC_API_URL}/api/fileDownload/download?filePath=${encodeURIComponent(filePath)}&view=true`}
+                              src={withAuthToken(`${process.env.NEXT_PUBLIC_API_URL}/api/fileDownload/download?filePath=${encodeURIComponent(filePath)}&view=true`)}
                               alt={fileName || "Image preview"}
                               style={{ width: 24, height: 24, objectFit: "cover", borderRadius: 4 }}
                             />
@@ -284,7 +285,7 @@ console.log("File URL:", fileUrl)
                         >
                           {["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(extension || "") ? (
                             <img
-                              src={`${process.env.NEXT_PUBLIC_API_URL}/api/fileDownload/download?filePath=${encodeURIComponent(filePath)}&view=true`}
+                              src={withAuthToken(`${process.env.NEXT_PUBLIC_API_URL}/api/fileDownload/download?filePath=${encodeURIComponent(filePath)}&view=true`)}
                               alt={fileName || "Image preview"}
                               style={{ width: 24, height: 24, objectFit: "cover", borderRadius: 4 }}
                             />

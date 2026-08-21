@@ -16,7 +16,7 @@ import { deleteFileThunk } from "@/store/slices/fileUploadSlice" // Import delet
 import CompanySelect from "@/component/reusablecomponents/CompanyWithPartyName"
 import FileUpload, { type FileUploadRef } from "@/component/reusablecomponents/FileUpload" // Adjust path if necessary
 import { ArrowBack, Delete, Password } from "@mui/icons-material" // Import Delete icon for chips
-import { decryptData } from "@/utills/utills"
+import { decryptData, withAuthToken } from "@/utills/utills"
 
 interface StaffFormData {
   firstName: string;
@@ -472,7 +472,7 @@ const handleEmailChange = (value: string) => {
                   key={index}
                   label={filePath.split("/").pop()} // Display filename
                   component="a"
-                  href={`${process.env.NEXT_PUBLIC_API_URL}/api/fileDownload/download?filePath=${encodeURIComponent(filePath)}&view=true`} // Assuming a download endpoint
+                  href={withAuthToken(`${process.env.NEXT_PUBLIC_API_URL}/api/fileDownload/download?filePath=${encodeURIComponent(filePath)}&view=true`)} // Assuming a download endpoint
                   target="_blank"
                   clickable
                   onDelete={() => handleDeleteExistingFile("aadhar", filePath)}
@@ -524,7 +524,7 @@ const handleEmailChange = (value: string) => {
                   key={index}
                   label={filePath.split("/").pop()} // Display filename
                   component="a"
-                  href={`${process.env.NEXT_PUBLIC_API_URL}/api/fileDownload/download?filePath=${encodeURIComponent(filePath)}&view=true`}
+                  href={withAuthToken(`${process.env.NEXT_PUBLIC_API_URL}/api/fileDownload/download?filePath=${encodeURIComponent(filePath)}&view=true`)}
                   target="_blank"
                   clickable
                   onDelete={() => handleDeleteExistingFile("address", filePath)}

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Box, Typography, Button, CircularProgress, Paper, Stack, TextField } from "@mui/material"
 import { AiOutlineEye } from "react-icons/ai"
+import { withAuthToken } from "@/utills/utills"
 import ThemeInput from "@/component/common_component/themeinput"
 import ThemeButton from "@/component/common_component/themebutton"
 import ViewFilesDialog from "@/component/reusablecomponents/ViewFilesDialog"
@@ -165,7 +166,7 @@ const DesignerViewTask = () => {
       } else {
         // Fallback to download endpoint
         window.open(
-          `${BaseURL}/api/filedownload/download/${encodeURIComponent(file.path)}?view=true`,
+          withAuthToken(`${BaseURL}/api/filedownload/download?filePath=${encodeURIComponent(file.path)}&view=true`),
           '_blank'
         );
       }
@@ -419,9 +420,7 @@ const DesignerViewTask = () => {
                         startIcon={<AiOutlineEye />}
                         onClick={() => {
                           const BaseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8383"
-                          const viewUrl = `${BaseURL}/api/filedownload/download/${encodeURIComponent(
-                            file.path,
-                          )}?view=true`
+                          const viewUrl = withAuthToken(`${BaseURL}/api/filedownload/download?filePath=${encodeURIComponent(file.path)}&view=true`)
                           window.open(viewUrl, "_blank")
                         }}
                         sx={{

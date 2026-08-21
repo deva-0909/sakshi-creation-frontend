@@ -103,3 +103,17 @@ export const decryptData = (ciphertext: any) => {
     return "Decryption failed";
   }
 };
+
+// The backend now requires auth on file-download/view URLs
+// (/api/filedownload/...). Those URLs are opened via window.open, <img
+// src>, and <a href> throughout the app, which can't attach an
+// Authorization header — so the backend also accepts the token as a
+// `?token=` query param on that route (see authenticateTokenOrQuery in
+// the backend's middleware/auth.js). This helper appends it consistently.
+export const withAuthToken = (url: string): string => {
+  if (typeof window === "undefined") return url;
+  const token = localStorage.getItem("auth_token");
+  if (!token) return url;
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}token=${encodeURIComponent(token)}`;
+};
