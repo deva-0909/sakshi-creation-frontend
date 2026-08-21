@@ -23,7 +23,7 @@ import {
 } from "@/store/slices/accountMasterSlice";
 import { getAllStaffThunk } from "@/store/slices/staffSlice";
 import CompanySelect from "./reusablecomponents/CompanyWithPartyName";
-import type { PartySuggestion } from "@/types/partySuggestion" // Import PartySuggestion type
+import type { PartySuggestion } from "@/services/accountMaster.service" // Import PartySuggestion type
 import { authService } from "@/services/auth.service";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
@@ -233,6 +233,9 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
 
         if (isEditMode && accountId) {
           const result = await dispatch(getAccountMasterByIdThunk(accountId)).unwrap();
+          if (!result) {
+            return;
+          }
           formik.setValues({
             companyName: result.companyName || "",
             partyName: result.partyName || "",
@@ -302,7 +305,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
   const staffOptions = isRequestMode
     ? []
     : staffList
-        .filter((staff) => staff.role.roleName === "Sales Staff")
+        .filter((staff) => staff.role?.roleName === "Sales Staff")
         .map((staff) => ({
           label: staff.name,
           value: staff.id,
@@ -335,7 +338,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
         }),
       ).unwrap()
 
-      const partyData = response.data?.party || response.accountMaster?.party
+      const partyData = response.accountMaster?.party
       if (partyData) {
         formik.setValues({
           ...formik.values,
@@ -367,7 +370,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
       } else {
         toast.error("No party data found in response")
       }
-    } catch (err) {
+    } catch (err: any) {
       toast.error("Failed to load party details: " + err.message)
     }
   }
@@ -428,7 +431,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
                 error={formik.touched.partyName && Boolean(formik.errors.partyName)}
                 helperText={formik.touched.partyName && formik.errors.partyName}
                 autocomplete
-                options={partyOptions.map((option) => `${option.partyName} - ${option.address.unitNo}, ${option.address.marketName}`)}
+                options={partyOptions.map((option) => `${option.partyName} - ${option.address?.unitNo}, ${option.address?.marketName}`) as any}
                 onOptionSelect={async (selectedValue) => {
                   const selectedPartyName = selectedValue.split(" - ")[0];
                   formik.setFieldValue("partyName", selectedPartyName)

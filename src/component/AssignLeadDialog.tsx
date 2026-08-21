@@ -140,7 +140,7 @@ const AssignLeadDialog: React.FC<AssignLeadDialogProps> = ({ open, onClose, lead
         });
 
             // Dispatch bulk create and handle response
-            const response = await dispatch(bulkCreateLeadsThunk(leadsData)).unwrap();
+            const response: any = await dispatch(bulkCreateLeadsThunk(leadsData)).unwrap();
             console.log("Bulk Create Response:", response);
 
             // Check for errors in the response
@@ -185,18 +185,18 @@ const AssignLeadDialog: React.FC<AssignLeadDialogProps> = ({ open, onClose, lead
 
         const staffOptions = useMemo(() => {
         const currentAssignedTo = lead?._id && formik.values.assignedTo
-            ? staffList.find((staff) => staff._id === formik.values.assignedTo)
+            ? staffList.find((staff) => (staff as any)._id === formik.values.assignedTo)
             : null;
 
         const filteredStaff = staffList.filter((staff) => {
             const isSalesStaff = staff.role?.roleName === 'Sales Staff';
-            const isCurrentAssignedTo = currentAssignedTo && staff._id === currentAssignedTo._id;
+            const isCurrentAssignedTo = currentAssignedTo && (staff as any)._id === (currentAssignedTo as any)._id;
             return isSalesStaff || isCurrentAssignedTo;
         });
 
         return filteredStaff.map((staff) => ({
             label: staff.name,
-            value: staff._id,
+            value: (staff as any)._id,
         }));
     }, [staffList, lead?._id, formik.values.assignedTo]);
 
@@ -321,7 +321,7 @@ const AssignLeadDialog: React.FC<AssignLeadDialogProps> = ({ open, onClose, lead
         const createdById = selectedParty?.createdBy?._id || "";
         if (createdById) {
             const isSalesStaff = staffList.find(
-                (staff) => staff._id === createdById && staff.role?.roleName === "Sales Staff"
+                (staff) => (staff as any)._id === createdById && staff.role?.roleName === "Sales Staff"
             );
             if (isSalesStaff) {
                 formik.setFieldValue('assignedTo', createdById);
@@ -501,7 +501,7 @@ const AssignLeadDialog: React.FC<AssignLeadDialogProps> = ({ open, onClose, lead
                         </Box>
                         {formik.submitCount > 0 && formik.errors.reason && (
                             <Typography color="error" fontSize={12} mt={1}>
-                                {formik.errors.reason}
+                                {String(formik.errors.reason)}
                             </Typography>
                         )}
                     </Box>
@@ -527,10 +527,10 @@ const AssignLeadDialog: React.FC<AssignLeadDialogProps> = ({ open, onClose, lead
                                 labelName="Reschedule Date"
                                 type="date"
                                 value={formik.values.rescheduleDate}
-                                onChange={formik.handleChange}
+                                onChange={(e) => formik.handleChange(e)}
                                 name="rescheduleDate"
                                 error={formik.submitCount > 0 && Boolean(formik.errors.rescheduleDate)}
-                                helperText={formik.submitCount > 0 && formik.errors.rescheduleDate}
+                                helperText={formik.submitCount > 0 && (formik.errors.rescheduleDate as string)}
                                 fullWidth
                                 required
                                 />
@@ -540,10 +540,10 @@ const AssignLeadDialog: React.FC<AssignLeadDialogProps> = ({ open, onClose, lead
                                 <ThemeInput
                                     labelName="Call Feedback"
                                     value={formik.values.callFeedback}
-                                    onChange={formik.handleChange}
+                                    onChange={(e) => formik.handleChange(e)}
                                     name="callFeedback"
                                     error={formik.submitCount > 0 && Boolean(formik.errors.callFeedback)}
-                                    helperText={formik.submitCount > 0 && formik.errors.callFeedback}
+                                    helperText={formik.submitCount > 0 && (formik.errors.callFeedback as string)}
                                     fullWidth
                                     multiline
                                     rows={3}

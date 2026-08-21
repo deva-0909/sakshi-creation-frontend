@@ -13,7 +13,6 @@ import {
   getPurchaseByIdThunk,
   clearSuccessMessage,
   clearError,
-  getPurchaseEnumsThunk,
 } from '@/store/slices/purchaseSlice';
 import Swal from 'sweetalert2';
 
@@ -57,7 +56,7 @@ const validationSchema = Yup.object({
 
 const PurchaseDialog: React.FC<PurchaseDialogProps> = ({ open, onClose, purchaseId, refreshData }) => {
   const dispatch = useAppDispatch();
-  const { purchaseEnums, singlePurchase, loading, error, successMessage } = useAppSelector(
+  const { singlePurchase, loading, error, successMessage } = useAppSelector(
     (state) => state.purchase
   );
   const [isLoading, setIsLoading] = useState(false);
@@ -156,7 +155,6 @@ const PurchaseDialog: React.FC<PurchaseDialogProps> = ({ open, onClose, purchase
     if (open) {
       dispatch(clearError());
       dispatch(clearSuccessMessage());
-      dispatch(getPurchaseEnumsThunk());
 
       if (isEditMode && purchaseId) {
         dispatch(getPurchaseByIdThunk(purchaseId));
@@ -169,17 +167,17 @@ const PurchaseDialog: React.FC<PurchaseDialogProps> = ({ open, onClose, purchase
   useEffect(() => {
     if (isEditMode && singlePurchase && purchaseId === singlePurchase._id) {
       formik.setValues({
-        vendorName: singlePurchase.vendorName || '',
+        vendorName: (singlePurchase.vendorName as any) || '',
         billNumber: singlePurchase.billNumber || '',
-        material: singlePurchase.material || '',
-        size: singlePurchase.size || '',
+        material: (singlePurchase.material as any) || '',
+        size: (singlePurchase as any).size || '',
         quantity: singlePurchase.quantity?.toString() || '',
-        gsm: singlePurchase.gsm?.toString() || '',
+        gsm: (singlePurchase as any).gsm?.toString() || '',
         ratePerSheet: singlePurchase.ratePerSheet?.toString() || '',
         kg: singlePurchase.kg?.toString() || '',
-        companyName: singlePurchase.companyName || '',
-        for: singlePurchase.for || '',
-        forCompany: singlePurchase.forCompany || '',
+        companyName: (singlePurchase.companyName as any) || '',
+        for: (singlePurchase.for as any) || '',
+        forCompany: (singlePurchase.forCompany as any) || '',
       });
     }
   }, [singlePurchase, isEditMode, purchaseId]);

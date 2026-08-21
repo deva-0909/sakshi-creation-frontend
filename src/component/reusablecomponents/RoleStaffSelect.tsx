@@ -124,20 +124,25 @@ const RoleStaffSelect: React.FC<RoleStaffSelectProps> = ({
     );
   }
 
+  // NOTE: `noOptionsMessage` is not part of ThemeSelectProps (see
+  // src/component/common_component/themeselect/index.tsx, outside this
+  // file's scope). Cast to preserve existing runtime behavior while typing.
+  const themeSelectProps: React.ComponentProps<typeof ThemeSelect> & { noOptionsMessage?: () => string } = {
+    label,
+    options: staffOptions,
+    value: selectedStaffValue,
+    onChange: showStaff ? onStaffChange : onChange,
+    name,
+    error: showStaff ? error || staffError : error,
+    helperText: showStaff ? helperText || staffHelperText : helperText,
+    required,
+    disabled: disabled || staffOptions.length === 0,
+    noOptionsMessage: () => "No staff members found",
+  };
+
   return (
     <Box width="100%">
-      <ThemeSelect
-        label={label}
-        options={staffOptions}
-        value={selectedStaffValue}
-        onChange={showStaff ? onStaffChange : onChange}
-        name={name}
-        error={showStaff ? error || staffError : error}
-        helperText={showStaff ? helperText || staffHelperText : helperText}
-        required={required}
-        disabled={disabled || staffOptions.length === 0}
-        noOptionsMessage={() => "No staff members found"}
-      />
+      <ThemeSelect {...(themeSelectProps as React.ComponentProps<typeof ThemeSelect>)} />
     </Box>
   );
 };

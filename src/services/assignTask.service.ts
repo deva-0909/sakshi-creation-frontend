@@ -20,12 +20,13 @@ export interface User {
 
 export interface AssignTask {
   _id: string;
-  companyName: string;
-  partyName: string;
+  companyName: string | { _id: string; companyName: string };
+  partyName: string | { _id: string; partyName: string; address?: Address; ownerName?: string; personMobileNo?: string };
   date: string;
   time: string;
   reasonForVisit: string;
-  assignTo: string;
+  remarks?: string;
+  assignTo: string | { _id: string; firstName: string; lastName: string };
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -142,13 +143,13 @@ export const assignTaskService = {
       throw new Error(error.response?.data?.message || 'Failed to fetch assigned task');
     }
   },
-  async getAssignTaskByStaffId(id: string): Promise<ApiResponse<AssignTask>> {
+  async getAssignTaskByStaffId(id: string): Promise<ApiResponse<AssignTask[]>> {
     try {
       const token = authService.getToken();
       if (!token) {
         throw new Error('No authentication token found');
       }
-      const response: AxiosResponse<ApiResponse<AssignTask>> = await axios.get(
+      const response: AxiosResponse<ApiResponse<AssignTask[]>> = await axios.get(
         `${Endpoint.GET_ASSIGN_TASK_BY_STAFF_ID}/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },

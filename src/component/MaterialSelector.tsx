@@ -188,7 +188,7 @@ const MaterialSelector: React.FC<MaterialSelectorProps> = ({
     return errors
   }
 
-  const getStockStatus = (available: number, used: number) => {
+  const getStockStatus = (available: number, used: string) => {
     const remaining = available - Number.parseInt(used || "0")
     if (remaining < 0) return { color: "error", text: "Insufficient Stock" }
     if (remaining < 50) return { color: "warning", text: "Low Stock" }
@@ -258,7 +258,7 @@ const MaterialSelector: React.FC<MaterialSelectorProps> = ({
                 label="Material Name"
                 options={materialNameOptions}
                 value={materialNameOptions.find((opt) => opt.value === field.materialName) || null}
-                onChange={(e, newValue) => handleFieldChange(index, "materialName", newValue?.value || "")}
+                onChange={(e, newValue) => handleFieldChange(index, "materialName", (newValue?.value as string) || "")}
                 fullWidth
                 disabled={readOnly}
               />
@@ -267,7 +267,7 @@ const MaterialSelector: React.FC<MaterialSelectorProps> = ({
                 label="GSM"
                 options={getMaterialGSMOptions(field.materialName)}
                 value={getMaterialGSMOptions(field.materialName).find((opt) => opt.value === field.materialGSM) || null}
-                onChange={(e, newValue) => handleFieldChange(index, "materialGSM", newValue?.value || "")}
+                onChange={(e, newValue) => handleFieldChange(index, "materialGSM", (newValue?.value as string) || "")}
                 fullWidth
                 disabled={readOnly || !field.materialName}
               />
@@ -280,7 +280,7 @@ const MaterialSelector: React.FC<MaterialSelectorProps> = ({
                     (opt) => opt.value === field.materialSize,
                   ) || null
                 }
-                onChange={(e, newValue) => handleFieldChange(index, "materialSize", newValue?.value || "")}
+                onChange={(e, newValue) => handleFieldChange(index, "materialSize", (newValue?.value as string) || "")}
                 fullWidth
                 disabled={readOnly || !field.materialGSM}
               />

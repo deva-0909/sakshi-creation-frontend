@@ -13,7 +13,7 @@ interface UserData {
   firstName: string;
   lastName: string;
   email: string;
-  role: 'Admin' | 'Staff';
+  role: string;
 }
 
 interface LoginResponse {
@@ -94,8 +94,8 @@ const LoginPage: React.FC = () => {
 
         // Store in authService and Redux
         authService.setToken(token);
-        authService.setUser(user);
-        dispatch(setAuth({ token, user }));
+        authService.setUser(user as any);
+        dispatch(setAuth({ token, user: user as any }));
 
         // Debug: Log stored values
         console.log('Cookies - auth_token:', Cookies.get('auth_token'));

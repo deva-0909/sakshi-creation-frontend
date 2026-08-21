@@ -62,7 +62,6 @@ const permissionMapping: { [key: string]: string } = {
   Staff: "reports.staff",
   // Sub-menu items for Setup
   "Add Role": "setup.role",
-  Staff: "setup.staff",
   Products: "setup.products",
   "Paper Material": "setup.paper-material",
   "Company Name": "setup.company-name",
@@ -204,7 +203,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
 
           return hasPermission ? item : null;
         })
-        .filter(Boolean);
+        .filter((item): item is NonNullable<typeof item> => item !== null);
 
       setFilteredMenuItems(filteredItems);
     }
@@ -440,7 +439,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
                   <Tooltip title={!drawerOpen ? item.label : ""} placement="right">
                     <ListItem disablePadding sx={{ mb: 0.5 }}>
                       <ListItemButton
-                        selected={router.pathname === item.path || (item.path && router.pathname.startsWith(item.path + "/"))}
+                        selected={router.pathname === item.path || Boolean(item.path && router.pathname.startsWith(item.path + "/"))}
                         onClick={async () => {
                           if (item.label === "Setup") {
                             setActiveSubSidebar("setup");

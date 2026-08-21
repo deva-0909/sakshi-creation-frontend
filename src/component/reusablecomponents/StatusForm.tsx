@@ -190,22 +190,30 @@ const StatusSelect: React.FC<StatusSelectProps> = ({
     )
   }
 
+  // NOTE: `fullWidth` and `renderOption` are not part of ThemeSelectProps
+  // (see src/component/common_component/themeselect/index.tsx, outside this
+  // file's scope). Cast to preserve existing runtime behavior while typing.
+  const themeSelectProps: React.ComponentProps<typeof ThemeSelect> & {
+    fullWidth?: boolean
+    renderOption?: (props: any, option: any) => React.ReactNode
+  } = {
+    label: labelName,
+    options,
+    value: selectedValue,
+    onChange: handleChange,
+    name,
+    error,
+    helperText: helperText || statusError,
+    required,
+    disabled: disabled || loading,
+    placeholder,
+    fullWidth,
+    renderOption: showColor || showDefault ? renderOption : undefined,
+  }
+
   return (
     <Box sx={sx}>
-      <ThemeSelect
-        label={labelName}
-        options={options}
-        value={selectedValue}
-        onChange={handleChange}
-        name={name}
-        error={error}
-        helperText={helperText || statusError}
-        required={required}
-        disabled={disabled || loading}
-        placeholder={placeholder}
-        fullWidth={fullWidth}
-        renderOption={showColor || showDefault ? renderOption : undefined}
-      />
+      <ThemeSelect {...(themeSelectProps as React.ComponentProps<typeof ThemeSelect>)} />
     </Box>
   )
 }

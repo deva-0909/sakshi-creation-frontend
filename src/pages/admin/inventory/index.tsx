@@ -57,6 +57,7 @@ const styles = {
 } satisfies Record<string, SxProps<Theme>>;
 
 interface AggregatedInventory {
+  id: string;
   printerId: string;
   printerName: string;
   materialId: string;
@@ -122,6 +123,7 @@ const aggregateInventory = (): AggregatedInventory[] => {
     
     if (!aggregated[key]) {
       aggregated[key] = {
+        id: key,
         printerId: item.forCompany._id,
         printerName: `${item.forCompany.firstName} ${item.forCompany.lastName}`,
         materialId: item.material._id,
@@ -239,7 +241,7 @@ const aggregateInventory = (): AggregatedInventory[] => {
               { id: 'date', label: 'DATE' },
               { id: 'vendor', label: 'VENDOR' },
             ]}
-            rowData={filteredInventory}
+            rowData={filteredInventory.map(item => ({ ...item, id: item._id }))}
             renderRow={(row) => (
               <>
                 <TableCell>{row.material?.materialName || 'N/A'}</TableCell>
@@ -398,10 +400,10 @@ const aggregateInventory = (): AggregatedInventory[] => {
                   { id: 'date', label: 'DATE IN WARD' },
                   { id: 'vendor', label: 'VENDOR' },
                 ]}
-                rowData={filteredInventory.filter(item => 
+                rowData={filteredInventory.filter(item =>
                   item.forCompany?._id === selectedPrinter?.printerId &&
                   item.material?._id === selectedPrinter?.materialId
-                )}
+                ).map(item => ({ ...item, id: item._id }))}
                 showDatePicker={false}
                 showSearch={false}
                 showFillter={false}

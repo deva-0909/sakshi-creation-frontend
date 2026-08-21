@@ -199,6 +199,7 @@ const PerformanceInvoicePage: React.FC = () => {
         open={open}
         onClose={handleDialogClose}
         invoiceId={editId ?? undefined}
+        orderId=""
         refreshData={() => dispatch(getAllPerformanceInvoicesThunk())}
       />
     </>

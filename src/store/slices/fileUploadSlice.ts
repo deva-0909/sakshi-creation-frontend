@@ -35,7 +35,7 @@ export const uploadSingleFileThunk = createAsyncThunk(
       const response = await fileUploadService.uploadSingleFile(file, folder)
       console.log("Upload Single File Response:", response)
 
-      if (response.success) {
+      if (response.success && response.data) {
         return response.data
       } else {
         return rejectWithValue(response.message || "Failed to upload file")
@@ -55,7 +55,7 @@ export const uploadMultipleFilesThunk = createAsyncThunk(
       const response = await fileUploadService.uploadMultipleFiles(files, folder)
       console.log("Upload Multiple Files Response:", response)
 
-      if (response.success) {
+      if (response.success && response.data) {
         return response.data
       } else {
         return rejectWithValue(response.message || "Failed to upload files")

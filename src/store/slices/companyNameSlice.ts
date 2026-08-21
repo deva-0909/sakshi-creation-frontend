@@ -25,7 +25,7 @@ export const createCompanyNameThunk = createAsyncThunk(
   async (data: CreateCompanyNameData, { rejectWithValue }) => {
     try {
       const response = await companyNameService.createCompanyName(data);
-      if (response.success) {
+      if (response.success && response.data) {
         return response.data;
       } else {
         return rejectWithValue(response.message || "Failed to create company name");
@@ -79,7 +79,7 @@ export const updateCompanyNameThunk = createAsyncThunk(
   async ({ id, data }: { id: string; data: Partial<CreateCompanyNameData> }, { rejectWithValue }) => {
     try {
       const response = await companyNameService.updateCompanyName(id, data);
-      if (response.success) {
+      if (response.success && response.data) {
         return response.data;
       } else {
         return rejectWithValue(response.message || "Failed to update company name");

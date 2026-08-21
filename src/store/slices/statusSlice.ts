@@ -69,7 +69,7 @@ export const createStatusThunk = createAsyncThunk(
       const response = await statusService.createStatus(type, data)
       console.log(`Redux: Create ${type} status response:`, response)
 
-      if (response.success) {
+      if (response.success && response.data) {
         return { type, data: response.data }
       } else {
         return rejectWithValue(response.message || `Failed to create ${type} status`)
@@ -147,7 +147,7 @@ export const updateStatusThunk = createAsyncThunk(
       const response = await statusService.updateStatus(type, id, data)
       console.log(`Redux: Update ${type} status response:`, response)
 
-      if (response.success) {
+      if (response.success && response.data) {
         return { type, data: response.data }
       } else {
         return rejectWithValue(response.message || `Failed to update ${type} status`)

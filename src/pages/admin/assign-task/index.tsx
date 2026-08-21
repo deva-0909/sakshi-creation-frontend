@@ -274,7 +274,7 @@ const AssignTaskPage: React.FC = () => {
     // Apply date range filter
     if (startDate || endDate) {
       filtered = filtered.filter((task) => {
-        const taskDate = new Date(task.date);
+        const taskDate = new Date(task.date).getTime();
         const start = startDate
           ? new Date(startDate).setHours(0, 0, 0, 0)
           : null;
@@ -289,8 +289,8 @@ const AssignTaskPage: React.FC = () => {
     if (searchQuery.trim()) {
       filtered = filtered.filter((task) =>
         [
-          task.partyName?.partyName,
-          task.companyName?.companyName,
+          typeof task.partyName === "object" ? task.partyName?.partyName : task.partyName,
+          typeof task.companyName === "object" ? task.companyName?.companyName : task.companyName,
           task.reasonForVisit,
         ].some((value) =>
           value?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -367,7 +367,6 @@ const AssignTaskPage: React.FC = () => {
                 <ThemeChip
                   label="Rescheduled"
                   color="warning"
-                  size="small"
                   sx={{
                     mt: 0.5,
                     background: "#FFFAEB",
@@ -653,7 +652,6 @@ const AssignTaskPage: React.FC = () => {
                   <ThemeChip
                     label="Today"
                     color="success"
-                    size="small"
                     sx={{ ml: 1, background: "#3a43beff" }}
                   />
                 )}

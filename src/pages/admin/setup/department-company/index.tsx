@@ -236,22 +236,22 @@ const DepartmentCompany = () => {
   // Handle department selection change
   const handleDepartmentChange = (
     event: React.SyntheticEvent,
-    newValue: { value: string; label: string } | null
+    newValue: { value: string | number; label: string } | null
   ) => {
     setCompanyForm((prev) => ({
       ...prev,
-      roleDepartment: newValue?.value || '',
+      roleDepartment: newValue?.value != null ? String(newValue.value) : '',
     }));
   };
 
   // Handle company selection change
   const handleCompanyChange = (
     event: React.SyntheticEvent,
-    newValue: { value: string; label: string } | null
+    newValue: { value: string | number; label: string } | null
   ) => {
     setDepartmentForm((prev) => ({
       ...prev,
-      CompanyName: newValue?.value || '',
+      CompanyName: newValue?.value != null ? String(newValue.value) : '',
     }));
   };
 
@@ -385,11 +385,11 @@ const DepartmentCompany = () => {
           <Typography>Loading...</Typography>
         ) : (
           <BasicTable
-            showFilter={false}
+            showFillter={false}
             showDatePicker={false}
             showSearch={false}
             tableHeader={departmentTableHeader}
-            rowData={roleDepartments}
+            rowData={roleDepartments.map((dept: any) => ({ ...dept, id: dept._id }))}
             renderRow={(row: any, idx: number) => (
               <>
                 <TableCell>{idx + 1}</TableCell>
@@ -438,11 +438,11 @@ const DepartmentCompany = () => {
           <Typography>Loading...</Typography>
         ) : (
           <BasicTable
-            showFilter={false}
+            showFillter={false}
             showDatePicker={false}
             showSearch={false}
             tableHeader={companyTableHeader}
-            rowData={roleDepartmentCompanies}
+            rowData={roleDepartmentCompanies.map((c: any) => ({ ...c, id: c._id }))}
             renderRow={(row: any, idx: number) => (
               <>
                 <TableCell>{idx + 1}</TableCell>

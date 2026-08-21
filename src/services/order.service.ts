@@ -1,33 +1,12 @@
 import axios, { type AxiosResponse } from "axios";
 import Endpoint from "@/API/apiConfig";
 import { authService } from "./auth.service";
+// Order/PaperField live in orderSlice.ts (the fuller, canonical shape used
+// across all order-detail pages); imported here as types only so there's no
+// runtime circular dependency and no divergent duplicate definition.
+import type { Order, PaperField } from "@/store/slices/orderSlice";
 
-
-interface PaperField {
-  paperName: string;
-  numberOfSheetsUsed: string;
-  sheetSize: string;
-  paperType: string;
-  gsm: string;
-  ratePerUnit: string;
-}
-interface Order {
-  _id: string;
-  companyName: any;
-  party: any;
-  productItem: any;
-  qty: number;
-  remarks: string;
-  filePaths: string[];
-  status: string;
-  createdBy: any;
-  createdAt: string;
-  updatedAt: string;
-  printerPapers?: PaperField[];
-  binderPapers?: PaperField[];
-  bookletPapers?: PaperField[];
-
-}
+export type { Order, PaperField };
 
 interface CreateOrderData {
   companyName: string;

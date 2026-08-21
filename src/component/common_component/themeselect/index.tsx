@@ -28,6 +28,8 @@ interface ThemeSelectProps {
   size?: 'small' | 'medium';
   placeholder?: string;
   readOnly?: boolean;
+  fullWidth?: boolean;
+  onBlur?: (event: React.FocusEvent) => void;
 }
 
 const ThemeSelect: React.FC<ThemeSelectProps> = ({
@@ -44,6 +46,7 @@ const ThemeSelect: React.FC<ThemeSelectProps> = ({
   size = 'small',
   placeholder = '',
   readOnly = false,
+  onBlur,
 }) => {
   return (
     <Box sx={{ width: '100%', ...sx }}>
@@ -66,6 +69,7 @@ const ThemeSelect: React.FC<ThemeSelectProps> = ({
         disabled={disabled}
         size={size}
         readOnly={readOnly}
+        onBlur={onBlur}
         popupIcon={undefined}
         sx={{
           '& .MuiOutlinedInput-root': {

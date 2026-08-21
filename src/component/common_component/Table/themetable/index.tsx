@@ -38,6 +38,8 @@ interface BasicTableProps<T> {
   onSelectRow?: (id: string) => void;
   selectedRows?: string[];
   totalCount?: number; // Total number of orders from backend
+  resetPagination?: boolean;
+  setResetPagination?: (value: boolean) => void;
   pagination?: {
     currentPage: number;
     totalPages: number;
@@ -70,8 +72,8 @@ const BasicTable = <T extends { id: string }>({
   const [page, setPage] = useState(pagination.currentPage - 1 || 0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
-  const [startDate, setStartDate] = useState<string | null>(null);
-  const [endDate, setEndDate] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [selectedFilterField, setSelectedFilterField] = useState<string | null>(null);
   const [filters, setFilters] = useState<{ [key: string]: string[] }>({});
 
@@ -89,39 +91,39 @@ const BasicTable = <T extends { id: string }>({
       let key: keyof T;
       switch (col.label) {
         case "Company":
-          key = "company";
+          key = "company" as keyof T;
           break;
         case "Created Date":
         case "Date":
           key = "createdDate" as keyof T;
           break;
         case "Party":
-          key = "party";
+          key = "party" as keyof T;
           break;
         case "Contact Person":
-          key = "contactPerson";
+          key = "contactPerson" as keyof T;
           break;
         case "Party Tag":
-          key = "partyTag";
+          key = "partyTag" as keyof T;
           break;
         case "Mobile No.":
-          key = "mobile";
+          key = "mobile" as keyof T;
           break;
         case "Reason to Visit":
-          key = "reason";
+          key = "reason" as keyof T;
           break;
         case "Market":
         case "Market Name":
-          key = "market";
+          key = "market" as keyof T;
           break;
         case "Area":
-          key = "area";
+          key = "area" as keyof T;
           break;
         case "Remarks":
-          key = "remarks";
+          key = "remarks" as keyof T;
           break;
         case "Status":
-          key = "status";
+          key = "status" as keyof T;
           break;
         case "Created By":
         case "Assign By":
@@ -132,7 +134,7 @@ const BasicTable = <T extends { id: string }>({
           key = "assignedTo" as keyof T;
           break;
         case "Address":
-          key = "address";
+          key = "address" as keyof T;
           break;
         default:
           key = col.id as keyof T;
@@ -184,7 +186,7 @@ const BasicTable = <T extends { id: string }>({
         const rowDate = new Date((row as any).createdDate || (row as any).date);
         const start = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : null;
         const end = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
-        return (!start || rowDate >= start) && (!end || rowDate <= end);
+        return (!start || rowDate.getTime() >= start) && (!end || rowDate.getTime() <= end);
       });
     }
 

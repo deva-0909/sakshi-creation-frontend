@@ -189,7 +189,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ title, task, showStatusChip = true,
               <ThemeChip
                 label="Rescheduled"
                 color="warning"
-                size="small"
                 sx={{
                   mt: 0.5,
                   background: "#FFFAEB",
@@ -328,7 +327,7 @@ const ViewTaskPage: React.FC = () => {
     if (singleAssignTask && assignTasks.length > 0) {
       const fullTask = assignTasks.find((task) => task._id === singleAssignTask._id);
       console.log("🚀 ~ ViewTaskPage ~ fullTask:", fullTask);
-      const party = typeof fullTask?.partyName === 'object' ? fullTask.partyName : fullTask?.accountMaster?.party;
+      const party = typeof fullTask?.partyName === 'object' ? fullTask.partyName : (fullTask as any)?.accountMaster?.party;
       console.log("🚀 ~ ViewTaskPage ~ party:", party);
       const company = typeof fullTask?.companyName === 'object' ? fullTask.companyName : null;
 
@@ -340,7 +339,7 @@ const ViewTaskPage: React.FC = () => {
         address: party.address
           ? `${party.address.unitNo}, ${party.address.marketName}, ${party.address.streetAddress}, ${party.address.landMark || ''}, ${party.address.area} - ${party.address.pincode}`
           : 'Address not available',
-        createdByObj: fullTask?.createdBy || singleAssignTask?.createdBy,
+        createdByObj: (fullTask as any)?.createdBy || (singleAssignTask as any)?.createdBy,
         ownerMobileNo: party.ownerMobileNo || 'Not available',
         ownerName: party.ownerName || 'Unknown',
         ownerEmail :party.ownerEmail || 'Unknown',
@@ -387,7 +386,7 @@ const partyTasks = assignTasks.filter((task) => {
       if (!acc[taskDate]) {
         acc[taskDate] = [];
       }
-      acc[taskDate].push(task);
+      acc[taskDate].push(task as unknown as Task);
       return acc;
     }, {} as Record<string, Task[]>);
   }, [pendingTasks]);
@@ -398,7 +397,7 @@ const partyTasks = assignTasks.filter((task) => {
       if (!acc[taskDate]) {
         acc[taskDate] = [];
       }
-      acc[taskDate].push(task);
+      acc[taskDate].push(task as unknown as Task);
       return acc;
     }, {} as Record<string, Task[]>);
   }, [completedTasks]);
@@ -598,7 +597,6 @@ const partyTasks = assignTasks.filter((task) => {
                 <ThemeChip
                   label="Today"
                   color="success"
-                  size="small"
                   sx={{ ml: 1, background: '#3a43beff' }}
                 />
               )}

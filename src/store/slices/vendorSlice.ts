@@ -27,7 +27,10 @@ export const getVendorByIdThunk = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await vendorService.getVendorById(id);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || 'Failed to fetch vendor');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch vendor');
     }
@@ -78,7 +81,10 @@ export const bulkCreateVendorsThunk = createAsyncThunk(
   async (formData: FormData, { rejectWithValue }) => {
     try {
       const response = await vendorService.bulkCreateVendors(formData);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || 'Failed to bulk create vendors');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to bulk create vendors');
     }

@@ -13,12 +13,12 @@ import { useRouter } from "next/router"
 import { toast } from "react-toastify"
 
 type PaperField = {
-  paperName: string;
-  numberOfSheetsUsed: string;
-  sheetSize: string;
-  paperType: string;
-  gsm: string;
-  ratePerUnit: string;
+  paperName?: string;
+  numberOfSheetsUsed?: string;
+  sheetSize?: string;
+  paperType?: string;
+  gsm?: string;
+  ratePerUnit?: string;
 };
 
 const PrinterTaskView = () => {

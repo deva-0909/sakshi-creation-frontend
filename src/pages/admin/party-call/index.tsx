@@ -257,7 +257,7 @@ const LeadManagementPage: React.FC = () => {
     // Apply date range filter
     if (startDate || endDate) {
       filtered = filtered.filter((lead) => {
-        const leadDate = new Date(lead.date);
+        const leadDate = new Date(lead.date).getTime();
         const start = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : null;
         const end = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
         return (!start || leadDate >= start) && (!end || leadDate <= end);
@@ -441,8 +441,8 @@ const LeadManagementPage: React.FC = () => {
           <Typography fontWeight={500} sx={{ fontSize: 14 }}>
             {row.companyName?.companyName || "N/A"}
             {row.isRescheduledCall && (
-              <Tooltip title={`Rescheduled from ${new Date(row.originalLeadId?.date).toLocaleDateString('en-GB')}`}>
-                <ThemeChip label="Rescheduled" color="warning" size="small" sx={{ ml: 1, background: "#FFFAEB", color: "#B54708" }} />
+              <Tooltip title={`Rescheduled from ${new Date(row.originalLeadId?.date ?? '').toLocaleDateString('en-GB')}`}>
+                <ThemeChip label="Rescheduled" color="warning" sx={{ ml: 1, background: "#FFFAEB", color: "#B54708" }} />
               </Tooltip>
             )}
           </Typography>
@@ -724,14 +724,13 @@ const LeadManagementPage: React.FC = () => {
                   <ThemeChip
                     label="Today"
                     color="success"
-                    size="small"
                     sx={{ ml: 1, background: "#3a43beff" }}
                   />
                 )}
               </Typography>
               <BasicTable
                 tableHeader={columns}
-                rowData={filteredGroupedLeads[date]}
+                rowData={filteredGroupedLeads[date].map((lead) => ({ ...lead, id: lead._id }))}
                 showDatePicker={false}
                 showSearch={false}
                 showFillter={false}

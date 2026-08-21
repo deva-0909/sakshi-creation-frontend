@@ -222,7 +222,7 @@ const AssignTaskDialog: React.FC<AssignTaskDialogProps> = ({
       .filter((staff) => staff.role?.roleName === "Sales Staff")
       .map((staff) => ({
         label: `${staff.firstName} ${staff.lastName}`,
-        value: staff._id,
+        value: (staff as any)._id,
       }));
   }, [staffList]);
 
@@ -263,7 +263,7 @@ const AssignTaskDialog: React.FC<AssignTaskDialogProps> = ({
     const createdById = selectedParty?.createdBy?._id || "";
     if (createdById) {
       const isSalesStaff = staffList.find(
-        (staff) => staff._id === createdById && staff.role?.roleName === "Sales Staff"
+        (staff) => (staff as any)._id === createdById && staff.role?.roleName === "Sales Staff"
       );
       if (isSalesStaff) {
         formik.setFieldValue("assignTo", createdById, false);
@@ -670,7 +670,7 @@ const AssignTaskDialog: React.FC<AssignTaskDialogProps> = ({
                 <ThemeSelect
                   label="Status"
                   options={statusOptions}
-                  value={getSelectedOption(formik.values.status, statusOptions)}
+                  value={getSelectedOption(formik.values.status || "", statusOptions)}
                   onChange={(event, newValue) => {
                     const newStatus = newValue ? newValue.value : "Pending";
                     formik.setFieldValue("status", newStatus, false);

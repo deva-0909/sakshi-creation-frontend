@@ -37,7 +37,7 @@ export const createProductItemThunk = createAsyncThunk(
       const response = await productItemService.createProductItem(data);
       console.log("Create Product Item Response:", response);
 
-      if (response.success) {
+      if (response.success && response.data) {
         return response.data;
       } else {
         return rejectWithValue(response.message || "Failed to create product item");
@@ -51,7 +51,7 @@ export const createProductItemThunk = createAsyncThunk(
 
 export const getAllProductItemsThunk = createAsyncThunk(
   "productItem/getAll",
-  async (params?: { page?: number; limit?: number; search?: string }, { rejectWithValue }) => {
+  async (params: { page?: number; limit?: number; search?: string } | undefined, { rejectWithValue }) => {
     try {
       const response = await productItemService.getAllProductItems(params);
       console.log("Get All Product Items Response:", response);
@@ -97,7 +97,7 @@ export const updateProductItemThunk = createAsyncThunk(
       const response = await productItemService.updateProductItem(id, data);
       console.log("Update Product Item Response:", response);
 
-      if (response.success) {
+      if (response.success && response.data) {
         return response.data;
       } else {
         return rejectWithValue(response.message || "Failed to update product item");

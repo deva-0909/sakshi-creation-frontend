@@ -215,7 +215,6 @@ console.log("File URL:", fileUrl)
         <BasicTable
           tableHeader={columns}
           rowData={formattedStaffList}
-          loading={loading}
           renderRow={(row) => (
             <>
               <TableCell sx={{ fontWeight: 500, cursor: "pointer" }} onClick={() => handleEdit(row.id)}>

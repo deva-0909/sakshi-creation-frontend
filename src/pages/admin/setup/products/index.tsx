@@ -6,7 +6,7 @@ import {
   TableCell,
 } from "@mui/material";
 import { Add, Edit, Delete } from "@mui/icons-material";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import BasicTable from "@/component/common_component/Table/themetable";
 import Input from "@/component/common_component/themeinput";
 import Button from "@/component/common_component/themebutton";
@@ -20,7 +20,7 @@ import {
   clearProductItemError,
   clearProductItemSuccessMessage,
 } from "@/store/slices/productItemSlice";
-import { RootState } from "@/store";
+import { RootState, useAppDispatch } from "@/store";
 import { toast } from "react-toastify";
 
 interface ProductItem {
@@ -30,6 +30,10 @@ interface ProductItem {
   updatedAt?: string;
 }
 
+interface ProductItemRow extends ProductItem {
+  id: string;
+}
+
 const columns = [
   { id: "id", label: "ID" },
   { id: "itemName", label: "Name" },
@@ -37,7 +41,7 @@ const columns = [
 ];
 
 const ProductsPage = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { productItems, loading, error, successMessage } = useSelector(
     (state: RootState) => state.productItems
   );
@@ -135,9 +139,9 @@ const ProductsPage = () => {
       </Box>
         <BasicTable
           tableHeader={columns}
-          rowData={productItems}
+          rowData={productItems.map((item: ProductItem) => ({ ...item, id: item._id }))}
           showDatePicker={false}
-          renderRow={(row: ProductItem, idx: number) => (
+          renderRow={(row: ProductItemRow, idx: number) => (
             <>
               <TableCell>{idx + 1}</TableCell>
               <TableCell>{row.itemName}</TableCell>

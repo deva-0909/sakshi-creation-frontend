@@ -31,6 +31,7 @@ type OptionType = {
 };
 
 type RowData = {
+  id: string;
   party: string;
   person: string;
   partyTag: string;
@@ -45,8 +46,9 @@ type RowData = {
   assignedTo: string;
 };
 
-const rows = [
+const rows: RowData[] = [
   {
+    id: '1',
     party: 'Raj & Sons',
     person: 'Sagar',
     partyTag: 'New',
@@ -61,6 +63,7 @@ const rows = [
     assignedTo: 'Dhruv',
   },
   {
+    id: '2',
     party: 'Patel Traders',
     person: 'Rahul',
     partyTag: 'Customer',
@@ -241,8 +244,23 @@ const orderColumns = [
   { id: 'endDate', label: 'END DATE' },
 ];
 
-const orderRows = [
+type OrderRowData = {
+  id: string;
+  orderFormNo: string;
+  noOfOrders: number;
+  date: string;
+  time: string;
+  size: string;
+  rate: string;
+  amount: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+};
+
+const orderRows: OrderRowData[] = [
   {
+    id: '1',
     orderFormNo: 'QP-001',
     noOfOrders: 4,
     date: '02/05/25',
@@ -255,6 +273,7 @@ const orderRows = [
     endDate: '02/05/25',
   },
   {
+    id: '2',
     orderFormNo: 'QP-002',
     noOfOrders: 5,
     date: '01/05/25',
@@ -267,6 +286,7 @@ const orderRows = [
     endDate: '02/05/25',
   },
   {
+    id: '3',
     orderFormNo: 'QP-003',
     noOfOrders: 10,
     date: '01/05/25',

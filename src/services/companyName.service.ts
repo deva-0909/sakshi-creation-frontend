@@ -69,7 +69,7 @@ export const companyNameService = {
         throw new Error("No authentication token found");
       }
       const response: AxiosResponse<ApiResponse<CompanyName>> = await axios.get(
-        `${Endpoint.GET_COMPANY_NAME_BY_ID}/${id}`,
+        `${Endpoint.GET_COMPANY_NAME_WITH_ID}/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,

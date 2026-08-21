@@ -380,8 +380,8 @@ const IndexPage: React.FC = () => {
     // Date range filtering
     const accountDate = new Date(account.createdAt);
     const matchesDateRange =
-      (!startDate || accountDate >= new Date(startDate).setHours(0, 0, 0, 0)) &&
-      (!endDate || accountDate <= new Date(endDate).setHours(23, 59, 59, 999));
+      (!startDate || accountDate.getTime() >= new Date(startDate).setHours(0, 0, 0, 0)) &&
+      (!endDate || accountDate.getTime() <= new Date(endDate).setHours(23, 59, 59, 999));
 
     // Search filtering
     const matchesSearch = searchQuery
@@ -821,7 +821,7 @@ const IndexPage: React.FC = () => {
           setSelectedRows([]);
         }}
         selectedParties={selectedParties}
-        onSuccess={() => {
+        refreshData={() => {
           setOpenBulkAssignTask(false);
           setSelectedRows([]);
           if (canViewGlobal) {

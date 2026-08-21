@@ -71,7 +71,10 @@ export const getRoleDepartmentByIdThunk = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await roleDepartmentService.getRoleDepartmentById(id);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || 'Failed to fetch role department');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch role department');
     }
@@ -149,7 +152,10 @@ export const getRoleDepartmentCompanyByIdThunk = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await roleDepartmentService.getRoleDepartmentCompanyById(id);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || 'Failed to fetch role department company');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch role department company');
     }

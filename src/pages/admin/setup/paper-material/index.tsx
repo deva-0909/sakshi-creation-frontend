@@ -166,8 +166,7 @@ const MaterialPage = () => {
         showDatePicker={false}
         showSearch={false}
         tableHeader={columns}
-        rowData={materials}
-        loading={loading}
+        rowData={materials.map((m: any) => ({ ...m, id: m._id }))}
         renderRow={(row: any, idx: number) => (
           <>
             <TableCell>{idx + 1}</TableCell>

@@ -18,6 +18,7 @@ const columns = [
 
 const rows = [
   {
+    id: '1',
     received: '01/04/25 , 10:10',
     party: 'Mr . Shah',
     binder: 'Raj',
@@ -28,6 +29,7 @@ const rows = [
     finalPrintFile: '01/04/25 , 10:10',
   },
   {
+    id: '2',
     received: '01/04/25 , 10:10',
     party: 'Mr. Roy',
     binder: 'Dhruv',
@@ -38,6 +40,7 @@ const rows = [
     finalPrintFile: '01/04/25 , 10:10',
   },
   {
+    id: '3',
     received: '01/04/25 , 10:10',
     party: 'Mr. Akash',
     binder: 'Sagar',

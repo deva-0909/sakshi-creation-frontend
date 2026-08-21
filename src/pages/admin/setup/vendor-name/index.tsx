@@ -238,8 +238,7 @@ const VendorPage = () => {
         showDatePicker={false}
         showSearch={false}
         tableHeader={columns}
-        rowData={vendors}
-        loading={loading}
+        rowData={vendors.map((v: any) => ({ ...v, id: v._id }))}
         renderRow={(row: any, idx: number) => (
           <>
             <TableCell>{idx + 1}</TableCell>
@@ -280,7 +279,6 @@ const VendorPage = () => {
               setForm((f) => ({ ...f, companyName: newValue ? newValue.value : '' }));
             }}
             required
-            sx={{ flex: 1 }}
           />
           <Input
             labelName="Vendor Name"

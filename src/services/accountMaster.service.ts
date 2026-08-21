@@ -111,7 +111,40 @@ export interface ApiResponse<T> {
 
 export interface PartySuggestion {
   _id: string;
+  companyName?: any;
   partyName: string;
+  ownerName?: string;
+  ownerMobileNo?: string;
+  ownerWhatsAppNo?: string;
+  ownerEmail?: string;
+  contactPerson?: string;
+  personMobileNo?: string;
+  personWhatsAppNo?: string;
+  contactPersonEmail?: string;
+  contactForPayment?: string;
+  contactMobileNo?: string;
+  contactWhatsAppNo?: string;
+  contactForPaymentEmail?: string;
+  GSTNo?: string;
+  address?: Address;
+  reference?: string;
+  partyTag?: string;
+  statusApproval?: "Pending" | "Approved";
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AccountMasterByCompanyParty {
+  accountMaster: {
+    _id: string;
+    reasonToVisit: string;
+    reference: string;
+    createdAt: string;
+    updatedAt: string;
+    company: any;
+    party: PartySuggestion;
+    createdBy: User | any;
+  };
 }
 
 export const accountMasterService = {
@@ -153,13 +186,13 @@ export const accountMasterService = {
       throw new Error(error.response?.data?.message || "Failed to fetch account master");
     }
   },
-  async getAccountMasterByStaffId(id: string): Promise<ApiResponse<AccountMaster>> {
+  async getAccountMasterByStaffId(id: string): Promise<ApiResponse<AccountMaster[]>> {
     try {
       const token = authService.getToken();
       if (!token) {
         throw new Error("No authentication token found");
       }
-      const response: AxiosResponse<ApiResponse<AccountMaster>> = await axios.get(
+      const response: AxiosResponse<ApiResponse<AccountMaster[]>> = await axios.get(
         `${Endpoint.GET_ACCOUNT_MASTER_BY_STAFF_ID}/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -253,13 +286,13 @@ export const accountMasterService = {
   async getAccountMasterByCompanyAndParty(
     companyId: string,
     partyId: string
-  ): Promise<ApiResponse<AccountMaster[]>> {
+  ): Promise<ApiResponse<AccountMasterByCompanyParty>> {
     try {
       const token = authService.getToken();
       if (!token) {
         throw new Error("No authentication token found");
       }
-      const response: AxiosResponse<ApiResponse<AccountMaster[]>> = await axios.post(
+      const response: AxiosResponse<ApiResponse<AccountMasterByCompanyParty>> = await axios.post(
         Endpoint.BY_COMPNAY_PARTY,
         { companyId, partyId },
         {

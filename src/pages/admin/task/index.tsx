@@ -92,7 +92,10 @@ const Index = () => {
 
   // Render different components based on role
   const renderRoleSpecificComponent = () => {
-    const tasks = getRoleSpecificTasks();
+    const tasks = getRoleSpecificTasks().map((order) => ({
+      ...order,
+      designerStatus: order.designerStatus || "",
+    }));
     console.log(`Tasks for ${role}:`, tasks);
     switch (role) {
       case "designer":

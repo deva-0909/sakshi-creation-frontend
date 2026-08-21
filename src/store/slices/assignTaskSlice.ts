@@ -54,11 +54,7 @@ export const createAssignTaskThunk = createAsyncThunk(
   async (data: CreateAssignTask, { rejectWithValue }) => {
     try {
       const response = await assignTaskService.createAssignTask(data);
-      if (response.success && response.data) {
-        return response.data;
-      } else {
-        return rejectWithValue('Invalid response format: task creation failed');
-      }
+      return response;
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to create assigned task');
     }
@@ -174,7 +170,7 @@ const assignTaskSlice = createSlice({
       .addCase(createAssignTaskThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-        state.assignTasks = state.assignTasks.filter((task) => task._id !== action.meta.arg._id);
+        state.assignTasks = state.assignTasks.filter((task) => task._id !== (action.meta.arg as any)._id);
       })
       .addCase(updateAssignTaskThunk.pending, (state) => {
         state.loading = true;

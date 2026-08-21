@@ -1,5 +1,10 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { performanceInvoiceService, PerformanceInvoice, CreatePerformanceInvoice, Order } from "@/services/performanceInvoice.service";
+import {
+  performanceInvoiceService,
+  PerformanceInvoice,
+  CreatePerformanceInvoice,
+  Order,
+} from "@/services/performanceInvoice.service";
 
 export const getAllPerformanceInvoicesThunk = createAsyncThunk(
   "performanceInvoices/getAll",
@@ -22,7 +27,10 @@ export const getPerformanceInvoiceByIdThunk = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await performanceInvoiceService.getPerformanceInvoiceById(id);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || "Failed to fetch performance invoice");
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to fetch performance invoice");
     }
@@ -86,109 +94,20 @@ export const getOrderByOrderNumberThunk = createAsyncThunk(
   async (orderNumber: string, { rejectWithValue }) => {
     try {
       const response = await performanceInvoiceService.getOrderByOrderNumber(orderNumber);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || "Failed to fetch order");
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to fetch order");
     }
   }
 );
 
-export interface PerformanceInvoice {
-  _id: string;
-  orderNumber: string;
-  companyName: string;
-  party: {
-    _id: string;
-    partyName: string;
-    GSTNo?: string;
-    address?: {
-      unitNo?: string;
-      streetAddress?: string;
-      marketName?: string;
-      landMark?: string;
-      area?: string;
-      postalCode?: string;
-    };
-  };
-  quantity: number;
-  color?: string;
-  size?: string;
-  GSTNo?: string;
-  partyAddress?: {
-    unitNo?: string;
-    streetAddress?: string;
-    marketName?: string;
-    landMark?: string;
-    area?: string;
-    postalCode?: string;
-  };
-  servicePerformance: string;
-  createdAt: string;
-  updatedAt: string;
-  gstPercentage?: number; // NEW
-  daysAfterConfirmation?: number;
-  paymentTerms?: string;
-  signature?: string; // NEW
-}
-
-export interface CreatePerformanceInvoice {
-  orderNumber: string;
-  companyName: string;
-  partyName: string;
-  quantity: number;
-  color?: string;
-  size?: string;
-  GSTNo?: string;
-  partyAddress?: {
-    unitNo?: string;
-    streetAddress?: string;
-    marketName?: string;
-    landMark?: string;
-    area?: string;
-    postalCode?: string;
-  };
-  assignedTo?: string;
-  servicePerformance: string;
-  gstPercentage?: number; // NEW
-  daysAfterConfirmation?: number;
-  paymentTerms?: string;
-  signature?: string; // NEW
-}
-
-export interface Order {
-  _id: string;
-  orderNumber: string;
-  companyName: {
-    _id: string;
-    name: string;
-  };
-  party: {
-    _id: string;
-    partyName: string;
-    GSTNo?: string;
-    address?: {
-      unitNo?: string;
-      streetAddress?: string;
-      marketName?: string;
-      landMark?: string;
-      area?: string;
-      postalCode?: string;
-    };
-  };
-  productItem: {
-    _id: string;
-    itemName: string;
-    color?: string;
-    size?: string;
-  };
-  qty: number;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-}
+// PerformanceInvoice, CreatePerformanceInvoice, and Order types are imported
+// from the service (single source of truth) and re-exported here to preserve
+// existing import paths used elsewhere in the app.
+export type { PerformanceInvoice, CreatePerformanceInvoice, Order };
 
 interface PerformanceInvoiceState {
   performanceInvoices: PerformanceInvoice[];

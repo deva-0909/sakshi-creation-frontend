@@ -29,6 +29,10 @@ interface CompanyName {
   updatedAt?: string
 }
 
+interface CompanyNameRow extends CompanyName {
+  id: string
+}
+
 interface FormData {
   companyName: string
   logo?: File | null
@@ -194,9 +198,9 @@ const CompanyNamePage = () => {
       </Box>
       <BasicTable
         tableHeader={columns}
-        rowData={companyNames}
+        rowData={companyNames.map((c: CompanyName) => ({ ...c, id: c._id }))}
         showDatePicker={false}
-        renderRow={(row: CompanyName, idx: number) => (
+        renderRow={(row: CompanyNameRow, idx: number) => (
           <>
             <TableCell>{idx + 1}</TableCell>
             <TableCell>{row.companyName}</TableCell>

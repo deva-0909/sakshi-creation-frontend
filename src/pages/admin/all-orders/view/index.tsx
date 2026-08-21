@@ -117,9 +117,9 @@
             pType: values.pType === "Other" ? values.customPType : values.pType,
             remarks: values.remarks,
             filePaths: [
-              ...(Array.isArray(singleOrder?.filePaths) 
-                ? singleOrder.filePaths.map(f => typeof f === 'string' ? f : f.path) 
-                : []), 
+              ...(Array.isArray(singleOrder?.filePaths)
+                ? singleOrder.filePaths.map((f: any) => typeof f === 'string' ? f : f.path)
+                : []),
               ...newFilePaths.map(f => f.path)
             ],
           };
@@ -481,8 +481,8 @@
           onClose={handleCloseFilesDialog}
           files={
             Array.isArray(singleOrder?.filePaths) 
-              ? singleOrder.filePaths.map(file => 
-                  typeof file === 'string' 
+              ? singleOrder.filePaths.map((file: any) =>
+                  typeof file === 'string'
                     ? file 
                     : file.path || `/${file.folder}/${file.filename}`
                 )

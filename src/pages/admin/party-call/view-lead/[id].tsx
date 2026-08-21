@@ -153,7 +153,6 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, onRescheduleClick }) => {
               <ThemeChip
                 label="Rescheduled"
                 color="warning"
-                size="small"
                 sx={{
                   background: "#FFFAEB",
                   color: "#B54708",
@@ -528,12 +527,11 @@ const ViewLeadPage: React.FC = () => {
                 <ThemeChip
                   label="Today"
                   color="success"
-                  size="small"
                   sx={{ ml: 1, background: '#3a43beff' }}
                 />
               )}
             </Typography>
-            {groupedPendingLeads[date].map((lead) => (
+            {groupedPendingLeads[date].map((lead: any) => (
               <LeadCard
                 key={lead._id}
                 lead={lead}
@@ -567,12 +565,11 @@ const ViewLeadPage: React.FC = () => {
                 <ThemeChip
                   label="Today"
                   color="success"
-                  size="small"
                   sx={{ ml: 1, background: '#3a43beff' }}
                 />
               )}
             </Typography>
-            {groupedCompletedLeads[date].map((lead) => (
+            {groupedCompletedLeads[date].map((lead: any) => (
               <LeadCard
                 key={lead._id}
                 lead={lead}

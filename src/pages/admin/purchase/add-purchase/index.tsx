@@ -167,10 +167,10 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (name: string, value: string | null) => {
+  const handleSelectChange = (name: string, value: string | number | null | undefined) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value || '',
+      [name]: value != null ? String(value) : '',
       ...(name === 'materialName' ? { materialGSM: '', materialSize: '', material: '' } : {}),
       ...(name === 'materialGSM' ? { materialSize: '', material: '' } : {}),
       ...(name === 'companyName' && !isEditMode ? { for: '', forCompany: '' } : {})
@@ -251,7 +251,6 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
             value={vendorOptions.find(opt => opt.value === formData.vendorName) || null}
             onChange={(e, newValue) => handleSelectChange('vendorName', newValue?.value)}
             required
-            fullWidth
           />
           <ThemeInput
             labelName="BILL NUMBER"
@@ -270,7 +269,6 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
             value={materialNameOptions.find(opt => opt.value === formData.materialName) || null}
             onChange={(e, newValue) => handleSelectChange('materialName', newValue?.value)}
             required
-            fullWidth
           />
           <ThemeSelect
             label="MATERIAL GSM"
@@ -278,7 +276,6 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
             value={getMaterialGSMOptions().find(opt => opt.value === formData.materialGSM) || null}
             onChange={(e, newValue) => handleSelectChange('materialGSM', newValue?.value)}
             required
-            fullWidth
             disabled={!formData.materialName}
           />
           <ThemeSelect
@@ -287,7 +284,6 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
             value={getMaterialSizeOptions().find(opt => opt.value === formData.materialSize) || null}
             onChange={(e, newValue) => handleSelectChange('materialSize', newValue?.value)}
             required
-            fullWidth
             disabled={!formData.materialGSM}
           />
         </Stack>
@@ -329,7 +325,6 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
           value={companyOptions.find(opt => opt.value === formData.companyName) || null}
           onChange={(e, newValue) => handleSelectChange('companyName', newValue?.value)}
           required
-          fullWidth
           sx={{ mb: 3 }}
         />
         
@@ -339,7 +334,6 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
           value={roleOptions.find(opt => opt.value === formData.for) || null}
           onChange={(e, newValue) => handleSelectChange('for', newValue?.value)}
           required
-          fullWidth
           sx={{ mb: 3 }}
           disabled={!formData.companyName}
         />
@@ -350,7 +344,6 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
           value={staffOptions.find(opt => opt.value === formData.forCompany) || null}
           onChange={(e, newValue) => handleSelectChange('forCompany', newValue?.value)}
           required
-          fullWidth
           sx={{ mb: 3 }}
           disabled={!formData.for}
         />

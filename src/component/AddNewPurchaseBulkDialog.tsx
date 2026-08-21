@@ -269,7 +269,7 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
             options={materialNameOptions}
             value={materialNameOptions.find((opt) => opt.value === materialName) || null}
             onChange={(e, newValue) => {
-              setMaterialName(newValue?.value || '');
+              setMaterialName((newValue?.value as string) || '');
               setMaterialGSM('');
               setMaterialSize('');
             }}
@@ -281,7 +281,7 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
             options={getMaterialGSMOptions()}
             value={getMaterialGSMOptions().find((opt) => opt.value === materialGSM) || null}
             onChange={(e, newValue) => {
-              setMaterialGSM(newValue?.value || '');
+              setMaterialGSM((newValue?.value as string) || '');
               setMaterialSize('');
             }}
             required
@@ -292,7 +292,7 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
             label="MATERIAL SIZE"
             options={getMaterialSizeOptions()}
             value={getMaterialSizeOptions().find((opt) => opt.value === materialSize) || null}
-            onChange={(e, newValue) => setMaterialSize(newValue?.value || '')}
+            onChange={(e, newValue) => setMaterialSize((newValue?.value as string) || '')}
             required
             fullWidth
             disabled={!materialGSM}

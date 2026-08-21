@@ -4,7 +4,8 @@ import {
   AccountMaster,
   CreateAccountMaster,
   UpdateAccountMaster,
-  PartySuggestion
+  PartySuggestion,
+  AccountMasterByCompanyParty
 } from "@/services/accountMaster.service";
 import { toast } from "react-toastify";
 
@@ -46,7 +47,10 @@ export const getAccountMasterByIdThunk = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await accountMasterService.getAccountMasterById(id);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || "Failed to fetch account master");
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to fetch account master");
     }
@@ -58,7 +62,10 @@ export const getAccountMasterByStaffIdThunk = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await accountMasterService.getAccountMasterByStaffId(id);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || "Failed to fetch account master");
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to fetch account master");
     }
@@ -71,7 +78,10 @@ export const createAccountMasterThunk = createAsyncThunk(
     try {
       const response = await accountMasterService.createAccountMaster(data);
       toast.success(response.message);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || "Failed to create account master");
     } catch (error: any) {
       toast.error(error.message);
       return rejectWithValue(error.response?.data?.message || "Failed to create account master");
@@ -85,7 +95,10 @@ export const bulkCreateAccountMastersThunk = createAsyncThunk(
     try {
       const response = await accountMasterService.bulkCreateAccountMasters(formData);
       toast.success(response.message);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || "Failed to bulk create account masters");
     } catch (error: any) {
       toast.error(error.message);
       return rejectWithValue(error.response?.data?.message || "Failed to bulk create account masters");
@@ -102,7 +115,10 @@ export const updateAccountMasterThunk = createAsyncThunk(
     try {
       const response = await accountMasterService.updateAccountMaster(id, data);
       toast.success(response.message);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || "Failed to update account master");
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || "Failed to update account master");
     }
@@ -126,7 +142,10 @@ export const approvePartyThunk = createAsyncThunk(
   async (partyId: string, { rejectWithValue }) => {
     try {
       const response = await accountMasterService.approveParty(partyId);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || "Failed to approve party");
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || "Failed to approve party");
     }
@@ -138,31 +157,15 @@ export const searchPartiesThunk = createAsyncThunk(
   async (query: string, { rejectWithValue }) => {
     try {
       const response = await accountMasterService.searchParties(query);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || "Failed to search parties");
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to search parties");
     }
   }
 );
-
-interface AccountMasterByCompanyParty {
-  accountMaster: {
-    _id: string;
-    reasonToVisit: string;
-    reference: string;
-    createdAt: string;
-    updatedAt: string;
-    company: any;
-    party: {
-      _id: string;
-      contactPerson: string;
-      personWhatsAppNo: string;
-      GSTNo: string;
-      statusApproval: "Pending" | "Approved";
-    };
-    createdBy: any;
-  };
-}
 
 interface AccountMasterState {
   accountMasters: AccountMaster[];

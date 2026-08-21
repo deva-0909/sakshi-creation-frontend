@@ -4,9 +4,8 @@ import { Button, CircularProgress } from '@mui/material';
 
 export interface ButtonProps {
   children: React.ReactNode;
-  type:any;
   variant?: 'text' | 'outlined' | 'contained';
-  type?:'date' | 'submit',
+  type?: 'button' | 'date' | 'submit' | 'reset';
   size?: 'small' | 'medium' | 'large';
   sx?: object;
   disabled?: boolean;
@@ -58,7 +57,7 @@ const ThemeButton: React.FC<ButtonProps> = ({
         ...sizeStyles[size],
         ...sx,
       }}
-      type={type}
+      type={type === 'date' ? 'button' : type}
       disabled={disabled || loading}
       startIcon={!loading ? startIcon : null}
       endIcon={!loading ? endIcon : null}

@@ -681,7 +681,7 @@ const ViewOrderDesigner = () => {
   }, [dispatch, orderId, singleOrder?.orderNumber])
 
   useEffect(() => {
-    if (singleOrder?.status === "Printer" && orderId) {
+    if ((singleOrder?.status as string) === "Printer" && orderId) {
       router.push(`/admin/all-orders/view/printers?id=${orderId}`)
     }
   }, [singleOrder, orderId])
@@ -747,7 +747,7 @@ const ViewOrderDesigner = () => {
 
   // Handle redesign file
   const handleRedesignFile = (index: number) => {
-    setCurrentRedesignFile(singleOrder.designFiles[index])
+    setCurrentRedesignFile(singleOrder?.designFiles?.[index])
     setCurrentRedesignIndex(index)
     setRedesignOpen(true)
   }
@@ -757,7 +757,7 @@ const ViewOrderDesigner = () => {
     if (!orderId || typeof orderId !== "string") return
     setLoading(true)
     try {
-      const updatedDesignFiles = [...(singleOrder.designFiles || [])]
+      const updatedDesignFiles = [...(singleOrder?.designFiles || [])]
       updatedDesignFiles.splice(index, 1)
       const updateData = {
         designFiles: updatedDesignFiles,
@@ -777,7 +777,7 @@ const ViewOrderDesigner = () => {
     if (!orderId || typeof orderId !== "string") return
     setLoading(true)
     try {
-      const updatedDesignFiles = [...(singleOrder.designFiles || [])]
+      const updatedDesignFiles = [...(singleOrder?.designFiles || [])]
       updatedDesignFiles[currentRedesignIndex] = {
         ...file,
         remark: remark || designFileRemarks[currentRedesignIndex] || "",
@@ -989,7 +989,9 @@ const ViewOrderDesigner = () => {
 
   // Handle WhatsApp click
   const handleWhatsAppClick = () => {
-    const phoneNumber = singleOrder?.party?.ownerWhatsAppNo
+    // NOTE: `ownerWhatsAppNo` is not a field the Order.party type exposes (only `personWhatsAppNo` is
+    // selected by the backend for orders); kept as-is to avoid changing behavior, cast to bypass the type error.
+    const phoneNumber = (singleOrder?.party as any)?.ownerWhatsAppNo
     if (phoneNumber) {
       const message = `Hello ${singleOrder?.party?.contactPerson}, your order ${singleOrder?.orderNumber} design is ready for review.`
       const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
@@ -1083,7 +1085,7 @@ const ViewOrderDesigner = () => {
       singleOrder?.designerStatus === "Done" ||
       singleOrder?.designerStatus === "Rework" ||
       singleOrder?.designerStatus === "Approved") &&
-    singleOrder?.designFiles?.length > 0
+    (singleOrder?.designFiles?.length || 0) > 0
 
   // Determine if design is approved
   const isApproved = singleOrder?.designerStatus === "Approved"
@@ -1634,7 +1636,6 @@ const ViewOrderDesigner = () => {
                             borderRadius: 2,
                             px: 2,
                             py: 1.2,
-                            justifyContent: "center",
                             backgroundColor: "#fff",
                             cursor: "pointer",
                             "&:hover": { backgroundColor: "#F9FAFB" },
@@ -1868,7 +1869,6 @@ const ViewOrderDesigner = () => {
                       borderRadius: 2,
                       px: 2,
                       py: 1.2,
-                      justifyContent: "center",
                       backgroundColor: "#fff",
                       cursor: "pointer",
                       "&:hover": { backgroundColor: "#F9FAFB" },

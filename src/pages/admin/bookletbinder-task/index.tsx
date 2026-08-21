@@ -108,7 +108,7 @@ const BookletBinderTask : React.FC<BookletBinderTaskProps> = ({ tasks }) => {
   }
 
   // Transform orders data for table
-  const rowData = tasks.map((order) => ({
+  const rowData = tasks.map((order: any) => ({
     id: order._id,
     party: order.party?.partyName || "N/A",
     date: new Date(order.createdAt).toLocaleDateString(),

@@ -5,11 +5,13 @@ import TextField from '@mui/material/TextField';
 import ThemeInput from '../common_component/themeinput';
 // import { ThemeInput, ThemeInputProps } from './ThemeInput';
 
-interface ThemeAutocompleteProps extends ThemeInputProps {
+type ThemeInputComponentProps = React.ComponentProps<typeof ThemeInput>;
+
+type ThemeAutocompleteProps = ThemeInputComponentProps & {
   options: string[];
   inputValue: string;
   onInputChange: (event: any, newInputValue: string) => void;
-}
+};
 
 export const ThemeAutocomplete: React.FC<ThemeAutocompleteProps> = ({
   options,

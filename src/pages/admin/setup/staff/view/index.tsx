@@ -159,11 +159,11 @@ const StaffView = () => {
         }
 
         if (mode === "add") {
-          await dispatch(createStaffThunk(staffData)).unwrap()
+          await dispatch(createStaffThunk(staffData as any)).unwrap()
           toast.success("Staff created successfully!")
           router.push("/admin/setup/staff")
         } else if (mode === "edit" && id) {
-          await dispatch(updateStaffThunk({ id: id as string, ...staffData })).unwrap()
+          await dispatch(updateStaffThunk({ id: id as string, ...staffData } as any)).unwrap()
           toast.success("Staff updated successfully!")
           router.push("/admin/setup/staff")
         }
@@ -236,8 +236,8 @@ const StaffView = () => {
     }
   }, [currentStaff, mode, roleOptions,user])
 
-  const handleRoleChange = (event: React.SyntheticEvent, newValue: RoleOption | null) => {
-    setSelectedRole(newValue)
+  const handleRoleChange = (event: React.SyntheticEvent, newValue: { label: string; value: string | number } | null) => {
+    setSelectedRole(newValue as RoleOption | null)
     formik.setFieldValue("role", newValue?.value || "")
   }
 
@@ -413,7 +413,6 @@ const handleEmailChange = (value: string) => {
           onChange={handleRoleChange}
           error={Boolean(formik.errors.role)}
           helperText={formik.errors.role}
-          fullWidth
           required
         />
       {/* </Stack>
@@ -459,7 +458,6 @@ const handleEmailChange = (value: string) => {
           autoUpload={false}
           label="Upload Aadhar Files" // You can remove this since we're adding our own label
           helperText="Upload Aadhar card images or PDF (required)"
-          required
         />
       </Box>
         {/* Display existing Aadhar files */}

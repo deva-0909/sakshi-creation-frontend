@@ -121,6 +121,11 @@ const validationSchema = Yup.object({
   }),
 });
 
+const getRefId = (value: string | { _id: string } | undefined | null): string => {
+  if (!value) return "";
+  return typeof value === "object" ? value._id?.toString() || "" : value;
+};
+
 const AddNewPerformanceInvoiceDialog: React.FC<AddNewPerformanceInvoiceDialogProps> = ({
   open,
   onClose,
@@ -172,7 +177,7 @@ const AddNewPerformanceInvoiceDialog: React.FC<AddNewPerformanceInvoiceDialogPro
       try {
         const response = await orderService.getAllOrders();
         if (response.success && Array.isArray(response.data)) {
-          setOrders(response.data);
+          setOrders(response.data as unknown as Order[]);
         } else {
           toast.error("Invalid response format: orders array not found");
         }
@@ -317,12 +322,10 @@ const AddNewPerformanceInvoiceDialog: React.FC<AddNewPerformanceInvoiceDialogPro
           ]
             .filter((part) => part.trim() !== "")
             .join(", ");
-          const assignedToValue = result.assignedTo?._id
-            ? result.assignedTo._id.toString()
-            : result.assignedTo || "";
+          const assignedToValue = getRefId(result.assignedTo);
           formik.setValues({
             orderNumber: result.orderNumber || "",
-            companyName: result.companyName?._id?.toString() || result.companyName || "",
+            companyName: getRefId(result.companyName),
             partyName: result.party?._id?.toString() || result.partyName || "",
             quantity: result.quantity || 0,
             color: result.color || "",
@@ -411,12 +414,10 @@ const AddNewPerformanceInvoiceDialog: React.FC<AddNewPerformanceInvoiceDialogPro
           ]
             .filter((part) => part.trim() !== "")
             .join(", ");
-          const assignedToValue = existingInvoice.assignedTo?._id
-            ? existingInvoice.assignedTo._id.toString()
-            : existingInvoice.assignedTo || "";
+          const assignedToValue = getRefId(existingInvoice.assignedTo);
           formik.setValues({
             orderNumber: existingInvoice.orderNumber || "",
-            companyName: existingInvoice.companyName?._id?.toString() || existingInvoice.companyName || "",
+            companyName: getRefId(existingInvoice.companyName),
             partyName: existingInvoice.party?._id?.toString() || existingInvoice.partyName || "",
             quantity: existingInvoice.quantity || 0,
             color: existingInvoice.color || "",
@@ -517,12 +518,10 @@ const AddNewPerformanceInvoiceDialog: React.FC<AddNewPerformanceInvoiceDialogPro
         ]
           .filter((part) => part.trim() !== "")
           .join(", ");
-        const assignedToValue = existingInvoice.assignedTo?._id
-          ? existingInvoice.assignedTo._id.toString()
-          : existingInvoice.assignedTo || "";
+        const assignedToValue = getRefId(existingInvoice.assignedTo);
         formik.setValues({
           orderNumber: existingInvoice.orderNumber || "",
-          companyName: existingInvoice.companyName?._id?.toString() || existingInvoice.companyName || "",
+          companyName: getRefId(existingInvoice.companyName),
           partyName: existingInvoice.party?._id?.toString() || existingInvoice.partyName || "",
           quantity: existingInvoice.quantity || 0,
           color: existingInvoice.color || "",
@@ -830,7 +829,6 @@ const AddNewPerformanceInvoiceDialog: React.FC<AddNewPerformanceInvoiceDialogPro
               autoUpload={false}
               onUploadSuccess={handleSignatureUploadSuccess}
               label="Select Signature Image"
-              initialFiles={formik.values.signature ? [{ url: formik.values.signature, name: "Signature" }] : []}
             />
             {formik.values.signature && (
               <Box mt={1}>

@@ -5,7 +5,7 @@ import { authService } from "./auth.service";
 export interface PerformanceInvoice {
   _id: string;
   orderNumber: string;
-  companyName: string;
+  companyName: string | { _id: string; companyName: string };
   partyName: string;
   pType: string;
   remarks: string;
@@ -50,6 +50,7 @@ export interface PerformanceInvoice {
   daysAfterConfirmation?: number;
   paymentTerms?: string;
   signature?: string; // NEW: Signature URL
+  message?: string;
 }
 
 export interface CreatePerformanceInvoice {
@@ -231,7 +232,7 @@ export const performanceInvoiceService = {
         throw new Error("No authentication token found");
       }
       const response: AxiosResponse<ApiResponse<Order>> = await axios.get(
-        `${Endpoint.GET_ORDER_BY_ORDER_NUMBER}/${orderNumber}`,
+        `${Endpoint.GET_ORDER_BY_ID}/${orderNumber}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,

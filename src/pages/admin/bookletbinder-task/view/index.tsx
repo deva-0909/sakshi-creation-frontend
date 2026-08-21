@@ -29,12 +29,12 @@ import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 
 type PaperField = {
-  paperName: string;
-  numberOfSheetsUsed: string;
-  sheetSize: string;
-  paperType: string;
-  gsm: string;
-  ratePerUnit: string;
+  paperName?: string;
+  numberOfSheetsUsed?: string;
+  sheetSize?: string;
+  paperType?: string;
+  gsm?: string;
+  ratePerUnit?: string;
 };
 
 const BookletBinderTaskView = () => {
@@ -702,7 +702,7 @@ const BookletBinderTaskView = () => {
             Booklet Specifications
           </Typography>
             <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <ThemeInput
                   labelName="Size"
                   value={formData.size}
@@ -711,7 +711,7 @@ const BookletBinderTaskView = () => {
                   InputProps={{ readOnly: !canEditBookletBinderTask }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <ThemeInput
                   labelName="Qty"
                   value={formData.qty}
@@ -723,7 +723,7 @@ const BookletBinderTaskView = () => {
               </Grid>
 
               {/* Lamination */}
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <FormControl component="fieldset" disabled={!canEditBookletBinderTask}>
                   <FormLabel component="legend">Lamination</FormLabel>
                   <RadioGroup
@@ -737,7 +737,7 @@ const BookletBinderTaskView = () => {
                 </FormControl>
               </Grid>
               {formData.isLamination === "Yes" && (
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <ThemeInput
                     labelName="Lamination Type"
                     value={formData.laminationType}
@@ -748,7 +748,7 @@ const BookletBinderTaskView = () => {
                   />
                 </Grid>
               )}
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <FormControl component="fieldset" disabled={!canEditBookletBinderTask}>
                   <FormLabel component="legend">UV</FormLabel>
                   <RadioGroup
@@ -761,7 +761,7 @@ const BookletBinderTaskView = () => {
                   </RadioGroup>
                 </FormControl>
               </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             {/* <ThemeInput
               labelName="Number of Sheets Used"
               value={formData.numberOfSheetUsed}
@@ -771,7 +771,7 @@ const BookletBinderTaskView = () => {
               InputProps={{ readOnly: !canEditBookletBinderTask }}
             /> */}
           </Grid>
-          {/* <Grid item xs={12} sm={6} md={3}>
+          {/* <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <ThemeInput
               labelName="Sheet Size"
               value={formData.sheetSize}
@@ -780,7 +780,7 @@ const BookletBinderTaskView = () => {
               InputProps={{ readOnly: !canEditBookletBinderTask }}
             />
           </Grid> */}
-          {/* <Grid item xs={12} sm={6} md={3}>
+          {/* <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <ThemeInput
               labelName="Paper Type"
               value={formData.paperType}
@@ -789,7 +789,7 @@ const BookletBinderTaskView = () => {
               InputProps={{ readOnly: !canEditBookletBinderTask }}
             />
           </Grid> */}
-          {/* <Grid item xs={12} sm={6} md={3}>
+          {/* <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <ThemeInput
               labelName="GSM"
               value={formData.gsm}
@@ -798,7 +798,7 @@ const BookletBinderTaskView = () => {
               InputProps={{ readOnly: !canEditBookletBinderTask }}
             />
           </Grid> */}
-            {/* <Grid item xs={12} sm={6} md={3}>
+            {/* <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <ThemeInput
               labelName="Rate / Unit"
               value={formData.ratePerUnit}

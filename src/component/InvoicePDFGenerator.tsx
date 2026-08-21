@@ -28,6 +28,7 @@ interface InvoicePDFGeneratorProps {
     daysAfterConfirmation?: number;
     paymentTerms?: string;
     signature?: string;
+    applyGST?: boolean;
   };
   isSaved: boolean;
   onClose: () => void;
@@ -171,7 +172,7 @@ const InvoicePDFGenerator: React.FC<InvoicePDFGeneratorProps> = ({
       // Calculate GST values only if applyGST is true
       const subtotal = formData.total || 0;
       const totalAmount = formData.finalAmount || 0;
-      const additionalRows = [
+      const additionalRows: any[] = [
         [
           { content: "", colSpan: 4, styles: { fillColor: false } },
           "Subtotal",
@@ -210,7 +211,7 @@ const InvoicePDFGenerator: React.FC<InvoicePDFGeneratorProps> = ({
       autoTable(doc, {
         startY: tableStartY,
         head: [tableColumn],
-        body: [...tableRows, ...additionalRows],
+        body: [...tableRows, ...additionalRows] as any,
         theme: "grid",
         margin: { left: 10, right: 10 },
         styles: { fontSize: 9, halign: "center", cellPadding: 3 },

@@ -22,7 +22,7 @@ const initialState: CompanyState = {
   successMessage: null,
 }
 
-export const getAllCompaniesThunk = createAsyncThunk(
+export const getAllCompaniesThunk = createAsyncThunk<Company[], boolean | undefined>(
   "company/getAll",
   async (hasParties = false, { rejectWithValue }) => {
     try {

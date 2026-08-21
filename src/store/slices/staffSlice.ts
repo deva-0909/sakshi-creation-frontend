@@ -344,7 +344,7 @@ const staffSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(getStaffByIdThunk.fulfilled, (state, action: PayloadAction<Staff>) => {
+      .addCase(getStaffByIdThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.currentStaff = action.payload;
       })

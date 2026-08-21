@@ -38,13 +38,35 @@ type OptionType = {
 }
 
 type PaperField = {
-  paperName: string;
-  numberOfSheetsUsed: string;
+  paperName?: string;
+  numberOfSheetsUsed?: string;
+  sheetSize?: string;
+  paperType?: string;
+  gsm?: string;
+  ratePerUnit?: string;
+};
+
+interface BookletFolderFormValues {
+  issuedDate: string;
+  receivedDate: string;
+  remarks: string;
+  size: string;
+  qty: string;
+  isLamination: string;
+  laminationType: string;
+  uv: string;
+  numberOfSheetUsed: string;
   sheetSize: string;
   paperType: string;
   gsm: string;
   ratePerUnit: string;
-};
+  isPasting: boolean;
+  isCutting: boolean;
+  isCreasing: boolean;
+  isFoil: boolean;
+  isPunching: boolean;
+  bookletPapers: PaperField[];
+}
 
 const BookletFolderBinderForm = () => {
   const router = useRouter();
@@ -62,7 +84,7 @@ const BookletFolderBinderForm = () => {
   const [openBinderFilesDialog, setOpenBinderFilesDialog] = useState(false);
   const [bookletPapers, setBookletPapers] = useState<PaperField[]>([]);
 
-  const formik = useFormik({
+  const formik = useFormik<BookletFolderFormValues>({
     initialValues: {
       issuedDate: new Date().toISOString().split("T")[0],
       receivedDate: "",
@@ -379,6 +401,11 @@ const BookletFolderBinderForm = () => {
     formik.setFieldValue("bookletPapers", updatedPapers);
   };
 
+  const getBookletPaperError = (index: number, field: keyof PaperField): string | undefined => {
+    const err = formik.errors.bookletPapers?.[index];
+    return typeof err === "object" && err ? err[field] : undefined;
+  };
+
   const handleDeleteBookletPaper = (index: number) => {
     if (bookletPapers.length === 1 && formik.values.isPasting) {
       toast.error("At least one paper field is required when pasting is selected");
@@ -495,7 +522,6 @@ const areFieldsReadOnly = isHeld || isBookletBinderStatusInProgress || isBooklet
                 roleFilter="Booklet & Folder Binder"
                 showStaff={true}
                 disabled={areFieldsReadOnly || isBookletBinderAssigned}
-                fullWidth
               />
             </Stack>
          
@@ -548,7 +574,7 @@ const areFieldsReadOnly = isHeld || isBookletBinderStatusInProgress || isBooklet
 
         <Box>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={3}>
+            <Grid size={{ xs: 12, sm: 3 }}>
               <ThemeInput
                 labelName="Quantity"
                 name="qty"
@@ -561,7 +587,7 @@ const areFieldsReadOnly = isHeld || isBookletBinderStatusInProgress || isBooklet
               />
             </Grid>
 
-            <Grid item xs={12} sm={3}>
+            <Grid size={{ xs: 12, sm: 3 }}>
               <FormControl component="fieldset" disabled={areFieldsReadOnly}>
                 <FormLabel component="legend">Lamination</FormLabel>
                 <RadioGroup
@@ -587,7 +613,7 @@ const areFieldsReadOnly = isHeld || isBookletBinderStatusInProgress || isBooklet
             </Grid>
 
             {formik.values.isLamination === "Yes" && (
-              <Grid item xs={12} sm={3}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <FormControl component="fieldset" disabled={areFieldsReadOnly}>
                   <FormLabel component="legend">Lamination Type</FormLabel>
                   <RadioGroup
@@ -609,7 +635,7 @@ const areFieldsReadOnly = isHeld || isBookletBinderStatusInProgress || isBooklet
             )}
 
             {/* UV */}
-            <Grid item xs={12} sm={3}>
+            <Grid size={{ xs: 12, sm: 3 }}>
               <FormControl component="fieldset" disabled={areFieldsReadOnly}>
                 <FormLabel component="legend">UV</FormLabel>
                 <RadioGroup
@@ -815,11 +841,11 @@ const areFieldsReadOnly = isHeld || isBookletBinderStatusInProgress || isBooklet
                       fullWidth
                       error={
                         formik.touched.bookletPapers?.[index]?.sheetSize &&
-                        Boolean(formik.errors.bookletPapers?.[index]?.sheetSize)
+                        Boolean(getBookletPaperError(index, "sheetSize"))
                       }
                       helperText={
                         formik.touched.bookletPapers?.[index]?.sheetSize &&
-                        formik.errors.bookletPapers?.[index]?.sheetSize
+                        getBookletPaperError(index, "sheetSize")
                       }
                       InputProps={{ readOnly: areFieldsReadOnly }}
                     />
@@ -830,11 +856,11 @@ const areFieldsReadOnly = isHeld || isBookletBinderStatusInProgress || isBooklet
                       fullWidth
                       error={
                         formik.touched.bookletPapers?.[index]?.paperType &&
-                        Boolean(formik.errors.bookletPapers?.[index]?.paperType)
+                        Boolean(getBookletPaperError(index, "paperType"))
                       }
                       helperText={
                         formik.touched.bookletPapers?.[index]?.paperType &&
-                        formik.errors.bookletPapers?.[index]?.paperType
+                        getBookletPaperError(index, "paperType")
                       }
                       InputProps={{ readOnly: areFieldsReadOnly }}
                     />
@@ -845,11 +871,11 @@ const areFieldsReadOnly = isHeld || isBookletBinderStatusInProgress || isBooklet
                       fullWidth
                       error={
                         formik.touched.bookletPapers?.[index]?.gsm &&
-                        Boolean(formik.errors.bookletPapers?.[index]?.gsm)
+                        Boolean(getBookletPaperError(index, "gsm"))
                       }
                       helperText={
                         formik.touched.bookletPapers?.[index]?.gsm &&
-                        formik.errors.bookletPapers?.[index]?.gsm
+                        getBookletPaperError(index, "gsm")
                       }
                       InputProps={{ readOnly: areFieldsReadOnly }}
                     />
@@ -860,11 +886,11 @@ const areFieldsReadOnly = isHeld || isBookletBinderStatusInProgress || isBooklet
                       fullWidth
                       error={
                         formik.touched.bookletPapers?.[index]?.numberOfSheetsUsed &&
-                        Boolean(formik.errors.bookletPapers?.[index]?.numberOfSheetsUsed)
+                        Boolean(getBookletPaperError(index, "numberOfSheetsUsed"))
                       }
                       helperText={
                         formik.touched.bookletPapers?.[index]?.numberOfSheetsUsed &&
-                        formik.errors.bookletPapers?.[index]?.numberOfSheetsUsed
+                        getBookletPaperError(index, "numberOfSheetsUsed")
                       }
                       InputProps={{ readOnly: areFieldsReadOnly }}
                     />
@@ -875,11 +901,11 @@ const areFieldsReadOnly = isHeld || isBookletBinderStatusInProgress || isBooklet
                       fullWidth
                       error={
                         formik.touched.bookletPapers?.[index]?.ratePerUnit &&
-                        Boolean(formik.errors.bookletPapers?.[index]?.ratePerUnit)
+                        Boolean(getBookletPaperError(index, "ratePerUnit"))
                       }
                       helperText={
                         formik.touched.bookletPapers?.[index]?.ratePerUnit &&
-                        formik.errors.bookletPapers?.[index]?.ratePerUnit
+                        getBookletPaperError(index, "ratePerUnit")
                       }
                       InputProps={{ readOnly: areFieldsReadOnly }}
                     />

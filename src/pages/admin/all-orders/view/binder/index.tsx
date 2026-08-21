@@ -18,12 +18,12 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 type PaperField = {
-  paperName: string;
-  numberOfSheetsUsed: string;
-  sheetSize: string;
-  paperType: string;
-  gsm: string;
-  ratePerUnit: string;
+  paperName?: string;
+  numberOfSheetsUsed?: string;
+  sheetSize?: string;
+  paperType?: string;
+  gsm?: string;
+  ratePerUnit?: string;
 };
 
 const BinderForm = () => {
@@ -127,7 +127,7 @@ const BinderForm = () => {
           size: values.size,
           binding: values.binding,
           pagesPerBook: values.pagesPerBook,
-          qty: values.qty,
+          qty: Number(values.qty),
           subPaper: values.subPaper,
           usedPaper: values.usedPaper,
           rateBook: values.rateBook,

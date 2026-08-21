@@ -60,7 +60,7 @@ const AddRoleForm: React.FC<AddRoleFormProps> = ({ isEditMode = false, roleId })
   const { singleRole, roles, loading, error, successMessage } = rolesState;
 
   const [roleName, setRoleName] = useState("");
-  const [permissions, setPermissions] = useState<{ [key: string]: string[] }>(permissionsArray);
+  const [permissions, setPermissions] = useState<Permission>(permissionsArray);
   const [isSaving, setIsSaving] = useState(false);
 
   const prevErrorRef = useRef<string | null>(null);

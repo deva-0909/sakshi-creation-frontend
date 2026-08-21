@@ -358,7 +358,7 @@ const DesignerViewTask = () => {
       {(isInProgress || isDone || isApproved) && hasDesignFiles && (
         <Paper variant="outlined" sx={{ p: 3, mb: 3, borderRadius: 2 }}>
           <Typography variant="h6" fontWeight={600} mb={2} color="#4CAF50">
-            Design Files ({singleOrder.designFiles.length})
+            Design Files ({singleOrder.designFiles?.length || 0})
           </Typography>
           <Button
             variant="outlined"
@@ -376,7 +376,7 @@ const DesignerViewTask = () => {
             }}
             startIcon={<AiOutlineEye />}
           >
-            View All Design Files ({singleOrder.designFiles.length})
+            View All Design Files ({singleOrder.designFiles?.length || 0})
           </Button>
         </Paper>
       )}
@@ -384,10 +384,10 @@ const DesignerViewTask = () => {
       {hasReworkHistory && (
         <Paper variant="outlined" sx={{ p: 3, mb: 3, borderRadius: 2 }}>
           <Typography variant="h6" fontWeight={600} mb={2} color="#FF9800">
-            Rework History ({singleOrder.reworkHistory.length})
+            Rework History ({singleOrder.reworkHistory?.length || 0})
           </Typography>
           <Stack spacing={2}>
-            {singleOrder.reworkHistory.map((rework: any, index: number) => (
+            {(singleOrder.reworkHistory || []).map((rework: any, index: number) => (
               <Box
                 key={index}
                 sx={{

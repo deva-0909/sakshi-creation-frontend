@@ -6,8 +6,8 @@ import ThemeInput from '@/component/common_component/themeinput';
 interface DateRangePickerProps {
   startDate: Date | null;
   endDate: Date | null;
-  onStartDateChange: (value: string) => void;
-  onEndDateChange: (value: string) => void;
+  onStartDateChange: (value: Date | null) => void;
+  onEndDateChange: (value: Date | null) => void;
   sx?: SxProps<Theme>;
 }
 

@@ -6,15 +6,15 @@ import StaffChart from '@/component/staffchart';
 import { useRouter } from 'next/router';
 
 const staffList1 = [
-  { name: 'Staff 1', department: 'Department1', joining: '01/04/25', left: '-' },
-  { name: 'Staff 2', department: 'Department2', joining: '01/04/25', left: '-' },
-  { name: 'Staff 3', department: 'Department3', joining: '01/04/25', left: '-' },
+  { id: '1', name: 'Staff 1', department: 'Department1', joining: '01/04/25', left: '-' },
+  { id: '2', name: 'Staff 2', department: 'Department2', joining: '01/04/25', left: '-' },
+  { id: '3', name: 'Staff 3', department: 'Department3', joining: '01/04/25', left: '-' },
 ];
 
 const staffList2 = [
-  { name: 'Staff A', department: 'DepartmentA', joining: '02/04/25', left: '-' },
-  { name: 'Staff B', department: 'DepartmentB', joining: '02/04/25', left: '-' },
-  { name: 'Staff C', department: 'DepartmentC', joining: '02/04/25', left: '-' },
+  { id: '4', name: 'Staff A', department: 'DepartmentA', joining: '02/04/25', left: '-' },
+  { id: '5', name: 'Staff B', department: 'DepartmentB', joining: '02/04/25', left: '-' },
+  { id: '6', name: 'Staff C', department: 'DepartmentC', joining: '02/04/25', left: '-' },
 ];
 
 const tabLabels = ['Sakshi Creation', 'Quality Packaging'];

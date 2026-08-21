@@ -22,7 +22,10 @@ export const getRoleByIdThunk = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await roleService.getRoleById(id);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || "Failed to fetch role");
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to fetch role");
     }

@@ -124,7 +124,7 @@ const AddNewStaffBulkDialog: React.FC<AddNewStaffBulkDialogProps> = ({ open, onC
               label="Role"
               options={roleOptions}
               value={selectedRole}
-              onChange={(event, newValue) => setSelectedRole(newValue)}
+              onChange={(event, newValue) => setSelectedRole(newValue as RoleOption | null)}
               error={!selectedRole && isLoading}
               helperText={!selectedRole && isLoading ? "Role is required" : ""}
               fullWidth

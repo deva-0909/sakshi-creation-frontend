@@ -79,7 +79,10 @@ export const getPurchaseByIdThunk = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await purchaseService.getPurchaseById(id);
-      return response.data;
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return rejectWithValue(response.message || 'Failed to fetch purchase');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch purchase');
     }

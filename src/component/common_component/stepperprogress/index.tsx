@@ -115,13 +115,13 @@ const isStepClickable = (index: number) => {
              orderStatus === 'Delivery';
              
     case 4: // Booklet & Folder Binder step
-      return orderStatus === 'Booklet & Folder Binder' || 
-             (orderStatus === 'Binder' && orderStatus !== 'Hold') ||
+      return orderStatus === 'Booklet & Folder Binder' ||
+             orderStatus === 'Binder' ||
              orderStatus === 'Delivery';
-             
+
     case 5: // Delivery step
-      return orderStatus === 'Delivery' || 
-             (orderStatus === 'Booklet & Folder Binder' && orderStatus !== 'Hold');
+      return orderStatus === 'Delivery' ||
+             orderStatus === 'Booklet & Folder Binder';
              
     default:
       return index < activeStep;

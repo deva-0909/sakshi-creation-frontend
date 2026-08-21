@@ -22,6 +22,7 @@ interface FileUploadProps {
   onUploadSuccess?: (files: any[]) => void // Callback when upload is successful
   onUploadError?: (error: string) => void // Callback when upload fails
   onFilesSelected?: (files: File[]) => void // Callback when files are selected (before upload)
+  onFileRemoved?: (file: File) => void // Callback when a selected file is removed
   showPreview?: boolean // Show uploaded files preview
   disabled?: boolean // Disable the component
   label?: string // Custom label for the upload button
@@ -47,6 +48,7 @@ const FileUpload = forwardRef<FileUploadRef, FileUploadProps>(
       onUploadSuccess,
       onUploadError,
       onFilesSelected,
+      onFileRemoved,
       showPreview = true,
       disabled = false,
       label,
@@ -210,6 +212,7 @@ const FileUpload = forwardRef<FileUploadRef, FileUploadProps>(
 
     // Remove selected file
     const removeSelectedFile = (index: number) => {
+      const removedFile = selectedFiles[index]
       const newFiles = selectedFiles.filter((_, i) => i !== index)
       const newPreviewUrls = previewUrls.filter((_, i) => i !== index)
 
@@ -222,6 +225,9 @@ const FileUpload = forwardRef<FileUploadRef, FileUploadProps>(
       setPreviewUrls(newPreviewUrls)
       if (onFilesSelected) {
         onFilesSelected(newFiles)
+      }
+      if (onFileRemoved && removedFile) {
+        onFileRemoved(removedFile)
       }
     }
 

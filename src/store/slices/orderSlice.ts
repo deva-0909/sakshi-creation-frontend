@@ -5,7 +5,19 @@ import {
 } from "@reduxjs/toolkit";
 import { orderService } from "@/services/order.service";
 
-interface Order {
+export interface OrderFileEntry {
+  path: string;
+  remark?: string;
+  uploadedAt?: string;
+}
+interface OrderStaffRef {
+  _id: string;
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
+}
+export interface Order {
   _id: string;
   orderNumber: string;
   companyName: {
@@ -15,7 +27,9 @@ interface Order {
   party: {
     _id: string;
     partyName: string;
+    address?: string;
     contactPerson?: string;
+    personMobileNo?: string;
     personWhatsAppNo?: string;
     GSTNo?: string;
   };
@@ -26,21 +40,114 @@ interface Order {
   qty: number;
   remarks: string;
   filePaths: string[]; // केवल file paths store करेंगे
-  status: "Pending" | "Processing" | "Completed" | "Cancelled";
+  status:
+    | "Pending"
+    | "Processing"
+    | "Completed"
+    | "Cancelled"
+    | "Hold"
+    | "Received"
+    | "Designer"
+    | "Printer"
+    | "Binder"
+    | "Booklet & Folder Binder"
+    | "Delivery"
+    | (string & {});
   createdBy: {
     _id: string;
-    name: string;
+    name?: string;
+    firstName?: string;
+    lastName?: string;
   };
   createdAt: string;
   updatedAt: string;
+
+  // Order detail / job-tracking fields (backend: orders table columns)
+  number?: string;
+  size?: string;
+  startNumber?: string;
+  endNumber?: string;
+  color?: string;
+  pType?: string;
+  binding?: string;
+  subPaper?: string;
+  usedPaper?: string;
+  printingrate?: string;
+  printingratePerUnit?: string;
+  gsm?: string;
+  rate?: number;
+  rateType?: string;
+  gst?: string;
+  bindergst?: string;
+  isGst?: boolean;
+
+  designer?: OrderStaffRef;
+  printer?: OrderStaffRef;
+  binder?: OrderStaffRef;
+  bookletBinder?: OrderStaffRef;
+  deliveryStaff?: OrderStaffRef;
+
+  designerStatus?: string;
+  printerStatus?: string;
+  binderStatus?: string;
+  bookletBinderStatus?: string;
+
+  printerWastedSheet?: number;
+  binderWastedSheet?: number;
+  bookletBinderWastedSheet?: number;
+
+  designerRemarks?: string;
+  printerRemarks?: string;
+  binderRemarks?: string;
+  bookletBinderRemarks?: string;
+
+  printerPapers?: PaperField[];
+  binderPapers?: PaperField[];
+  bookletPapers?: PaperField[];
+
+  designFiles?: OrderFileEntry[];
+  printerFiles?: OrderFileEntry[];
+  binderFiles?: OrderFileEntry[];
+  bookletBinderFiles?: OrderFileEntry[];
+
+  isLamination?: boolean;
+  laminationType?: string;
+  uv?: string;
+  paper1?: string;
+  paper2?: string;
+  numberOfSheetUsed?: string;
+  sheetSize?: string;
+  paperType?: string;
+
+  isPasting?: boolean;
+  isCutting?: boolean;
+  isCreasing?: boolean;
+  isFoil?: boolean;
+  isPunching?: boolean;
+
+  validproof?: OrderFileEntry[];
+  invoiceValidProof?: OrderFileEntry[];
+  reworkHistory?: any[];
+  reassignHistory?: any[];
+
+  issuedDate?: string;
+  receivedDate?: string;
+  pagesPerBook?: number;
+  rateBook?: string;
+  totalAmount?: string;
+  ratePerUnit?: string;
+
+  deliveryDate?: string;
+  deliveryTime?: string;
 }
-interface PaperField {
-  paperName: string;
-  numberOfSheetsUsed: string;
-  sheetSize: string;
-  paperType: string;
-  gsm: string;
-  ratePerUnit: string;
+export interface PaperField {
+  paperName?: string;
+  numberOfSheetsUsed?: string;
+  numberOfSheetUsed?: string;
+  sheetSize?: string;
+  paperType?: string;
+  gsm?: string;
+  ratePerUnit?: string;
 }
 interface CreateOrderData {
   companyName: string;
@@ -91,7 +198,7 @@ export const createOrderThunk = createAsyncThunk(
       const response = await orderService.createOrder(data);
       console.log("Redux: Create order response:", response);
 
-      if (response.success) {
+      if (response.success && response.data) {
         return response.data;
       } else {
         return rejectWithValue(response.message || "Failed to create order");
@@ -107,14 +214,14 @@ export const createOrderThunk = createAsyncThunk(
 export const getAllOrdersThunk = createAsyncThunk(
   "order/getAll",
   async (
-    params?: {
+    params: {
       page?: number;
       limit?: number;
       status?: string;
       companyName?: string;
       party?: string;
       search?: string;
-    },
+    } | undefined,
     { rejectWithValue }
   ) => {
     try {
@@ -162,18 +269,32 @@ export const getOrderByIdThunk = createAsyncThunk(
 export const updateOrderThunk = createAsyncThunk(
   "order/update",
   async (
-    { id, data }: { id: string; data: Partial<CreateOrderData & {
-      printerPapers?: PaperField[];
-      binderPapers?: PaperField[];
-      bookletPapers?: PaperField[];
-    }> },
+    {
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<
+        CreateOrderData &
+          Omit<Order, "_id" | "designer" | "printer" | "binder" | "bookletBinder" | "deliveryStaff" | "pagesPerBook"> & {
+            // Update payloads send plain staff IDs, not the populated relation objects
+            // the read shape uses.
+            designer?: string | null;
+            printer?: string | null;
+            binder?: string | null;
+            bookletBinder?: string | number | null;
+            deliveryStaff?: string | null;
+            pagesPerBook?: string | number;
+          }
+      >;
+    },
     { rejectWithValue }
   ) => {
     try {
       const response = await orderService.updateOrder(id, data);
       console.log("Redux: Update order response:", response);
 
-      if (response.success) {
+      if (response.success && response.data) {
         return response.data;
       } else {
         return rejectWithValue(response.message || "Failed to update order");
@@ -447,21 +568,17 @@ const orderSlice = createSlice({
       })
       .addCase(
         getAllOrdersThunk.fulfilled,
-        (
-          state,
-          action: PayloadAction<{
-            data: Order[];
-            pagination: {
-              currentPage: number;
-              totalPages: number;
-              hasNext: boolean;
-              hasPrev: boolean;
-            };
-          }>
-        ) => {
+        (state, action) => {
           state.loading = false;
           state.orders = action.payload.data;
-          state.pagination = action.payload.pagination;
+          if (action.payload.pagination) {
+            state.pagination = {
+              currentPage: action.payload.pagination.currentPage,
+              totalPages: action.payload.pagination.totalPages,
+              hasNext: action.payload.pagination.hasNext,
+              hasPrev: action.payload.pagination.hasPrev,
+            };
+          }
           state.totalCount = action.payload.data.length;
           state.error = null;
         }

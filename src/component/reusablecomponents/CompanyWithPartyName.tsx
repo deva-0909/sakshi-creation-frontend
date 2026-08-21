@@ -2,7 +2,7 @@
  
 import type React from "react"
 import { useEffect, useState } from "react"
-import { CircularProgress, Box } from "@mui/material"
+import { CircularProgress, Box, SxProps, Theme } from "@mui/material"
 import { useAppDispatch, useAppSelector } from "@/store"
 import { getAllCompaniesThunk } from "@/store/slices/compnaySlice"
 import { getPartiesByCompanyThunk } from "@/store/slices/partySlice"
@@ -14,14 +14,15 @@ interface CompanySelectProps {
   value: any
   onChange: (event: any, newValue: any) => void
   error?: boolean
-  helperText?: string
+  helperText?: any
   required?: boolean
   hasParties?: boolean // true = only companies with parties, false = all companies
   showPartyName?: boolean
-  partyName?: string
+  partyName?: string | { value: string; label?: string }
   onPartyChange?: (event: any, newValue: any) => void
   partyError?: boolean
-  partyHelperText?: string
+  partyHelperText?: any
+  sx?: SxProps<Theme>
 }
  
 const CompanySelect: React.FC<CompanySelectProps> = ({
@@ -38,6 +39,7 @@ const CompanySelect: React.FC<CompanySelectProps> = ({
   onPartyChange,
   partyError = false,
   partyHelperText = "",
+  sx,
 }) => {
   const dispatch = useAppDispatch()
   const { companies, loading, error: companyError } = useAppSelector((state) => state.company)
@@ -51,7 +53,7 @@ const CompanySelect: React.FC<CompanySelectProps> = ({
     const fetchCompanies = async () => {
       try {
         console.log("Fetching companies with hasParties:", hasParties)
-        await dispatch(getAllCompaniesThunk(hasParties)).unwrap()
+        await dispatch(getAllCompaniesThunk(hasParties as any)).unwrap()
       } catch (err) {
         console.error("Company fetch error:", err)
       }
@@ -182,7 +184,7 @@ const CompanySelect: React.FC<CompanySelectProps> = ({
   }
  
   return (
-    <Box display="flex" gap={2} width="100%">
+    <Box display="flex" gap={2} width="100%" sx={sx}>
       {/* Company Select */}
       <Box flex={showPartyName ? 1 : 1}>
         <ThemeSelect

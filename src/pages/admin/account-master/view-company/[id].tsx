@@ -10,7 +10,8 @@ import { MdTurnLeft } from 'react-icons/md';
 import CustomDialog from '@/component/customdialog';
 import AssignTaskDialog from '@/component/assigntaskdailog';
 import AddOrderDialog from '@/component/allorderdailog';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from '@/store';
 import { useRouter } from 'next/router';
 import {
   getAccountMasterByIdThunk,
@@ -32,6 +33,8 @@ interface Task {
   partyName: string;
   date: string;
   time: string;
+  visitDate?: string;
+  visitTime?: string;
   reasonForVisit: string;
   status: string;
   assignTo: {
@@ -66,6 +69,7 @@ interface Lead {
   status: string;
   reason: string;
   remark: string;
+  callFeedback?: string;
   assignedTo: {
     _id: string;
     firstName: string;
@@ -369,7 +373,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, title = 'Lead' }) => {
 };
 
 const ViewCompanyPage: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const { id } = router.query;
 
@@ -398,6 +402,8 @@ const ViewCompanyPage: React.FC = () => {
   partyName: task.partyName?.partyName || '',
   date: task.date || '',
   time: task.time || '',
+  visitDate: task.visitDate || '',
+  visitTime: task.visitTime || '',
   reasonForVisit: task.reasonForVisit || '',
   status: task.status || '',
   assignTo: {
@@ -432,6 +438,7 @@ const ViewCompanyPage: React.FC = () => {
   status: lead.status || '',
   reason: lead.reason || '',
   remark: lead.callFeedback || '',
+  callFeedback: lead.callFeedback || '',
   assignedTo: {
     _id: lead.assignedTo?._id || '',
     firstName: lead.assignedTo?.firstName || '',
@@ -720,45 +727,24 @@ const ViewCompanyPage: React.FC = () => {
       <AssignTaskDialog
         open={openAssignTaskDialog}
         onClose={() => setOpenAssignTaskDialog(false)}
-        company={company}
-        setCompany={setCompany}
-        companyOptions={[
-          {
-            label: singleAccountMaster?.companyNameObj?.companyName || singleAccountMaster?.companyName || '',
-            value: singleAccountMaster?.companyName || '',
-          },
-        ]}
-        party={party}
-        setParty={setParty}
-        partyOptions={[
-          {
-            label: singleAccountMaster?.partyName || '',
-            value: singleAccountMaster?._id || '',
-          },
-        ]}
-        date={date}
-        setDate={setDate}
-        time={time}
-        setTime={setTime}
-        reasons={reasons}
-        setReasons={setReasons}
-        inputReasonOpen={inputReasonOpen}
-        setInputReasonOpen={setInputReasonOpen}
-        staff={staff}
-        setStaff={setStaff}
-        staffOptions={staffList.map((staff: any) => ({
-          label: `${staff.firstName} ${staff.lastName}`,
-          value: staff._id,
-        }))}
-        remarks={remarks}
-        setRemarks={setRemarks}
-        handleAssign={handleAssign}
+        selectedParties={
+          singleAccountMaster
+            ? [
+                {
+                  partyId: singleAccountMaster._id || '',
+                  companyId: singleAccountMaster.companyName || '',
+                },
+              ]
+            : []
+        }
+        refreshData={() => {
+          dispatch(getAllAssignTasksThunk());
+        }}
       />
 
       <AddOrderDialog
         open={openAddOrderDialog}
         onClose={() => setOpenAddOrderDialog(false)}
-        companyId={id as string}
       />
 
       <InputReasonDialog

@@ -99,8 +99,8 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
 
   // Auto-fill form when account master data is loaded
   useEffect(() => {
-    if (singleAccountMaster && singleAccountMaster.accountMaster) {
-      const accountData = singleAccountMaster.accountMaster
+    if (singleAccountMaster && (singleAccountMaster as any).accountMaster) {
+      const accountData = (singleAccountMaster as any).accountMaster
 
       setFormData((prev) => ({
         ...prev,

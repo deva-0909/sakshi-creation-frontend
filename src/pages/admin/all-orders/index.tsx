@@ -6,7 +6,7 @@ import { useRouter } from "next/router"
 import ThemeButton from "@/component/common_component/themebutton"
 import AddOrderDialog from "@/component/allorderdailog"
 import { useAppDispatch, useAppSelector } from "@/store"
-import { getAllOrdersThunk, getOrdersByStaffIdThunk } from "@/store/slices/orderSlice"
+import { getAllOrdersThunk, getOrdersByStaffIdThunk, type Order } from "@/store/slices/orderSlice"
 import { authService } from "@/services/auth.service"
 import FilterDropdown from "@/component/fillter"
 import DateRangePicker from "@/component/daterangepicker"
@@ -25,37 +25,7 @@ const columns = [
   { id: "orderStatus", label: "Order Status" },
 ]
 
-type OrderRow = {
-  _id: string
-  orderNumber: string
-  companyName: {
-    companyName: string
-  }
-  party: {
-    partyName: string
-  }
-  productItem: {
-    itemName: string
-  }
-  size?: string
-  createdAt: string
-  remarks: string
-  createdBy: {
-    firstName: string
-    lastName: string
-  }
-  status: string
-  // Sub-status fields
-  designerStatus?: string
-  printerStatus?: string
-  binderStatus?: string
-  bookletBinderStatus?: string
-  // Staff assignment fields
-  designer?: { _id: string }
-  printer?: { _id: string }
-  binder?: { _id: string }
-  bookletBinder?: { _id: string }
-}
+type OrderRow = Order & { id: string }
 
 const AllOrdersPage = () => {
   const [open, setOpen] = React.useState(false)
@@ -138,8 +108,8 @@ const getUniqueValues = useMemo(() => {
 const filteredOrders = useMemo(() => {
   return orders.filter((order) => {
     const matchesDateRange =
-      (!startDate || new Date(order.createdAt) >= new Date(startDate).setHours(0, 0, 0, 0)) &&
-      (!endDate || new Date(order.createdAt) <= new Date(endDate).setHours(23, 59, 59, 999));
+      (!startDate || new Date(order.createdAt).getTime() >= new Date(startDate).setHours(0, 0, 0, 0)) &&
+      (!endDate || new Date(order.createdAt).getTime() <= new Date(endDate).setHours(23, 59, 59, 999));
 
     const matchesSearch = searchQuery
       ? order.orderNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -211,8 +181,9 @@ const filteredOrders = useMemo(() => {
     });
   };
 
-  const getRouteByStatus = (row: OrderRow): string => {
-    const { status, designer, printer, binder, bookletBinder } = row;
+  const getRouteByStatus = (row: Order): string => {
+    const { designer, printer, binder, bookletBinder } = row;
+    const status = row.status as string;
     switch (status) {
       case "Received":
         return `/admin/all-orders/view?id=${row._id}`;
@@ -243,8 +214,9 @@ const filteredOrders = useMemo(() => {
     }
   };
 
-const getDisplayStatus = (row: OrderRow): { text: string; isHold: boolean } => {
-  const { status, designerStatus, printerStatus, binderStatus, bookletBinderStatus, designer, binder, bookletBinder } = row;
+const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
+  const { designerStatus, printerStatus, binderStatus, bookletBinderStatus, designer, binder, bookletBinder } = row;
+  const status = row.status as string;
   const staffMap = {
     designer: designer,
     binder: binder,
@@ -261,7 +233,7 @@ const getDisplayStatus = (row: OrderRow): { text: string; isHold: boolean } => {
     return { text: holdStage, isHold: true };
   }
 
-  let mainStatusText = status || "Order Received";
+  let mainStatusText: string = status || "Order Received";
   let subStatusText = "";
   let staffName = "";
 
@@ -343,7 +315,7 @@ const getDisplayStatus = (row: OrderRow): { text: string; isHold: boolean } => {
     );
   };
 
-  const getAvatarUrl = (row: OrderRow) => {
+  const getAvatarUrl = (row: Order) => {
      if (row.companyName && (row.companyName as any).avatar) {
     return (row.companyName as any).avatar;
   }
@@ -440,7 +412,7 @@ const getDisplayStatus = (row: OrderRow): { text: string; isHold: boolean } => {
           tableHeader={columns}
           showFillter={false}
           showSearch={false}
-          rowData={filteredOrders}
+          rowData={filteredOrders.map((order): OrderRow => ({ ...order, id: order._id }))}
           totalCount={totalCount} // Pass totalCount from Redux
           pagination={pagination} // Pass pagination from Redux
           renderRow={(row: OrderRow) => (
