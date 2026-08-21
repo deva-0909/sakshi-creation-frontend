@@ -1,18 +1,34 @@
 import { NextResponse, NextRequest } from 'next/server';
 
-// Define protected routes
-const protectedRoutes: string[] = ['/'];
-// Define public routes that don't require authentication
-const publicRoutes: string[] = ['/login'];
+// All real app content lives under /admin/**; src/pages/login sets the
+// `auth_token` cookie this checks (js-cookie, alongside localStorage —
+// see src/services/auth.service.ts for why both exist).
+//
+// This is a presence check, not a signature/expiry check: the JWT
+// secret is backend-only and deliberately not shared with this
+// deployment. A stale or tampered cookie still passes here — it just
+// means the first API call the page makes gets a real 401 from the
+// backend's authenticateToken, which remains the actual security
+// boundary. What this closes is the previous no-op ("allow everything,
+// client-side handles it"), which let an unauthenticated request load a
+// protected page's full bundle before any client-side check ran.
+const PROTECTED_PREFIX = '/admin';
+const LOGIN_PATH = '/login';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const authToken = request.cookies.get('auth_token')?.value;
 
-  console.log(`Middleware - Path: ${pathname}, Auth token: ${authToken ? 'exists' : 'missing'}`);
+  if (pathname.startsWith(PROTECTED_PREFIX) && !authToken) {
+    const loginUrl = new URL(LOGIN_PATH, request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
+  }
 
-  // Allow all requests to proceed
-  // Client-side components will handle the actual protection logic
+  if (pathname === LOGIN_PATH && authToken) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
   return NextResponse.next();
 }
 
