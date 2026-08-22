@@ -167,4 +167,11 @@ export const permissionsArray = {
     edit: false,
     delete: false,
   },
+  opportunity: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
 }

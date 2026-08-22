@@ -259,5 +259,20 @@ const Endpoint = {
   // Approval + Dashboard endpoints (Patch 26 -- Approval Workflows & Dashboards)
   GET_PENDING_APPROVALS: `${BaseURL}/api/approvals/pending`,
   GET_DASHBOARD_SUMMARY: `${BaseURL}/api/dashboard/summary`,
+
+  // CRM Pipeline endpoints (Patch 28 -- Opportunities)
+  CREATE_OPPORTUNITY: `${BaseURL}/api/opportunities`,
+  GET_ALL_OPPORTUNITIES: `${BaseURL}/api/opportunities`,
+  GET_OPPORTUNITY_BY_ID: `${BaseURL}/api/opportunities`,
+  UPDATE_OPPORTUNITY: `${BaseURL}/api/opportunities`,
+  DELETE_OPPORTUNITY: `${BaseURL}/api/opportunities`,
+  OPPORTUNITY_CONTACT: `${BaseURL}/api/opportunities`,
+  OPPORTUNITY_QUALIFY: `${BaseURL}/api/opportunities`,
+  OPPORTUNITY_SEND_PROPOSAL: `${BaseURL}/api/opportunities`,
+  OPPORTUNITY_WIN: `${BaseURL}/api/opportunities`,
+  OPPORTUNITY_LOSE: `${BaseURL}/api/opportunities`,
+  GET_OPPORTUNITY_HISTORY: `${BaseURL}/api/opportunities`,
+  GET_OPPORTUNITY_ACTIVITIES: `${BaseURL}/api/opportunities`,
+  ADD_OPPORTUNITY_ACTIVITY: `${BaseURL}/api/opportunities`,
 };
 export default Endpoint;

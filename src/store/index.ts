@@ -36,6 +36,7 @@ import costingReducer from '@/store/slices/costingSlice';
 import notificationReducer from '@/store/slices/notificationSlice';
 import approvalReducer from '@/store/slices/approvalSlice';
 import dashboardReducer from '@/store/slices/dashboardSlice';
+import opportunityReducer from '@/store/slices/opportunitySlice';
 // Persist configuration
 export const persistConfig = {
   key: 'auth',
@@ -84,6 +85,7 @@ export const store = configureStore({
     notifications: notificationReducer,
     approvals: approvalReducer,
     dashboard: dashboardReducer,
+    opportunities: opportunityReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

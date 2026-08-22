@@ -24,6 +24,7 @@ import {
 } from '@/store/slices/assignTaskSlice';
 import { getAllLeadsThunk } from '@/store/slices/leadSlice';
 import { getAllStaffThunk } from '@/store/slices/staffSlice';
+import { getAllOpportunitiesThunk } from '@/store/slices/opportunitySlice';
 import { format } from 'date-fns';
 import Loader from '@/component/common_component/loader';
 
@@ -382,6 +383,7 @@ const ViewCompanyPage: React.FC = () => {
   const { assignTasks, loading: taskLoading } = useSelector((state: any) => state.assignTasks);
   const { leads, loading: leadLoading } = useSelector((state: any) => state.leads);
   const { staffList, loading: staffLoading } = useSelector((state: any) => state.staff);
+  const { opportunities, loading: opportunitiesLoading } = useSelector((state: any) => state.opportunities);
 
   // Local state
   const [openAssignTaskDialog, setOpenAssignTaskDialog] = useState(false);
@@ -510,8 +512,14 @@ const ViewCompanyPage: React.FC = () => {
       if (singleAccountMaster.reasonToVisit) {
         setReasons([{ label: singleAccountMaster.reasonToVisit, value: singleAccountMaster.reasonToVisit }]);
       }
+
+      // Same partyId convention already used above for AssignTaskDialog's
+      // selectedParties -- singleAccountMaster._id is treated as the party's id.
+      if (singleAccountMaster._id) {
+        dispatch(getAllOpportunitiesThunk({ partyId: singleAccountMaster._id }));
+      }
     }
-  }, [singleAccountMaster]);
+  }, [singleAccountMaster, dispatch]);
 
   useEffect(() => {
     if (staffList.length > 0) {
@@ -711,14 +719,50 @@ const ViewCompanyPage: React.FC = () => {
           </>
         )}
 
-        {/* Show message if no tasks or leads found */}
+        {/* Opportunity History Section */}
+        {opportunities.length > 0 && (
+          <>
+            <Typography component="div" fontWeight={600} color="primary" mb={2}>
+              Opportunity History
+            </Typography>
+            {opportunities.map((opp: any) => (
+              <Box
+                key={opp._id}
+                onClick={() => router.push(`/admin/crm/opportunities/view/${opp._id}`)}
+                sx={{
+                  bgcolor: '#fff',
+                  borderRadius: 2,
+                  p: 2,
+                  mb: 2,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <Box>
+                  <Typography component="div" fontWeight={600}>
+                    {opp.opportunityNumber} — {opp.prospectName}
+                  </Typography>
+                  <Typography component="div" fontSize={13} color="textSecondary">
+                    {opp.estimatedValue ? `Est. ${opp.estimatedValue.toLocaleString()}` : 'No estimated value'}
+                  </Typography>
+                </Box>
+                <ThemeChip label={opp.stage} />
+              </Box>
+            ))}
+          </>
+        )}
+
+        {/* Show message if no tasks, leads, or opportunities found */}
         {pendingTasks.length === 0 &&
           historyTasks.length === 0 &&
           pendingLeads.length === 0 &&
-          historyLeads.length === 0 && (
+          historyLeads.length === 0 &&
+          opportunities.length === 0 && (
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <Typography variant="h6" color="textSecondary">
-                No tasks or leads found for this party
+                No tasks, leads, or opportunities found for this party
               </Typography>
             </Box>
           )}

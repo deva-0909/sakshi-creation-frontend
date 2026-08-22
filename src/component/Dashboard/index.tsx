@@ -30,6 +30,7 @@ import {
   MdBuild,
   MdReceiptLong,
   MdFactCheck,
+  MdTrendingUp,
 } from "react-icons/md";
 import { IoChevronBack } from "react-icons/io5";
 import { useRouter } from "next/router";
@@ -71,6 +72,7 @@ const permissionMapping: { [key: string]: string } = {
   "Company Name": "setup.company-name",
   "Bill of Materials": "setup.bom",
   Quotation: "quotation",
+  "CRM Pipeline": "opportunity",
   "Job Card": "jobcard",
   Machines: "machine",
   "Stock Ledger": "inventory",
@@ -88,6 +90,7 @@ const menuItems = [
   { label: "Party call", icon: <MdGroup size={18} />, path: "/admin/party-call" },
   { label: "All Orders", icon: <MdAssignment size={18} />, path: "/admin/all-orders" },
   { label: "Quotation", icon: <MdLibraryBooks size={18} />, path: "/admin/quotation" },
+  { label: "CRM Pipeline", icon: <MdTrendingUp size={18} />, path: "/admin/crm/opportunities" },
   { label: "Job Card", icon: <MdWork size={18} />, path: "/admin/job-card" },
   { label: "Quality Packaging", icon: <MdSettings size={18} />, path: "/admin/quality-packageing" },
   { label: "Performance invoice", icon: <MdSettings size={18} />, path: "/admin/performance-invoice" },
