@@ -81,6 +81,13 @@ const permissionMapping: { [key: string]: string } = {
   "Purchase Orders": "purchaseorder",
   Invoices: "invoice",
   "Vendor Payments": "vendorpayment",
+  // Module 9: Finance depth
+  "Customer Ledger": "receipt",
+  "Customer Ageing": "receipt",
+  "Vendor Ledger": "vendorpayment",
+  "Vendor Ageing": "vendorpayment",
+  "Credit Notes": "creditnote",
+  "Debit Notes": "debitnote",
 };
 
 const menuItems = [
@@ -127,6 +134,12 @@ const menuItems = [
     children: [
       { label: "Invoices", path: "/admin/accounting/invoices", icon: <MdReceiptLong size={18} /> },
       { label: "Vendor Payments", path: "/admin/accounting/vendor-payments", icon: <MdShoppingCart size={18} /> },
+      { label: "Customer Ledger", path: "/admin/accounting/customer-ledger", icon: <MdReceiptLong size={18} /> },
+      { label: "Customer Ageing", path: "/admin/accounting/customer-ageing", icon: <MdReceiptLong size={18} /> },
+      { label: "Vendor Ledger", path: "/admin/accounting/vendor-ledger", icon: <MdShoppingCart size={18} /> },
+      { label: "Vendor Ageing", path: "/admin/accounting/vendor-ageing", icon: <MdShoppingCart size={18} /> },
+      { label: "Credit Notes", path: "/admin/accounting/credit-notes", icon: <MdReceiptLong size={18} /> },
+      { label: "Debit Notes", path: "/admin/accounting/debit-notes", icon: <MdShoppingCart size={18} /> },
     ],
   },
   { label: "Task", icon: <MdShoppingCart size={18} />, path: "/admin/task" },

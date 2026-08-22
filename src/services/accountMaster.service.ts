@@ -54,6 +54,9 @@ export interface AccountMaster {
   remarks: string;
   partyTag: string;
   statusApproval: "Pending" | "Approved";
+  // Module 9: optional receivable credit limit -- undefined/null means no
+  // limit configured.
+  creditLimit?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -79,6 +82,7 @@ export interface CreateAccountMaster {
   reference: string;
   createdBy: string;
   isRequestMode?: boolean;
+  creditLimit?: number;
 }
 
 export interface UpdateAccountMaster {
@@ -101,6 +105,7 @@ export interface UpdateAccountMaster {
   reasonToVisit?: string;
   reference?: string;
   createdBy?: string;
+  creditLimit?: number;
 }
 
 export interface ApiResponse<T> {
@@ -147,6 +152,7 @@ export interface PartySuggestion {
   reference?: string;
   partyTag?: string;
   statusApproval?: "Pending" | "Approved";
+  creditLimit?: number;
   createdAt?: string;
   updatedAt?: string;
 }

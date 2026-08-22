@@ -38,6 +38,9 @@ import approvalReducer from '@/store/slices/approvalSlice';
 import dashboardReducer from '@/store/slices/dashboardSlice';
 import opportunityReducer from '@/store/slices/opportunitySlice';
 import jobCardReworkReducer from '@/store/slices/jobCardReworkSlice';
+import creditNoteReducer from '@/store/slices/creditNoteSlice';
+import debitNoteReducer from '@/store/slices/debitNoteSlice';
+import financeReducer from '@/store/slices/financeSlice';
 // Persist configuration
 export const persistConfig = {
   key: 'auth',
@@ -88,6 +91,9 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     opportunities: opportunityReducer,
     jobCardReworks: jobCardReworkReducer,
+    creditNotes: creditNoteReducer,
+    debitNotes: debitNoteReducer,
+    finance: financeReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

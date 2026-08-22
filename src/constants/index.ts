@@ -182,4 +182,25 @@ export const permissionsArray = {
     delete: false,
     approve: false,
   },
+  // Module 9: credit/debit notes get an `approve` key from the start (used
+  // for the Issue action, which applies the note) -- the gap Module 8 found
+  // (quotation/purchaseorder/invoice checking permissions?.approve in their
+  // UI with no approve key here) was fixed for `rework` and is deliberately
+  // not repeated here.
+  creditnote: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+    approve: false,
+  },
+  debitnote: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+    approve: false,
+  },
 }

@@ -15,6 +15,8 @@ export interface VendorPayment {
   companyName?: { _id: string; companyName: string };
   createdBy?: { _id: string; firstName: string; lastName: string };
   createdAt?: string;
+  // Present only on a payment posted via allocateVendorPayment (Module 9).
+  allocations?: { id: string; amountAllocated: number; purchaseOrder: { _id: string; poNumber: string; status: string } }[];
 }
 
 interface CreateVendorPaymentData {
@@ -26,6 +28,22 @@ interface CreateVendorPaymentData {
   mode: string;
   referenceNumber?: string;
   notes?: string;
+}
+
+export interface VendorPaymentAllocationLine {
+  purchaseOrderId: string;
+  amount: number;
+}
+
+interface CreateVendorPaymentAllocationData {
+  vendorId: string;
+  companyName: string;
+  amount: number;
+  paymentDate: string;
+  mode: string;
+  referenceNumber?: string;
+  notes?: string;
+  allocations: VendorPaymentAllocationLine[];
 }
 
 interface ApiResponse<T> {
@@ -52,6 +70,19 @@ export const vendorPaymentService = {
       return { success: response.data.success, data: response.data.data, message: response.data.message };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Failed to record vendor payment");
+    }
+  },
+
+  // Module 9: post one vendor payment split across multiple purchase orders.
+  async allocateVendorPayment(data: CreateVendorPaymentAllocationData): Promise<ApiResponse<VendorPayment>> {
+    try {
+      const response: AxiosResponse<ApiResponse<VendorPayment>> = await axios.post(Endpoint.CREATE_VENDOR_PAYMENT_ALLOCATION, data, {
+        headers: authHeaders(),
+        withCredentials: true,
+      });
+      return { success: response.data.success, data: response.data.data, message: response.data.message };
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Failed to allocate vendor payment");
     }
   },
 

@@ -63,6 +63,10 @@ interface FormData {
   reference: string;
   createdBy: string;
   isRequestMode?: boolean;
+  // Module 9: optional receivable credit limit, kept as a string in form
+  // state (like every other ThemeInput here) and converted to a number on
+  // submit.
+  creditLimit: string;
 }
 
 interface AddNewPartyDialogProps {
@@ -82,6 +86,7 @@ const validationSchema = Yup.object({
     .matches(/^[0-9]{10}$/, "Owner WhatsApp No. must be 10 digits")
     .required("Owner WhatsApp No. is required"),
   GSTNo: Yup.string(),
+  creditLimit: Yup.string().matches(/^[0-9]*\.?[0-9]*$/, "Credit Limit must be a number"),
   address: Yup.object({
     unitNo: Yup.string().required("Unit No. is required"),
     marketName: Yup.string().required("Market Name is required"),
@@ -182,6 +187,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
       reference: "",
       createdBy: isRequestMode ? (currentUser?.id || "") : "",
       isRequestMode,
+      creditLimit: "",
     },
     validationSchema,
     validateOnBlur: false,
@@ -195,6 +201,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
     const submissionValues = {
         ...values,
         reference: hasReference === "yes" ? values.reference : "",
+        creditLimit: values.creditLimit !== "" ? Number(values.creditLimit) : undefined,
       };
       setIsLoading(true);
       try {
@@ -273,6 +280,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
             createdBy:
               result.createdById || (typeof result.createdBy === "object" ? result.createdBy._id : ""),
             isRequestMode,
+            creditLimit: result.creditLimit != null ? String(result.creditLimit) : "",
           });
           setInputValue(result.partyName || "");
         } else {
@@ -374,6 +382,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
             pincode: partyData.address?.pincode || "",
           },
           reference: partyData.reference || "",
+          creditLimit: partyData.creditLimit != null ? String(partyData.creditLimit) : "",
         })
         toast.success("Existing party data loaded successfully")
       } else {
@@ -684,6 +693,24 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
                 onBlur={formik.handleBlur}
                 error={Boolean(formik.errors.state)}
                 helperText={formik.touched.state && formik.errors.state}
+              />
+            </Box>
+
+  {/* Credit Limit (Module 9) -- optional; leaving it blank means no limit is enforced */}
+            <Box sx={{ width: '20%' }}>
+              <ThemeInput
+                labelName="Credit Limit (optional)"
+                placeholder="e.g. 50000"
+                fullWidth
+                name="creditLimit"
+                value={formik.values.creditLimit}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9.]/g, "");
+                  formik.setFieldValue("creditLimit", value);
+                }}
+                onBlur={formik.handleBlur}
+                error={Boolean(formik.errors.creditLimit)}
+                helperText={formik.touched.creditLimit && formik.errors.creditLimit}
               />
             </Box>
 

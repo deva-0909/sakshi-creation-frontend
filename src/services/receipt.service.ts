@@ -15,6 +15,9 @@ export interface Receipt {
   companyName?: { _id: string; companyName: string };
   createdBy?: { _id: string; firstName: string; lastName: string };
   createdAt?: string;
+  // Present only on a receipt posted via allocateReceipt (Module 9) -- a
+  // single-invoice receipt (createReceipt) never populates this.
+  allocations?: { id: string; amountAllocated: number; invoice: { _id: string; invoiceNumber: string; status: string; grandTotal: number; amountPaid: number } }[];
 }
 
 interface CreateReceiptData {
@@ -26,6 +29,22 @@ interface CreateReceiptData {
   mode: string;
   referenceNumber?: string;
   notes?: string;
+}
+
+export interface ReceiptAllocationLine {
+  invoiceId: string;
+  amount: number;
+}
+
+interface CreateReceiptAllocationData {
+  partyId: string;
+  companyName: string;
+  amount: number;
+  paymentDate: string;
+  mode: string;
+  referenceNumber?: string;
+  notes?: string;
+  allocations: ReceiptAllocationLine[];
 }
 
 interface ApiResponse<T> {
@@ -52,6 +71,20 @@ export const receiptService = {
       return { success: response.data.success, data: response.data.data, message: response.data.message };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Failed to record receipt");
+    }
+  },
+
+  // Module 9: post one receipt split across multiple invoices in a single
+  // transactional call -- see allocations doc on the Receipt interface.
+  async allocateReceipt(data: CreateReceiptAllocationData): Promise<ApiResponse<Receipt>> {
+    try {
+      const response: AxiosResponse<ApiResponse<Receipt>> = await axios.post(Endpoint.CREATE_RECEIPT_ALLOCATION, data, {
+        headers: authHeaders(),
+        withCredentials: true,
+      });
+      return { success: response.data.success, data: response.data.data, message: response.data.message };
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Failed to allocate receipt");
     }
   },
 

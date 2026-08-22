@@ -31,6 +31,9 @@ interface VendorForm {
   whatsappNumber: string;
   gst: string;
   address: string;
+  // Module 9: optional payable credit limit, kept as a string in form state
+  // (like every other Input here) and converted to a number on save.
+  creditLimit: string;
 }
 
 const columns = [
@@ -41,6 +44,7 @@ const columns = [
   { id: 'whatsappNumber', label: 'WhatsApp Number' },
   { id: 'gst', label: 'GST' },
   { id: 'address', label: 'Address' },
+  { id: 'creditLimit', label: 'Credit Limit' },
   { id: 'action', label: 'Actions' },
 ];
 
@@ -57,6 +61,7 @@ const VendorPage = () => {
     whatsappNumber: '',
     gst: '',
     address: '',
+    creditLimit: '',
   });
   const [gstError, setGstError] = useState<string | null>(null);
 
@@ -78,6 +83,7 @@ const VendorPage = () => {
         whatsappNumber: vendor.whatsappNumber,
         gst: vendor.gst || '',
         address: vendor.address,
+        creditLimit: vendor.creditLimit != null ? String(vendor.creditLimit) : '',
       });
       setGstError(null); // Reset GST error on open
     } else {
@@ -89,6 +95,7 @@ const VendorPage = () => {
         whatsappNumber: '',
         gst: '',
         address: '',
+        creditLimit: '',
       });
       setGstError(null); // Reset GST error on open
     }
@@ -150,6 +157,7 @@ const VendorPage = () => {
               whatsappNumber: form.whatsappNumber,
               gst: form.gst,
               address: form.address,
+              creditLimit: form.creditLimit !== '' ? Number(form.creditLimit) : undefined,
             },
           })
         ).unwrap();
@@ -163,6 +171,7 @@ const VendorPage = () => {
             whatsappNumber: form.whatsappNumber,
             gst: form.gst,
             address: form.address,
+            creditLimit: form.creditLimit !== '' ? Number(form.creditLimit) : undefined,
           })
         ).unwrap();
         toast.success('Vendor created successfully');
@@ -175,6 +184,7 @@ const VendorPage = () => {
         whatsappNumber: '',
         gst: '',
         address: '',
+        creditLimit: '',
       });
       setEditId(null);
       setGstError(null);
@@ -248,6 +258,7 @@ const VendorPage = () => {
             <TableCell>{row.whatsappNumber}</TableCell>
             <TableCell>{row.gst || 'N/A'}</TableCell>
             <TableCell>{row.address}</TableCell>
+            <TableCell>{row.creditLimit != null ? row.creditLimit : 'No limit'}</TableCell>
             <TableCell>
               <IconButton color="primary" onClick={() => handleOpenDialog(row)}>
                 <Edit />
@@ -337,6 +348,18 @@ const VendorPage = () => {
             }
             fullWidth
             required
+            sx={{ flex: 1 }}
+          />
+        </Stack>
+        <Stack direction="row" spacing={2} mb={2}>
+          <Input
+            labelName="Credit Limit (optional)"
+            type="number"
+            value={form.creditLimit}
+            onChange={(e: any) =>
+              setForm((f) => ({ ...f, creditLimit: e.target.value }))
+            }
+            fullWidth
             sx={{ flex: 1 }}
           />
         </Stack>

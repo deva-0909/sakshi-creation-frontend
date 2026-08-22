@@ -10,6 +10,9 @@ export interface Vendor {
   whatsappNumber: string;
   gst: string;
   address: string;
+  // Module 9: optional payable credit limit -- undefined/null means no
+  // limit configured.
+  creditLimit?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -21,6 +24,7 @@ export interface CreateVendor {
   whatsappNumber: string;
   gst?: string;
   address: string;
+  creditLimit?: number;
 }
 
 export interface UpdateVendor {
@@ -30,6 +34,7 @@ export interface UpdateVendor {
   whatsappNumber?: string;
   gst?: string;
   address?: string;
+  creditLimit?: number;
 }
 
 export interface ApiResponse<T> {

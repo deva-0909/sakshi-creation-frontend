@@ -246,13 +246,35 @@ const Endpoint = {
 
   // Accounting: Receipt endpoints
   CREATE_RECEIPT: `${BaseURL}/api/receipts`,
+  CREATE_RECEIPT_ALLOCATION: `${BaseURL}/api/receipts/allocate`,
   GET_ALL_RECEIPTS: `${BaseURL}/api/receipts`,
   GET_RECEIPT_BY_ID: `${BaseURL}/api/receipts`,
 
   // Accounting: Vendor Payment endpoints
   CREATE_VENDOR_PAYMENT: `${BaseURL}/api/vendor-payments`,
+  CREATE_VENDOR_PAYMENT_ALLOCATION: `${BaseURL}/api/vendor-payments/allocate`,
   GET_ALL_VENDOR_PAYMENTS: `${BaseURL}/api/vendor-payments`,
   GET_VENDOR_PAYMENT_BY_ID: `${BaseURL}/api/vendor-payments`,
+
+  // Module 9: Credit Note endpoints
+  CREATE_CREDIT_NOTE: `${BaseURL}/api/credit-notes`,
+  GET_ALL_CREDIT_NOTES: `${BaseURL}/api/credit-notes`,
+  GET_CREDIT_NOTE_BY_ID: `${BaseURL}/api/credit-notes`,
+  ISSUE_CREDIT_NOTE: `${BaseURL}/api/credit-notes`,
+  CANCEL_CREDIT_NOTE: `${BaseURL}/api/credit-notes`,
+
+  // Module 9: Debit Note endpoints
+  CREATE_DEBIT_NOTE: `${BaseURL}/api/debit-notes`,
+  GET_ALL_DEBIT_NOTES: `${BaseURL}/api/debit-notes`,
+  GET_DEBIT_NOTE_BY_ID: `${BaseURL}/api/debit-notes`,
+  ISSUE_DEBIT_NOTE: `${BaseURL}/api/debit-notes`,
+  CANCEL_DEBIT_NOTE: `${BaseURL}/api/debit-notes`,
+
+  // Module 9: Finance ledgers/ageing (computed reports, not a CRUD resource)
+  GET_CUSTOMER_LEDGER: `${BaseURL}/api/finance/customer-ledger`,
+  GET_CUSTOMER_AGEING: `${BaseURL}/api/finance/customer-ageing`,
+  GET_VENDOR_LEDGER: `${BaseURL}/api/finance/vendor-ledger`,
+  GET_VENDOR_AGEING: `${BaseURL}/api/finance/vendor-ageing`,
 
   // Costing endpoints (Patch 24 -- Costing & Notifications)
   GET_ALL_COSTING: `${BaseURL}/api/costing`,

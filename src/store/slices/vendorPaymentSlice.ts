@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
-import { vendorPaymentService, VendorPayment } from "@/services/vendorPayment.service";
+import { vendorPaymentService, VendorPayment, VendorPaymentAllocationLine } from "@/services/vendorPayment.service";
 
 interface VendorPaymentState {
   vendorPayments: VendorPayment[];
@@ -39,6 +39,30 @@ export const createVendorPaymentThunk = createAsyncThunk(
       return rejectWithValue(response.message || "Failed to record vendor payment");
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to record vendor payment");
+    }
+  }
+);
+
+interface CreateVendorPaymentAllocationData {
+  vendorId: string;
+  companyName: string;
+  amount: number;
+  paymentDate: string;
+  mode: string;
+  referenceNumber?: string;
+  notes?: string;
+  allocations: VendorPaymentAllocationLine[];
+}
+
+export const createVendorPaymentAllocationThunk = createAsyncThunk(
+  "vendorPayment/allocate",
+  async (data: CreateVendorPaymentAllocationData, { rejectWithValue }) => {
+    try {
+      const response = await vendorPaymentService.allocateVendorPayment(data);
+      if (response.success && response.data) return response.data;
+      return rejectWithValue(response.message || "Failed to allocate vendor payment");
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to allocate vendor payment");
     }
   }
 );
@@ -94,6 +118,19 @@ const vendorPaymentSlice = createSlice({
         state.successMessage = "Vendor payment recorded successfully";
       })
       .addCase(createVendorPaymentThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(createVendorPaymentAllocationThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createVendorPaymentAllocationThunk.fulfilled, (state, action: PayloadAction<VendorPayment>) => {
+        state.loading = false;
+        state.vendorPayments = [action.payload, ...state.vendorPayments];
+        state.successMessage = "Vendor payment recorded and allocated successfully";
+      })
+      .addCase(createVendorPaymentAllocationThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })

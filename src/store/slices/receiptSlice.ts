@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
-import { receiptService, Receipt } from "@/services/receipt.service";
+import { receiptService, Receipt, ReceiptAllocationLine } from "@/services/receipt.service";
 
 interface ReceiptState {
   receipts: Receipt[];
@@ -37,6 +37,30 @@ export const createReceiptThunk = createAsyncThunk("receipt/create", async (data
     return rejectWithValue(error.message || "Failed to record receipt");
   }
 });
+
+interface CreateReceiptAllocationData {
+  partyId: string;
+  companyName: string;
+  amount: number;
+  paymentDate: string;
+  mode: string;
+  referenceNumber?: string;
+  notes?: string;
+  allocations: ReceiptAllocationLine[];
+}
+
+export const createReceiptAllocationThunk = createAsyncThunk(
+  "receipt/allocate",
+  async (data: CreateReceiptAllocationData, { rejectWithValue }) => {
+    try {
+      const response = await receiptService.allocateReceipt(data);
+      if (response.success && response.data) return response.data;
+      return rejectWithValue(response.message || "Failed to allocate receipt");
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to allocate receipt");
+    }
+  }
+);
 
 export const getAllReceiptsThunk = createAsyncThunk(
   "receipt/getAll",
@@ -87,6 +111,19 @@ const receiptSlice = createSlice({
         state.successMessage = "Receipt recorded successfully";
       })
       .addCase(createReceiptThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(createReceiptAllocationThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createReceiptAllocationThunk.fulfilled, (state, action: PayloadAction<Receipt>) => {
+        state.loading = false;
+        state.receipts = [action.payload, ...state.receipts];
+        state.successMessage = "Receipt recorded and allocated successfully";
+      })
+      .addCase(createReceiptAllocationThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
