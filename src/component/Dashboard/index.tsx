@@ -29,6 +29,7 @@ import {
   MdLogout,
   MdBuild,
   MdReceiptLong,
+  MdFactCheck,
 } from "react-icons/md";
 import { IoChevronBack } from "react-icons/io5";
 import { useRouter } from "next/router";
@@ -81,6 +82,7 @@ const permissionMapping: { [key: string]: string } = {
 
 const menuItems = [
   { label: "Dashboard", icon: <MdDashboard size={18} />, path: "/" },
+  { label: "Pending Approvals", icon: <MdFactCheck size={18} />, path: "/admin/approvals" },
   { label: "Account Master", icon: <MdAssignment size={18} />, path: "/admin/account-master" },
   { label: "Assign Task", icon: <MdWork size={18} />, path: "/admin/assign-task" },
   { label: "Party call", icon: <MdGroup size={18} />, path: "/admin/party-call" },
@@ -214,6 +216,15 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
       const filteredItems = menuItems
         .map((item) => {
           if (item.label === "Dashboard") return item;
+
+          // Not a view_global/view_own module -- shown only to staff whose
+          // role can actually approve something (the same eligibility the
+          // backend's approval.controller.js itself enforces), so the menu
+          // entry never appears for someone who'd just see an empty inbox.
+          if (item.label === "Pending Approvals") {
+            const canApprove = permissions.quotation?.approve === true || permissions.purchaseorder?.approve === true;
+            return canApprove ? item : null;
+          }
 
           const permKey = permissionMapping[item.label] || item.label.toLowerCase().replace(/\s+/g, "_");
           const hasPermission = permissions[permKey]?.view_global || permissions[permKey]?.view_own;

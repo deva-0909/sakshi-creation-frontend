@@ -255,5 +255,9 @@ const Endpoint = {
   GET_UNREAD_NOTIFICATION_COUNT: `${BaseURL}/api/notifications/unread-count`,
   MARK_NOTIFICATION_READ: `${BaseURL}/api/notifications`,
   MARK_ALL_NOTIFICATIONS_READ: `${BaseURL}/api/notifications/read-all`,
+
+  // Approval + Dashboard endpoints (Patch 26 -- Approval Workflows & Dashboards)
+  GET_PENDING_APPROVALS: `${BaseURL}/api/approvals/pending`,
+  GET_DASHBOARD_SUMMARY: `${BaseURL}/api/dashboard/summary`,
 };
 export default Endpoint;
