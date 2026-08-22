@@ -91,7 +91,7 @@ export const deleteJobCardThunk = createAsyncThunk(
 export const advanceJobCardStageThunk = createAsyncThunk(
   "jobCard/advanceStage",
   async (
-    { id, data }: { id: string; data: { stage: string; assignedTo?: string; status: string; remarks?: string; wastedSheet?: number } },
+    { id, data }: { id: string; data: { stage: string; assignedTo?: string; status: string; remarks?: string; wastedSheet?: number; machine?: string } },
     { rejectWithValue }
   ) => {
     try {

@@ -28,6 +28,7 @@ export interface JobCardStage {
   startedAt?: string;
   completedAt?: string;
   createdAt?: string;
+  machine?: { _id: string; machineName: string; machineCode: string };
 }
 
 export interface MaterialUsage {
@@ -123,7 +124,7 @@ export const jobCardService = {
 
   async advanceStage(
     id: string,
-    data: { stage: string; assignedTo?: string; status: string; remarks?: string; wastedSheet?: number }
+    data: { stage: string; assignedTo?: string; status: string; remarks?: string; wastedSheet?: number; machine?: string }
   ): Promise<ApiResponse<{ jobCard: JobCard; stage: JobCardStage }>> {
     try {
       const response: AxiosResponse<ApiResponse<{ jobCard: JobCard; stage: JobCardStage }>> = await axios.patch(

@@ -27,6 +27,7 @@ import {
   MdExpandLess,
   MdMenu,
   MdLogout,
+  MdBuild,
 } from "react-icons/md";
 import { IoChevronBack } from "react-icons/io5";
 import { useRouter } from "next/router";
@@ -68,6 +69,8 @@ const permissionMapping: { [key: string]: string } = {
   "Bill of Materials": "setup.bom",
   Quotation: "quotation",
   "Job Card": "jobcard",
+  Machines: "machine",
+  "Stock Ledger": "inventory",
 };
 
 const menuItems = [
@@ -93,6 +96,7 @@ const menuItems = [
     ],
   },
   { label: "Inventory", icon: <MdInventory size={18} />, path: "/admin/inventory" },
+  { label: "Stock Ledger", icon: <MdInventory size={18} />, path: "/admin/inventory/stock-ledger" },
   { label: "Purchase", icon: <MdShoppingCart size={18} />, path: "/admin/purchase" },
   { label: "Task", icon: <MdShoppingCart size={18} />, path: "/admin/task" },
   { label: "History", icon: <MdShoppingCart size={18} />, path: "/admin/history" },
@@ -281,6 +285,11 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
       label: "Bill of Materials",
       path: "/admin/setup/bom",
       icon: <MdLibraryBooks size={18} />,
+    },
+    {
+      label: "Machines",
+      path: "/admin/setup/machines",
+      icon: <MdBuild size={18} />,
     },
     // {
     //   label: "Department Company",

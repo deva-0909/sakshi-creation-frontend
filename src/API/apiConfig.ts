@@ -186,5 +186,16 @@ const Endpoint = {
   ADVANCE_JOB_CARD_STAGE: `${BaseURL}/api/job-cards`,
   GET_JOB_CARD_STAGE_HISTORY: `${BaseURL}/api/job-cards`,
   RECORD_JOB_CARD_MATERIAL_USAGE: `${BaseURL}/api/job-cards`,
+
+  // Machine endpoints (Patch 18 -- Machine Master + Stock Ledger)
+  CREATE_MACHINE: `${BaseURL}/api/machines`,
+  GET_ALL_MACHINES: `${BaseURL}/api/machines`,
+  GET_MACHINE_BY_ID: `${BaseURL}/api/machines`,
+  UPDATE_MACHINE: `${BaseURL}/api/machines`,
+  DELETE_MACHINE: `${BaseURL}/api/machines`,
+
+  // Stock Ledger endpoints
+  GET_MATERIAL_LEDGER: `${BaseURL}/api/stock-ledger/material`,
+  GET_STOCK_SUMMARY: `${BaseURL}/api/stock-ledger/summary`,
 };
 export default Endpoint;

@@ -9,6 +9,7 @@ import RoleStaffSelect from "@/component/reusablecomponents/RoleStaffSelect";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { getAllRolesThunk } from "@/store/slices/roleSlice";
 import { getAllMaterialsThunk } from "@/store/slices/materialSlice";
+import { getAllMachinesThunk } from "@/store/slices/machineSlice";
 import {
   getJobCardByIdThunk,
   getJobCardStageHistoryThunk,
@@ -22,6 +23,9 @@ import { toast } from "react-toastify";
 
 const STAGES = ["Designer", "Printer", "Binder", "Booklet Binder", "Delivery"];
 const STAGE_STATUSES = ["Pending", "In Progress", "Done"];
+// Only these 3 stages run on physical equipment -- see machine.validator.js's
+// category enum, which the backend also uses to reject a mismatched machine.
+const MACHINE_STAGES = ["Printer", "Binder", "Booklet Binder"];
 
 const statusColor: Record<string, { bg: string; color: string }> = {
   Pending: { bg: "#F2F4F7", color: "#344054" },
@@ -49,6 +53,7 @@ const JobCardDetailPage = () => {
   const { singleJobCard: jc, stageHistory, loading, error, successMessage } = useAppSelector((state) => state.jobCards);
   const { roles } = useAppSelector((state) => state.roles);
   const { materials } = useAppSelector((state) => state.materials);
+  const { machines } = useAppSelector((state) => state.machines);
   const { user } = useAppSelector((state) => state.auth);
 
   const permissions = user?.role?.permissions?.jobcard;
@@ -59,6 +64,7 @@ const JobCardDetailPage = () => {
   const [assignedTo, setAssignedTo] = useState<any>(null);
   const [remarks, setRemarks] = useState("");
   const [wastedSheet, setWastedSheet] = useState("");
+  const [selectedMachine, setSelectedMachine] = useState<{ label: string; value: string | number } | null>(null);
 
   // Material usage form state
   const [usageRole, setUsageRole] = useState<{ label: string; value: string | number } | null>(null);
@@ -73,6 +79,7 @@ const JobCardDetailPage = () => {
     }
     dispatch(getAllRolesThunk());
     dispatch(getAllMaterialsThunk());
+    dispatch(getAllMachinesThunk(undefined));
     return () => {
       dispatch(clearSingleJobCard());
     };
@@ -104,6 +111,16 @@ const JobCardDetailPage = () => {
     label: `${m.materialName}${m.materialSize ? ` - ${m.materialSize}` : ""}${m.materialGSM ? ` (${m.materialGSM}gsm)` : ""}`,
     value: m._id,
   }));
+  // Only machines whose category matches the stage being advanced -- a Printer
+  // machine can't be assigned to a Binder stage (the backend rejects this too).
+  const machineOptions = machines
+    .filter((m: any) => m.category === stage)
+    .map((m: any) => ({ label: `${m.machineName} (${m.machineCode})`, value: m._id }));
+
+  const handleStageChange = (v: any) => {
+    setStage(v ? String(v.value) : "");
+    setSelectedMachine(null);
+  };
 
   const handleAdvanceStage = () => {
     if (!stage || !stageStatus) {
@@ -120,12 +137,14 @@ const JobCardDetailPage = () => {
           assignedTo: assignedTo?.value || undefined,
           remarks: remarks || undefined,
           wastedSheet: wastedSheet ? Number(wastedSheet) : undefined,
+          machine: selectedMachine ? String(selectedMachine.value) : undefined,
         },
       })
     );
     setStageStatus("");
     setRemarks("");
     setWastedSheet("");
+    setSelectedMachine(null);
   };
 
   const handleRecordUsage = () => {
@@ -226,6 +245,11 @@ const JobCardDetailPage = () => {
                     Wasted sheets: {h.wastedSheet}
                   </Typography>
                 )}
+                {h.machine && (
+                  <Typography fontSize={12} color="text.secondary">
+                    Machine: {h.machine.machineName} ({h.machine.machineCode})
+                  </Typography>
+                )}
                 {h.remarks && (
                   <Typography fontSize={12} color="text.secondary">
                     {h.remarks}
@@ -245,7 +269,7 @@ const JobCardDetailPage = () => {
               label="Stage"
               options={STAGES.map((s) => ({ label: s, value: s }))}
               value={stage ? { label: stage, value: stage } : null}
-              onChange={(_, v) => setStage(v ? String(v.value) : "")}
+              onChange={(_, v) => handleStageChange(v)}
               disabled={!permissions?.edit}
               required
             />
@@ -257,6 +281,16 @@ const JobCardDetailPage = () => {
               disabled={!permissions?.edit}
               required
             />
+            {MACHINE_STAGES.includes(stage) && (
+              <ThemeSelect
+                label="Machine (optional)"
+                options={machineOptions}
+                value={selectedMachine}
+                onChange={(_, v) => setSelectedMachine(v)}
+                disabled={!permissions?.edit}
+                placeholder={machineOptions.length ? "Select a machine" : `No ${stage} machines set up`}
+              />
+            )}
             <RoleStaffSelect
               label="Assign To"
               name="assignedTo"

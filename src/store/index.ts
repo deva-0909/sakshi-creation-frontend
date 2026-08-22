@@ -24,6 +24,8 @@ import inventoryReducer from '@/store/slices/inventorySlice';
 import quotationReducer from '@/store/slices/quotationSlice';
 import bomReducer from '@/store/slices/bomSlice';
 import jobCardReducer from '@/store/slices/jobCardSlice';
+import machineReducer from '@/store/slices/machineSlice';
+import stockLedgerReducer from '@/store/slices/stockLedgerSlice';
 // Persist configuration
 export const persistConfig = {
   key: 'auth',
@@ -60,6 +62,8 @@ export const store = configureStore({
     quotations: quotationReducer,
     boms: bomReducer,
     jobCards: jobCardReducer,
+    machines: machineReducer,
+    stockLedger: stockLedgerReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
