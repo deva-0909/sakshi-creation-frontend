@@ -29,6 +29,9 @@ import stockLedgerReducer from '@/store/slices/stockLedgerSlice';
 import rfqReducer from '@/store/slices/rfqSlice';
 import purchaseOrderReducer from '@/store/slices/purchaseOrderSlice';
 import grnReducer from '@/store/slices/grnSlice';
+import invoiceReducer from '@/store/slices/invoiceSlice';
+import receiptReducer from '@/store/slices/receiptSlice';
+import vendorPaymentReducer from '@/store/slices/vendorPaymentSlice';
 // Persist configuration
 export const persistConfig = {
   key: 'auth',
@@ -70,6 +73,9 @@ export const store = configureStore({
     rfqs: rfqReducer,
     purchaseOrders: purchaseOrderReducer,
     grns: grnReducer,
+    invoices: invoiceReducer,
+    receipts: receiptReducer,
+    vendorPayments: vendorPaymentReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

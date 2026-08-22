@@ -57,6 +57,7 @@ interface FormData {
   contactWhatsAppNo: string;
   contactForPaymentEmail?: string;
   GSTNo: string;
+  state: string;
   address: Address;
   reasonToVisit: string;
   reference: string;
@@ -168,6 +169,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
       contactWhatsAppNo: "",
       contactForPaymentEmail: "",
       GSTNo: "",
+      state: "",
       address: {
         unitNo: "",
         marketName: "",
@@ -257,6 +259,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
             contactWhatsAppNo: result.contactWhatsAppNo || "",
             contactForPaymentEmail: result.contactForPaymentEmail || "",
             GSTNo: result.GSTNo || "",
+            state: result.state || "",
             address: {
               unitNo: result.address?.unitNo || "",
               marketName: result.address?.marketName || "",
@@ -361,6 +364,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
           contactWhatsAppNo: partyData.contactWhatsAppNo || "",
           contactForPaymentEmail: partyData.contactForPaymentEmail || "",
           GSTNo: partyData.GSTNo || "",
+          state: partyData.state || "",
           address: {
             unitNo: partyData.address?.unitNo || "",
             marketName: partyData.address?.marketName || "",
@@ -668,7 +672,21 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
                 helperText={formik.touched.GSTNo && formik.errors.GSTNo}
               />
             </Box>
-  
+
+  {/* State -- used to auto-determine CGST/SGST vs IGST when raising invoices */}
+            <Box sx={{ width: '20%' }}>
+              <ThemeInput
+                labelName="State"
+                fullWidth
+                name="state"
+                value={formik.values.state}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={Boolean(formik.errors.state)}
+                helperText={formik.touched.state && formik.errors.state}
+              />
+            </Box>
+
   {/* Reference Radio Buttons */}
   <Box sx={{ width: '20%', mt: 2 }}>
     <FormControl component="fieldset" fullWidth>

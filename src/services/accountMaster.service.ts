@@ -43,6 +43,7 @@ export interface AccountMaster {
   contactWhatsAppNo: string;
   contactForPaymentEmail?: string;
   GSTNo: string;
+  state?: string;
   address: Address;
   reasonToVisit: string;
   reference: string;
@@ -141,6 +142,7 @@ export interface PartySuggestion {
   contactWhatsAppNo?: string;
   contactForPaymentEmail?: string;
   GSTNo?: string;
+  state?: string;
   address?: Address;
   reference?: string;
   partyTag?: string;

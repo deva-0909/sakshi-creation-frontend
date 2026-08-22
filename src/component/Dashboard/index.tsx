@@ -28,6 +28,7 @@ import {
   MdMenu,
   MdLogout,
   MdBuild,
+  MdReceiptLong,
 } from "react-icons/md";
 import { IoChevronBack } from "react-icons/io5";
 import { useRouter } from "next/router";
@@ -73,6 +74,8 @@ const permissionMapping: { [key: string]: string } = {
   "Stock Ledger": "inventory",
   RFQs: "rfq",
   "Purchase Orders": "purchaseorder",
+  Invoices: "invoice",
+  "Vendor Payments": "vendorpayment",
 };
 
 const menuItems = [
@@ -107,6 +110,15 @@ const menuItems = [
     children: [
       { label: "RFQs", path: "/admin/procurement/rfq", icon: <MdLibraryBooks size={18} /> },
       { label: "Purchase Orders", path: "/admin/procurement/purchase-orders", icon: <MdShoppingCart size={18} /> },
+    ],
+  },
+  {
+    label: "Accounting",
+    icon: <MdReceiptLong size={18} />,
+    path: "/admin/accounting/invoices",
+    children: [
+      { label: "Invoices", path: "/admin/accounting/invoices", icon: <MdReceiptLong size={18} /> },
+      { label: "Vendor Payments", path: "/admin/accounting/vendor-payments", icon: <MdShoppingCart size={18} /> },
     ],
   },
   { label: "Task", icon: <MdShoppingCart size={18} />, path: "/admin/task" },

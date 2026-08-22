@@ -225,5 +225,24 @@ const Endpoint = {
   CREATE_GRN: `${BaseURL}/api/grns`,
   GET_ALL_GRNS: `${BaseURL}/api/grns`,
   GET_GRN_BY_ID: `${BaseURL}/api/grns`,
+
+  // Accounting: Invoice endpoints (Patch 22 -- Invoicing, GST & Payments)
+  CREATE_INVOICE: `${BaseURL}/api/invoices`,
+  GET_ALL_INVOICES: `${BaseURL}/api/invoices`,
+  GET_INVOICE_BY_ID: `${BaseURL}/api/invoices`,
+  DELETE_INVOICE: `${BaseURL}/api/invoices`,
+  ISSUE_INVOICE: `${BaseURL}/api/invoices`,
+  CANCEL_INVOICE: `${BaseURL}/api/invoices`,
+  GET_INVOICE_HISTORY: `${BaseURL}/api/invoices`,
+
+  // Accounting: Receipt endpoints
+  CREATE_RECEIPT: `${BaseURL}/api/receipts`,
+  GET_ALL_RECEIPTS: `${BaseURL}/api/receipts`,
+  GET_RECEIPT_BY_ID: `${BaseURL}/api/receipts`,
+
+  // Accounting: Vendor Payment endpoints
+  CREATE_VENDOR_PAYMENT: `${BaseURL}/api/vendor-payments`,
+  GET_ALL_VENDOR_PAYMENTS: `${BaseURL}/api/vendor-payments`,
+  GET_VENDOR_PAYMENT_BY_ID: `${BaseURL}/api/vendor-payments`,
 };
 export default Endpoint;

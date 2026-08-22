@@ -25,6 +25,7 @@ interface CompanyName {
   _id: string
   companyName: string
   avatar?: string
+  state?: string
   createdAt?: string
   updatedAt?: string
 }
@@ -35,12 +36,14 @@ interface CompanyNameRow extends CompanyName {
 
 interface FormData {
   companyName: string
+  state: string
   logo?: File | null
 }
 
 const columns = [
   { id: "id", label: "ID" },
   { id: "companyName", label: "Company Name" },
+  { id: "state", label: "State" },
   { id: "avatar", label: "Logo" },
   { id: "options", label: "Options" },
 ]
@@ -53,6 +56,7 @@ const CompanyNamePage = () => {
   const [editId, setEditId] = useState<string | null>(null)
   const [form, setForm] = useState<FormData>({
     companyName: "",
+    state: "",
     logo: null,
   })
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
@@ -78,11 +82,11 @@ const CompanyNamePage = () => {
   const handleOpenDialog = (company?: CompanyName) => {
     if (company) {
       setEditId(company._id)
-      setForm({ companyName: company.companyName, logo: null })
+      setForm({ companyName: company.companyName, state: company.state || "", logo: null })
       setLogoPreview(company.avatar || null)
     } else {
       setEditId(null)
-      setForm({ companyName: "", logo: null })
+      setForm({ companyName: "", state: "", logo: null })
       setLogoPreview(null)
     }
     setDialogOpen(true)
@@ -91,6 +95,10 @@ const CompanyNamePage = () => {
   // Handle form input changes
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, companyName: e.target.value })
+  }
+
+  const handleStateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, state: e.target.value })
   }
 
   // Handle logo file changes
@@ -127,6 +135,7 @@ const CompanyNamePage = () => {
 
       const companyData = {
         companyName: form.companyName,
+        state: form.state || undefined,
         avatar: logoUrl || "", // Send existing logo URL or empty string if no logo
       };
 
@@ -137,7 +146,7 @@ const CompanyNamePage = () => {
       }
 
       setDialogOpen(false)
-      setForm({ companyName: "", logo: null })
+      setForm({ companyName: "", state: "", logo: null })
       setLogoPreview(null)
       setEditId(null)
     } catch (error: any) {
@@ -180,7 +189,7 @@ const CompanyNamePage = () => {
   // Close dialog handler
   const handleCloseDialog = () => {
     setDialogOpen(false)
-    setForm({ companyName: "", logo: null })
+    setForm({ companyName: "", state: "", logo: null })
     setLogoPreview(null)
     setEditId(null)
   }
@@ -203,6 +212,7 @@ const CompanyNamePage = () => {
           <>
             <TableCell>{idx + 1}</TableCell>
             <TableCell>{row.companyName}</TableCell>
+            <TableCell>{row.state || "-"}</TableCell>
             <TableCell>
               {row.avatar && (
                 <img
@@ -241,6 +251,18 @@ const CompanyNamePage = () => {
           required
           sx={{ mb: 2, mt: 1 }}
         />
+
+        <Input
+          label="State"
+          name="state"
+          value={form.state}
+          onChange={handleStateChange}
+          fullWidth
+          sx={{ mb: 2 }}
+        />
+        <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: "block", mt: -1 }}>
+          Used to auto-determine CGST/SGST vs IGST when raising invoices against this company.
+        </Typography>
 
         {/* Logo Upload Section */}
         <Box sx={{ mb: 2 }}>
