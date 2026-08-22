@@ -19,6 +19,12 @@ import {
   clearJobCardError,
   clearJobCardSuccessMessage,
 } from "@/store/slices/jobCardSlice";
+import {
+  getCostingByJobCardThunk,
+  upsertLaborCostThunk,
+  clearCostingSuccessMessage,
+  clearCostingError,
+} from "@/store/slices/costingSlice";
 import { toast } from "react-toastify";
 
 const STAGES = ["Designer", "Printer", "Binder", "Booklet Binder", "Delivery"];
@@ -55,8 +61,15 @@ const JobCardDetailPage = () => {
   const { materials } = useAppSelector((state) => state.materials);
   const { machines } = useAppSelector((state) => state.machines);
   const { user } = useAppSelector((state) => state.auth);
+  const {
+    singleCosting: costing,
+    loading: costingLoading,
+    error: costingError,
+    successMessage: costingSuccessMessage,
+  } = useAppSelector((state) => state.costing);
 
   const permissions = user?.role?.permissions?.jobcard;
+  const costingPermissions = user?.role?.permissions?.costing;
 
   // Advance-stage form state
   const [stage, setStage] = useState("");
@@ -72,10 +85,17 @@ const JobCardDetailPage = () => {
   const [usageMaterial, setUsageMaterial] = useState<{ label: string; value: string | number } | null>(null);
   const [usageQty, setUsageQty] = useState("");
 
+  // Labor/overhead entry form -- no wage/rate data exists anywhere in the
+  // system, so this is recorded by hand per job card (see the design plan).
+  const [laborCostInput, setLaborCostInput] = useState("");
+  const [overheadCostInput, setOverheadCostInput] = useState("");
+  const [costingNotes, setCostingNotes] = useState("");
+
   useEffect(() => {
     if (typeof id === "string") {
       dispatch(getJobCardByIdThunk(id));
       dispatch(getJobCardStageHistoryThunk(id));
+      dispatch(getCostingByJobCardThunk(id));
     }
     dispatch(getAllRolesThunk());
     dispatch(getAllMaterialsThunk());
@@ -92,6 +112,14 @@ const JobCardDetailPage = () => {
   }, [jc]);
 
   useEffect(() => {
+    if (costing) {
+      setLaborCostInput(String(costing.laborCost ?? ""));
+      setOverheadCostInput(String(costing.overheadCost ?? ""));
+      setCostingNotes(costing.notes || "");
+    }
+  }, [costing]);
+
+  useEffect(() => {
     if (successMessage) {
       toast.success(successMessage);
       dispatch(clearJobCardSuccessMessage());
@@ -105,6 +133,18 @@ const JobCardDetailPage = () => {
       dispatch(clearJobCardError());
     }
   }, [successMessage, error, dispatch, id]);
+
+  useEffect(() => {
+    if (costingSuccessMessage) {
+      toast.success(costingSuccessMessage);
+      dispatch(clearCostingSuccessMessage());
+      if (typeof id === "string") dispatch(getCostingByJobCardThunk(id));
+    }
+    if (costingError) {
+      toast.error(costingError);
+      dispatch(clearCostingError());
+    }
+  }, [costingSuccessMessage, costingError, dispatch, id]);
 
   const roleOptions = roles.map((r: any) => ({ label: r.roleName, value: r._id }));
   const materialOptions = materials.map((m: any) => ({
@@ -166,6 +206,20 @@ const JobCardDetailPage = () => {
     );
     setUsageMaterial(null);
     setUsageQty("");
+  };
+
+  const handleSaveLaborCost = () => {
+    if (typeof id !== "string") return;
+    dispatch(
+      upsertLaborCostThunk({
+        jobCardId: id,
+        data: {
+          laborCost: laborCostInput !== "" ? Number(laborCostInput) : undefined,
+          overheadCost: overheadCostInput !== "" ? Number(overheadCostInput) : undefined,
+          notes: costingNotes || undefined,
+        },
+      })
+    );
   };
 
   if (loading && !jc) {
@@ -375,6 +429,90 @@ const JobCardDetailPage = () => {
           </Stack>
         </Paper>
       </Stack>
+
+      <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mt: 2 }}>
+        <Typography fontWeight={600} mb={2}>
+          Costing
+        </Typography>
+        {costingLoading && !costing ? (
+          <Box display="flex" justifyContent="center" p={3}>
+            <CircularProgress size={22} />
+          </Box>
+        ) : costing ? (
+          <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+            <Box flex={1}>
+              <DetailRow
+                label="Material Cost"
+                value={costing.hasFullMaterialRateData || costing.materialCost > 0 ? costing.materialCost : "No purchase rate data yet"}
+              />
+              <DetailRow label="Labor Cost" value={costing.laborCost} />
+              <DetailRow label="Overhead Cost" value={costing.overheadCost} />
+              <DetailRow label="Total Cost" value={costing.totalCost} />
+              <DetailRow label="Revenue" value={costing.revenue} />
+              <DetailRow
+                label="Profit"
+                value={
+                  <Typography component="span" fontSize={14} fontWeight={600} color={costing.profit >= 0 ? "#027A48" : "#B42318"}>
+                    {costing.profit}
+                  </Typography>
+                }
+              />
+              <DetailRow label="Margin" value={costing.marginPct !== null ? `${costing.marginPct}%` : "-"} />
+              {!costing.hasFullMaterialRateData && costing.materialCost === 0 && (
+                <Typography fontSize={12} color="text.secondary" mt={1}>
+                  Revenue is computed from invoices raised against this job card&apos;s order. Cost is computed live
+                  from current material purchase rates plus the labor/overhead entered here -- it isn&apos;t a saved
+                  snapshot, so it reflects today&apos;s rates even for an older job.
+                </Typography>
+              )}
+            </Box>
+            <Box flex={1}>
+              <Typography fontSize={13} fontWeight={600} mb={1}>
+                Labor / Overhead
+              </Typography>
+              <Typography fontSize={12} color="text.secondary" mb={1}>
+                No wage/rate data exists in the system, so labor and overhead are entered manually per job card.
+              </Typography>
+              <Stack spacing={2}>
+                <ThemeInput
+                  labelName="Labor Cost"
+                  type="number"
+                  fullWidth
+                  value={laborCostInput}
+                  onChange={(e) => setLaborCostInput(e.target.value)}
+                  disabled={!costingPermissions?.edit}
+                />
+                <ThemeInput
+                  labelName="Overhead Cost"
+                  type="number"
+                  fullWidth
+                  value={overheadCostInput}
+                  onChange={(e) => setOverheadCostInput(e.target.value)}
+                  disabled={!costingPermissions?.edit}
+                />
+                <ThemeInput
+                  labelName="Notes"
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  value={costingNotes}
+                  onChange={(e) => setCostingNotes(e.target.value)}
+                  disabled={!costingPermissions?.edit}
+                />
+                {costingPermissions?.edit && (
+                  <ThemeButton onClick={handleSaveLaborCost} disabled={costingLoading} sx={{ background: "#175CD3" }}>
+                    Save Labor / Overhead
+                  </ThemeButton>
+                )}
+              </Stack>
+            </Box>
+          </Stack>
+        ) : (
+          <Typography fontSize={13} color="text.secondary">
+            Costing data isn&apos;t available for this job card yet.
+          </Typography>
+        )}
+      </Paper>
     </Box>
   );
 };

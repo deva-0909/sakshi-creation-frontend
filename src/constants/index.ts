@@ -160,4 +160,11 @@ export const permissionsArray = {
     edit: false,
     delete: false,
   },
+  costing: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
 }

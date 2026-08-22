@@ -32,6 +32,8 @@ import grnReducer from '@/store/slices/grnSlice';
 import invoiceReducer from '@/store/slices/invoiceSlice';
 import receiptReducer from '@/store/slices/receiptSlice';
 import vendorPaymentReducer from '@/store/slices/vendorPaymentSlice';
+import costingReducer from '@/store/slices/costingSlice';
+import notificationReducer from '@/store/slices/notificationSlice';
 // Persist configuration
 export const persistConfig = {
   key: 'auth',
@@ -76,6 +78,8 @@ export const store = configureStore({
     invoices: invoiceReducer,
     receipts: receiptReducer,
     vendorPayments: vendorPaymentReducer,
+    costing: costingReducer,
+    notifications: notificationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

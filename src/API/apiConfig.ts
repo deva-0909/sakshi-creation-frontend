@@ -244,5 +244,16 @@ const Endpoint = {
   CREATE_VENDOR_PAYMENT: `${BaseURL}/api/vendor-payments`,
   GET_ALL_VENDOR_PAYMENTS: `${BaseURL}/api/vendor-payments`,
   GET_VENDOR_PAYMENT_BY_ID: `${BaseURL}/api/vendor-payments`,
+
+  // Costing endpoints (Patch 24 -- Costing & Notifications)
+  GET_ALL_COSTING: `${BaseURL}/api/costing`,
+  GET_COSTING_BY_JOB_CARD: `${BaseURL}/api/costing`,
+  UPSERT_LABOR_COST: `${BaseURL}/api/costing`,
+
+  // Notification endpoints
+  GET_MY_NOTIFICATIONS: `${BaseURL}/api/notifications`,
+  GET_UNREAD_NOTIFICATION_COUNT: `${BaseURL}/api/notifications/unread-count`,
+  MARK_NOTIFICATION_READ: `${BaseURL}/api/notifications`,
+  MARK_ALL_NOTIFICATIONS_READ: `${BaseURL}/api/notifications/read-all`,
 };
 export default Endpoint;

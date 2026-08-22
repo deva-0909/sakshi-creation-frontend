@@ -38,6 +38,7 @@ import { useAppDispatch, useAppSelector } from "@/store";
 import { clearAuth, fetchUserThunk } from "@/store/slices/authSlice";
 import { authService } from "@/services/auth.service";
 import Slide from "@mui/material/Slide";
+import NotificationBell from "@/component/notificationbell";
 
 const permissionMapping: { [key: string]: string } = {
   "Account Master": "account_master",
@@ -637,22 +638,25 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           <Typography variant="h6" fontSize={16} fontWeight={600}>
             {getCurrentPageTitle()}
           </Typography>
-          {dateTime && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            >
-              <Box display="flex" alignItems="center" gap={2} sx={{ fontFamily: "monospace", px: 2, py: 0.5 }}>
-                <Typography fontSize={14} fontWeight={600} color="text.secondary">
-                  📅 {dateTime.toLocaleDateString()}
-                </Typography>
-                <Typography fontSize={14} fontWeight={600} color="text.secondary">
-                  ⏰ {dateTime.toLocaleTimeString()}
-                </Typography>
-              </Box>
-            </motion.div>
-          )}
+          <Box display="flex" alignItems="center" gap={1}>
+            {dateTime && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              >
+                <Box display="flex" alignItems="center" gap={2} sx={{ fontFamily: "monospace", px: 2, py: 0.5 }}>
+                  <Typography fontSize={14} fontWeight={600} color="text.secondary">
+                    📅 {dateTime.toLocaleDateString()}
+                  </Typography>
+                  <Typography fontSize={14} fontWeight={600} color="text.secondary">
+                    ⏰ {dateTime.toLocaleTimeString()}
+                  </Typography>
+                </Box>
+              </motion.div>
+            )}
+            <NotificationBell />
+          </Box>
         </Box>
 
         {/* Page content */}
