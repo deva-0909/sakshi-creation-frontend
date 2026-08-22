@@ -155,5 +155,36 @@ const Endpoint = {
   ROLE_DEPARTMENT_COMPANY_GET_BY_ID: `${BaseURL}/api/roleDepartmentCompany/getbyid`,
   ROLE_DEPARTMENT_COMPANY_UPDATE: `${BaseURL}/api/roleDepartmentCompany/update`,
   ROLE_DEPARTMENT_COMPANY_DELETE: `${BaseURL}/api/roleDepartmentCompany/delete`,
+
+  // Quotation endpoints (Patch 16 -- Quotation + BOM + Job Card)
+  CREATE_QUOTATION: `${BaseURL}/api/quotations`,
+  GET_ALL_QUOTATIONS: `${BaseURL}/api/quotations`,
+  GET_QUOTATION_BY_ID: `${BaseURL}/api/quotations`,
+  UPDATE_QUOTATION: `${BaseURL}/api/quotations`,
+  DELETE_QUOTATION: `${BaseURL}/api/quotations`,
+  SUBMIT_QUOTATION_FOR_APPROVAL: `${BaseURL}/api/quotations`,
+  APPROVE_QUOTATION: `${BaseURL}/api/quotations`,
+  REJECT_QUOTATION: `${BaseURL}/api/quotations`,
+  SEND_QUOTATION: `${BaseURL}/api/quotations`,
+  RESPOND_QUOTATION: `${BaseURL}/api/quotations`,
+  CONVERT_QUOTATION: `${BaseURL}/api/quotations`,
+  GET_QUOTATION_HISTORY: `${BaseURL}/api/quotations`,
+
+  // BOM endpoints
+  CREATE_BOM_LINE: `${BaseURL}/api/boms`,
+  GET_BOM_FOR_PRODUCT: `${BaseURL}/api/boms/product`,
+  UPDATE_BOM_LINE: `${BaseURL}/api/boms`,
+  DELETE_BOM_LINE: `${BaseURL}/api/boms`,
+  ESTIMATE_BOM_COST: `${BaseURL}/api/boms/product`,
+
+  // Job Card endpoints
+  CREATE_JOB_CARD: `${BaseURL}/api/job-cards/from-order`,
+  GET_ALL_JOB_CARDS: `${BaseURL}/api/job-cards`,
+  GET_JOB_CARD_BY_ID: `${BaseURL}/api/job-cards`,
+  UPDATE_JOB_CARD: `${BaseURL}/api/job-cards`,
+  DELETE_JOB_CARD: `${BaseURL}/api/job-cards`,
+  ADVANCE_JOB_CARD_STAGE: `${BaseURL}/api/job-cards`,
+  GET_JOB_CARD_STAGE_HISTORY: `${BaseURL}/api/job-cards`,
+  RECORD_JOB_CARD_MATERIAL_USAGE: `${BaseURL}/api/job-cards`,
 };
 export default Endpoint;

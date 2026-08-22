@@ -9,6 +9,7 @@
   import { useRouter } from "next/router"
   import { useAppDispatch, useAppSelector } from "@/store"
   import { getOrderByIdThunk, updateOrderThunk } from "@/store/slices/orderSlice"
+  import { createJobCardThunk } from "@/store/slices/jobCardSlice"
   import { toast } from "react-toastify"
   import { useFormik } from "formik"
   import * as Yup from "yup"
@@ -213,6 +214,24 @@
       toast.error(error)
     }
 
+    const { user } = useAppSelector((state: any) => state.auth)
+    const canCreateJobCard = user?.role?.permissions?.jobcard?.create
+    const [creatingJobCard, setCreatingJobCard] = useState(false)
+
+    const handleCreateJobCard = async () => {
+      if (typeof orderId !== "string") return
+      setCreatingJobCard(true)
+      try {
+        const jobCard = await dispatch(createJobCardThunk({ orderId, data: {} })).unwrap()
+        toast.success("Job card created")
+        router.push(`/admin/job-card/view/${(jobCard as any)._id}`)
+      } catch (err: any) {
+        toast.error(err?.message || err || "Failed to create job card")
+      } finally {
+        setCreatingJobCard(false)
+      }
+    }
+
     if (pageLoading) {
       return (
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
@@ -223,9 +242,20 @@
 
     return (
         <Box>
-          <StepperProgress 
-  activeStep={0} 
-  orderStatus={singleOrder?.status} 
+          {canCreateJobCard && (
+            <Box display="flex" justifyContent="flex-end" mb={1}>
+              <ThemeButton
+                onClick={handleCreateJobCard}
+                disabled={creatingJobCard}
+                sx={{ background: "#6941C6", "&:hover": { background: "#53389E" } }}
+              >
+                {creatingJobCard ? "Creating Job Card..." : "Create Job Card"}
+              </ThemeButton>
+            </Box>
+          )}
+          <StepperProgress
+  activeStep={0}
+  orderStatus={singleOrder?.status}
 />
           <Paper
             variant="outlined"

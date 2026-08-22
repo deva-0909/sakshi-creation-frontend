@@ -21,6 +21,9 @@ import performanceInvoiceReducer from '@/store/slices/performanceInvoiceSlice';
 import companyNameReducer from '@/store/slices/companyNameSlice';
 import vendorReducer from '@/store/slices/vendorSlice';
 import inventoryReducer from '@/store/slices/inventorySlice';
+import quotationReducer from '@/store/slices/quotationSlice';
+import bomReducer from '@/store/slices/bomSlice';
+import jobCardReducer from '@/store/slices/jobCardSlice';
 // Persist configuration
 export const persistConfig = {
   key: 'auth',
@@ -54,6 +57,9 @@ export const store = configureStore({
     companyNames: companyNameReducer,
     vendors: vendorReducer,
     inventory: inventoryReducer,
+    quotations: quotationReducer,
+    boms: bomReducer,
+    jobCards: jobCardReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

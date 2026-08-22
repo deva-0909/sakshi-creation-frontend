@@ -65,6 +65,9 @@ const permissionMapping: { [key: string]: string } = {
   Products: "setup.products",
   "Paper Material": "setup.paper-material",
   "Company Name": "setup.company-name",
+  "Bill of Materials": "setup.bom",
+  Quotation: "quotation",
+  "Job Card": "jobcard",
 };
 
 const menuItems = [
@@ -73,6 +76,8 @@ const menuItems = [
   { label: "Assign Task", icon: <MdWork size={18} />, path: "/admin/assign-task" },
   { label: "Party call", icon: <MdGroup size={18} />, path: "/admin/party-call" },
   { label: "All Orders", icon: <MdAssignment size={18} />, path: "/admin/all-orders" },
+  { label: "Quotation", icon: <MdLibraryBooks size={18} />, path: "/admin/quotation" },
+  { label: "Job Card", icon: <MdWork size={18} />, path: "/admin/job-card" },
   { label: "Quality Packaging", icon: <MdSettings size={18} />, path: "/admin/quality-packageing" },
   { label: "Performance invoice", icon: <MdSettings size={18} />, path: "/admin/performance-invoice" },
   {
@@ -271,6 +276,11 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
       label: "Paper Material",
       path: "/admin/setup/paper-material",
       icon: <MdGroup size={18} />,
+    },
+    {
+      label: "Bill of Materials",
+      path: "/admin/setup/bom",
+      icon: <MdLibraryBooks size={18} />,
     },
     // {
     //   label: "Department Company",
