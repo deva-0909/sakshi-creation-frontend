@@ -7,6 +7,8 @@ export interface BomLine {
   quantityPerUnit: number;
   unit: string;
   notes?: string;
+  // Module 8: lets the wastage report compare actual wastage against a plan.
+  expectedWastagePercent?: number | null;
   productItem?: { _id: string; itemName: string };
   material?: { _id: string; materialName: string; materialSize?: string; materialGSM?: number };
   createdAt?: string;
@@ -34,6 +36,7 @@ interface CreateBomLineData {
   quantityPerUnit: number;
   unit?: string;
   notes?: string;
+  expectedWastagePercent?: number;
 }
 
 interface ApiResponse<T> {

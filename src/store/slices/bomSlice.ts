@@ -25,6 +25,7 @@ interface CreateBomLineData {
   quantityPerUnit: number;
   unit?: string;
   notes?: string;
+  expectedWastagePercent?: number;
 }
 
 export const createBomLineThunk = createAsyncThunk(

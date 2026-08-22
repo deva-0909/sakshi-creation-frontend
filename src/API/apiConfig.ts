@@ -186,6 +186,15 @@ const Endpoint = {
   ADVANCE_JOB_CARD_STAGE: `${BaseURL}/api/job-cards`,
   GET_JOB_CARD_STAGE_HISTORY: `${BaseURL}/api/job-cards`,
   RECORD_JOB_CARD_MATERIAL_USAGE: `${BaseURL}/api/job-cards`,
+  GET_WASTAGE_REPORT: `${BaseURL}/api/job-cards/wastage-report`,
+
+  // Job Card Rework endpoints (Module 8)
+  CREATE_JOB_CARD_REWORK: `${BaseURL}/api/job-cards`,
+  GET_JOB_CARD_REWORKS: `${BaseURL}/api/job-cards`,
+  START_JOB_CARD_REWORK: `${BaseURL}/api/job-cards`,
+  SUBMIT_JOB_CARD_REWORK: `${BaseURL}/api/job-cards`,
+  APPROVE_JOB_CARD_REWORK: `${BaseURL}/api/job-cards`,
+  REJECT_JOB_CARD_REWORK: `${BaseURL}/api/job-cards`,
 
   // Machine endpoints (Patch 18 -- Machine Master + Stock Ledger)
   CREATE_MACHINE: `${BaseURL}/api/machines`,

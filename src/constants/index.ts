@@ -174,4 +174,12 @@ export const permissionsArray = {
     edit: false,
     delete: false,
   },
+  rework: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+    approve: false,
+  },
 }

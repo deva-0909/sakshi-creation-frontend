@@ -1,11 +1,13 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
-import { jobCardService, JobCard, JobCardStage, MaterialUsage } from "@/services/jobCard.service";
+import { jobCardService, JobCard, JobCardStage, MaterialUsage, WastageReportRow } from "@/services/jobCard.service";
 
 interface JobCardState {
   jobCards: JobCard[];
   singleJobCard: JobCard | null;
   stageHistory: JobCardStage[];
+  wastageReport: WastageReportRow[];
   loading: boolean;
+  wastageReportLoading: boolean;
   error: string | null;
   successMessage: string | null;
   totalCount: number;
@@ -15,7 +17,9 @@ const initialState: JobCardState = {
   jobCards: [],
   singleJobCard: null,
   stageHistory: [],
+  wastageReport: [],
   loading: false,
+  wastageReportLoading: false,
   error: null,
   successMessage: null,
   totalCount: 0,
@@ -88,12 +92,28 @@ export const deleteJobCardThunk = createAsyncThunk(
   }
 );
 
+interface AdvanceStageData {
+  stage: string;
+  assignedTo?: string;
+  status: string;
+  remarks?: string;
+  machine?: string;
+  completedQty?: number;
+  rejectedQty?: number;
+  reworkQty?: number;
+  qcResult?: "Passed" | "Failed";
+  defectCategory?: string;
+  defectReason?: string;
+  wastedSheet?: number;
+  wastageReason?: string;
+  wastageMaterial?: string;
+  wastageForRole?: string;
+  wastageForCompany?: string;
+}
+
 export const advanceJobCardStageThunk = createAsyncThunk(
   "jobCard/advanceStage",
-  async (
-    { id, data }: { id: string; data: { stage: string; assignedTo?: string; status: string; remarks?: string; wastedSheet?: number; machine?: string } },
-    { rejectWithValue }
-  ) => {
+  async ({ id, data }: { id: string; data: AdvanceStageData }, { rejectWithValue }) => {
     try {
       const response = await jobCardService.advanceStage(id, data);
       if (response.success && response.data) return response.data;
@@ -129,6 +149,19 @@ export const recordMaterialUsageThunk = createAsyncThunk(
       return rejectWithValue(response.message || "Failed to record material usage");
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to record material usage");
+    }
+  }
+);
+
+export const getWastageReportThunk = createAsyncThunk(
+  "jobCard/getWastageReport",
+  async (params: { from?: string; to?: string; materialId?: string; stage?: string } | undefined, { rejectWithValue }) => {
+    try {
+      const response = await jobCardService.getWastageReport(params);
+      if (response.success && Array.isArray(response.data)) return response.data;
+      return rejectWithValue(response.message || "Failed to fetch wastage report");
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to fetch wastage report");
     }
   }
 );
@@ -235,6 +268,19 @@ const jobCardSlice = createSlice({
       .addCase(recordMaterialUsageThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(getWastageReportThunk.pending, (state) => {
+        state.wastageReportLoading = true;
+        state.error = null;
+      })
+      .addCase(getWastageReportThunk.fulfilled, (state, action: PayloadAction<WastageReportRow[]>) => {
+        state.wastageReportLoading = false;
+        state.wastageReport = action.payload;
+      })
+      .addCase(getWastageReportThunk.rejected, (state, action) => {
+        state.wastageReportLoading = false;
+        state.error = action.payload as string;
+        state.wastageReport = [];
       });
   },
 });

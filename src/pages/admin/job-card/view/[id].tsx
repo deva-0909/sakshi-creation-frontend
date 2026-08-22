@@ -6,10 +6,12 @@ import ThemeChip from "@/component/common_component/themechip";
 import ThemeInput from "@/component/common_component/themeinput";
 import ThemeSelect from "@/component/common_component/themeselect";
 import RoleStaffSelect from "@/component/reusablecomponents/RoleStaffSelect";
+import CustomDialog from "@/component/customdialog";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { getAllRolesThunk } from "@/store/slices/roleSlice";
 import { getAllMaterialsThunk } from "@/store/slices/materialSlice";
 import { getAllMachinesThunk } from "@/store/slices/machineSlice";
+import { DEFECT_CATEGORIES } from "@/services/jobCard.service";
 import {
   getJobCardByIdThunk,
   getJobCardStageHistoryThunk,
@@ -25,13 +27,35 @@ import {
   clearCostingSuccessMessage,
   clearCostingError,
 } from "@/store/slices/costingSlice";
+import {
+  createReworkThunk,
+  getReworksForJobCardThunk,
+  startReworkThunk,
+  submitReworkForApprovalThunk,
+  approveReworkThunk,
+  rejectReworkThunk,
+  clearJobCardReworkError,
+  clearJobCardReworkSuccessMessage,
+  clearReworks,
+} from "@/store/slices/jobCardReworkSlice";
 import { toast } from "react-toastify";
 
-const STAGES = ["Designer", "Printer", "Binder", "Booklet Binder", "Delivery"];
+// Module 8: QC slots in as a real stage of its own -- advisory only, so a
+// Failed result is recorded but never blocks the card from moving on to
+// Delivery (see the design plan's Q1 answer).
+const STAGES = ["Designer", "Printer", "Binder", "Booklet Binder", "QC", "Delivery"];
 const STAGE_STATUSES = ["Pending", "In Progress", "Done"];
 // Only these 3 stages run on physical equipment -- see machine.validator.js's
 // category enum, which the backend also uses to reject a mismatched machine.
 const MACHINE_STAGES = ["Printer", "Binder", "Booklet Binder"];
+
+const reworkStatusColor: Record<string, { bg: string; color: string }> = {
+  Pending: { bg: "#F2F4F7", color: "#344054" },
+  "In Progress": { bg: "#D1E9FF", color: "#175CD3" },
+  "Pending Approval": { bg: "#FEF0C7", color: "#B54708" },
+  Approved: { bg: "#D1FADF", color: "#027A48" },
+  Rejected: { bg: "#FEE4E2", color: "#B42318" },
+};
 
 const statusColor: Record<string, { bg: string; color: string }> = {
   Pending: { bg: "#F2F4F7", color: "#344054" },
@@ -67,23 +91,56 @@ const JobCardDetailPage = () => {
     error: costingError,
     successMessage: costingSuccessMessage,
   } = useAppSelector((state) => state.costing);
+  const {
+    reworks,
+    loading: reworkLoading,
+    error: reworkError,
+    successMessage: reworkSuccessMessage,
+  } = useAppSelector((state) => state.jobCardReworks);
 
   const permissions = user?.role?.permissions?.jobcard;
   const costingPermissions = user?.role?.permissions?.costing;
+  const reworkPermissions = user?.role?.permissions?.rework;
 
   // Advance-stage form state
   const [stage, setStage] = useState("");
   const [stageStatus, setStageStatus] = useState("");
   const [assignedTo, setAssignedTo] = useState<any>(null);
   const [remarks, setRemarks] = useState("");
-  const [wastedSheet, setWastedSheet] = useState("");
   const [selectedMachine, setSelectedMachine] = useState<{ label: string; value: string | number } | null>(null);
+  // Module 8: real per-stage quantities
+  const [completedQty, setCompletedQty] = useState("");
+  const [rejectedQty, setRejectedQty] = useState("");
+  const [reworkQty, setReworkQty] = useState("");
+  // Module 8: QC -- only shown/sent when stage === "QC"
+  const [qcResult, setQcResult] = useState<any>(null);
+  const [defectCategory, setDefectCategory] = useState<any>(null);
+  const [defectReason, setDefectReason] = useState("");
+  // Module 8: wastage now needs a material + Role/Staff, same as Record
+  // Material Usage, so it can write a real stock movement.
+  const [wastedSheet, setWastedSheet] = useState("");
+  const [wastageReason, setWastageReason] = useState("");
+  const [wastageMaterial, setWastageMaterial] = useState<{ label: string; value: string | number } | null>(null);
+  const [wastageRole, setWastageRole] = useState<{ label: string; value: string | number } | null>(null);
+  const [wastageStaff, setWastageStaff] = useState<any>(null);
 
   // Material usage form state
   const [usageRole, setUsageRole] = useState<{ label: string; value: string | number } | null>(null);
   const [usageStaff, setUsageStaff] = useState<any>(null);
   const [usageMaterial, setUsageMaterial] = useState<{ label: string; value: string | number } | null>(null);
   const [usageQty, setUsageQty] = useState("");
+
+  // Rework create-dialog state (Module 8)
+  const [reworkDialogOpen, setReworkDialogOpen] = useState(false);
+  const [reworkReason, setReworkReason] = useState("");
+  const [reworkDefectCategory, setReworkDefectCategory] = useState<any>(null);
+  const [reworkQuantity, setReworkQuantity] = useState("");
+  const [reworkDepartment, setReworkDepartment] = useState<{ label: string; value: string | number } | null>(null);
+  const [reworkStaff, setReworkStaff] = useState<any>(null);
+  const [reworkNotes, setReworkNotes] = useState("");
+  const [reworkCost, setReworkCost] = useState("");
+  const [rejectDialogFor, setRejectDialogFor] = useState<string | null>(null);
+  const [rejectRemarks, setRejectRemarks] = useState("");
 
   // Labor/overhead entry form -- no wage/rate data exists anywhere in the
   // system, so this is recorded by hand per job card (see the design plan).
@@ -96,12 +153,14 @@ const JobCardDetailPage = () => {
       dispatch(getJobCardByIdThunk(id));
       dispatch(getJobCardStageHistoryThunk(id));
       dispatch(getCostingByJobCardThunk(id));
+      dispatch(getReworksForJobCardThunk(id));
     }
     dispatch(getAllRolesThunk());
     dispatch(getAllMaterialsThunk());
     dispatch(getAllMachinesThunk(undefined));
     return () => {
       dispatch(clearSingleJobCard());
+      dispatch(clearReworks());
     };
   }, [id, dispatch]);
 
@@ -146,6 +205,17 @@ const JobCardDetailPage = () => {
     }
   }, [costingSuccessMessage, costingError, dispatch, id]);
 
+  useEffect(() => {
+    if (reworkSuccessMessage) {
+      toast.success(reworkSuccessMessage);
+      dispatch(clearJobCardReworkSuccessMessage());
+    }
+    if (reworkError) {
+      toast.error(reworkError);
+      dispatch(clearJobCardReworkError());
+    }
+  }, [reworkSuccessMessage, reworkError, dispatch]);
+
   const roleOptions = roles.map((r: any) => ({ label: r.roleName, value: r._id }));
   const materialOptions = materials.map((m: any) => ({
     label: `${m.materialName}${m.materialSize ? ` - ${m.materialSize}` : ""}${m.materialGSM ? ` (${m.materialGSM}gsm)` : ""}`,
@@ -160,11 +230,18 @@ const JobCardDetailPage = () => {
   const handleStageChange = (v: any) => {
     setStage(v ? String(v.value) : "");
     setSelectedMachine(null);
+    setQcResult(null);
+    setDefectCategory(null);
+    setDefectReason("");
   };
 
   const handleAdvanceStage = () => {
     if (!stage || !stageStatus) {
       toast.error("Select a stage and status");
+      return;
+    }
+    if (Number(wastedSheet) > 0 && (!wastageMaterial || !wastageRole || !wastageStaff)) {
+      toast.error("Recording wastage requires a material and a Role/Staff selection");
       return;
     }
     if (typeof id !== "string") return;
@@ -176,15 +253,76 @@ const JobCardDetailPage = () => {
           status: stageStatus,
           assignedTo: assignedTo?.value || undefined,
           remarks: remarks || undefined,
-          wastedSheet: wastedSheet ? Number(wastedSheet) : undefined,
           machine: selectedMachine ? String(selectedMachine.value) : undefined,
+          completedQty: completedQty ? Number(completedQty) : undefined,
+          rejectedQty: rejectedQty ? Number(rejectedQty) : undefined,
+          reworkQty: reworkQty ? Number(reworkQty) : undefined,
+          qcResult: stage === "QC" && qcResult ? (qcResult.value as "Passed" | "Failed") : undefined,
+          defectCategory: stage === "QC" && defectCategory ? defectCategory.value : undefined,
+          defectReason: stage === "QC" && defectReason ? defectReason : undefined,
+          wastedSheet: wastedSheet ? Number(wastedSheet) : undefined,
+          wastageReason: wastageReason || undefined,
+          wastageMaterial: wastageMaterial ? String(wastageMaterial.value) : undefined,
+          wastageForRole: wastageRole ? String(wastageRole.value) : undefined,
+          wastageForCompany: wastageStaff ? String(wastageStaff.value) : undefined,
         },
       })
     );
     setStageStatus("");
     setRemarks("");
-    setWastedSheet("");
     setSelectedMachine(null);
+    setCompletedQty("");
+    setRejectedQty("");
+    setReworkQty("");
+    setQcResult(null);
+    setDefectCategory(null);
+    setDefectReason("");
+    setWastedSheet("");
+    setWastageReason("");
+    setWastageMaterial(null);
+    setWastageRole(null);
+    setWastageStaff(null);
+  };
+
+  const handleCreateRework = () => {
+    if (!reworkReason.trim()) {
+      toast.error("A reason is required");
+      return;
+    }
+    if (typeof id !== "string") return;
+    dispatch(
+      createReworkThunk({
+        jobCardId: id,
+        data: {
+          reason: reworkReason,
+          defectCategory: reworkDefectCategory?.value || undefined,
+          quantity: reworkQuantity ? Number(reworkQuantity) : undefined,
+          responsibleDepartment: reworkDepartment?.label || undefined,
+          responsibleStaff: reworkStaff?.value || undefined,
+          additionalMaterialNotes: reworkNotes || undefined,
+          cost: reworkCost ? Number(reworkCost) : undefined,
+        },
+      })
+    );
+    setReworkDialogOpen(false);
+    setReworkReason("");
+    setReworkDefectCategory(null);
+    setReworkQuantity("");
+    setReworkDepartment(null);
+    setReworkStaff(null);
+    setReworkNotes("");
+    setReworkCost("");
+  };
+
+  const handleReworkReject = () => {
+    if (!rejectRemarks.trim()) {
+      toast.error("A reason is required");
+      return;
+    }
+    if (typeof id !== "string" || !rejectDialogFor) return;
+    dispatch(rejectReworkThunk({ jobCardId: id, reworkId: rejectDialogFor, remarks: rejectRemarks }));
+    setRejectDialogFor(null);
+    setRejectRemarks("");
   };
 
   const handleRecordUsage = () => {
@@ -294,9 +432,23 @@ const JobCardDetailPage = () => {
                   {h.assignedTo ? `${h.assignedTo.firstName} ${h.assignedTo.lastName}` : "Unassigned"}
                   {h.completedAt ? ` · completed ${new Date(h.completedAt).toLocaleString()}` : ""}
                 </Typography>
+                {(h.completedQty != null || h.rejectedQty != null || h.reworkQty != null) && (
+                  <Typography fontSize={12} color="text.secondary">
+                    Completed: {h.completedQty ?? "-"} · Rejected: {h.rejectedQty ?? "-"} · Rework: {h.reworkQty ?? "-"}
+                  </Typography>
+                )}
+                {h.qcResult && (
+                  <Typography fontSize={12} fontWeight={600} color={h.qcResult === "Passed" ? "#027A48" : "#B42318"}>
+                    QC: {h.qcResult}
+                    {h.defectCategory ? ` — ${h.defectCategory}` : ""}
+                    {h.defectReason ? ` (${h.defectReason})` : ""}
+                  </Typography>
+                )}
                 {h.wastedSheet != null && (
                   <Typography fontSize={12} color="text.secondary">
                     Wasted sheets: {h.wastedSheet}
+                    {h.wastageMaterial ? ` — ${h.wastageMaterial.materialName}` : ""}
+                    {h.wastageReason ? ` (${h.wastageReason})` : ""}
                   </Typography>
                 )}
                 {h.machine && (
@@ -353,6 +505,71 @@ const JobCardDetailPage = () => {
               roleFilter={stage}
               disabled={!permissions?.edit}
             />
+
+            <Stack direction="row" spacing={2}>
+              <ThemeInput
+                labelName="Completed Qty"
+                type="number"
+                fullWidth
+                value={completedQty}
+                onChange={(e) => setCompletedQty(e.target.value)}
+                disabled={!permissions?.edit}
+              />
+              <ThemeInput
+                labelName="Rejected Qty"
+                type="number"
+                fullWidth
+                value={rejectedQty}
+                onChange={(e) => setRejectedQty(e.target.value)}
+                disabled={!permissions?.edit}
+              />
+              <ThemeInput
+                labelName="Rework Qty"
+                type="number"
+                fullWidth
+                value={reworkQty}
+                onChange={(e) => setReworkQty(e.target.value)}
+                disabled={!permissions?.edit}
+              />
+            </Stack>
+
+            {stage === "QC" && (
+              <>
+                <Typography fontSize={12} color="text.secondary" mt={-1}>
+                  QC is advisory: a Failed result is recorded here but does not block the card from moving to
+                  Delivery.
+                </Typography>
+                <ThemeSelect
+                  label="QC Result"
+                  options={[
+                    { label: "Passed", value: "Passed" },
+                    { label: "Failed", value: "Failed" },
+                  ]}
+                  value={qcResult}
+                  onChange={(_, v) => setQcResult(v)}
+                  disabled={!permissions?.edit}
+                />
+                {qcResult?.value === "Failed" && (
+                  <>
+                    <ThemeSelect
+                      label="Defect Category"
+                      options={DEFECT_CATEGORIES.map((c) => ({ label: c, value: c }))}
+                      value={defectCategory}
+                      onChange={(_, v) => setDefectCategory(v)}
+                      disabled={!permissions?.edit}
+                    />
+                    <ThemeInput
+                      labelName="Defect Reason"
+                      fullWidth
+                      value={defectReason}
+                      onChange={(e) => setDefectReason(e.target.value)}
+                      disabled={!permissions?.edit}
+                    />
+                  </>
+                )}
+              </>
+            )}
+
             <ThemeInput
               labelName="Wasted Sheets"
               type="number"
@@ -361,6 +578,50 @@ const JobCardDetailPage = () => {
               onChange={(e) => setWastedSheet(e.target.value)}
               disabled={!permissions?.edit}
             />
+            {Number(wastedSheet) > 0 && (
+              <>
+                <Typography fontSize={12} color="text.secondary" mt={-1}>
+                  Recording wastage writes a real inventory movement, so it needs the material and who's
+                  responsible.
+                </Typography>
+                <ThemeSelect
+                  label="Wasted Material"
+                  options={materialOptions}
+                  value={wastageMaterial}
+                  onChange={(_, v) => setWastageMaterial(v)}
+                  disabled={!permissions?.edit}
+                  required
+                />
+                <ThemeSelect
+                  label="Wastage Role"
+                  options={roleOptions}
+                  value={wastageRole}
+                  onChange={(_, v) => {
+                    setWastageRole(v);
+                    setWastageStaff(null);
+                  }}
+                  disabled={!permissions?.edit}
+                  required
+                />
+                <RoleStaffSelect
+                  label="Wastage Staff Member"
+                  name="wastageStaff"
+                  value={wastageStaff}
+                  onChange={(_, v) => setWastageStaff(v)}
+                  roleFilter={wastageRole?.label || ""}
+                  disabled={!permissions?.edit || !wastageRole}
+                  required
+                />
+                <ThemeInput
+                  labelName="Wastage Reason"
+                  fullWidth
+                  value={wastageReason}
+                  onChange={(e) => setWastageReason(e.target.value)}
+                  disabled={!permissions?.edit}
+                />
+              </>
+            )}
+
             <ThemeInput
               labelName="Remarks"
               fullWidth
@@ -429,6 +690,115 @@ const JobCardDetailPage = () => {
           </Stack>
         </Paper>
       </Stack>
+
+      <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mt: 2 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography fontWeight={600}>Rework</Typography>
+          {reworkPermissions?.create && (
+            <ThemeButton onClick={() => setReworkDialogOpen(true)} sx={{ background: "#175CD3" }}>
+              New Rework
+            </ThemeButton>
+          )}
+        </Box>
+        {reworkLoading && reworks.length === 0 ? (
+          <Box display="flex" justifyContent="center" p={3}>
+            <CircularProgress size={22} />
+          </Box>
+        ) : reworks.length === 0 ? (
+          <Typography fontSize={13} color="text.secondary">
+            No rework records for this job card.
+          </Typography>
+        ) : (
+          <Stack spacing={1.5}>
+            {reworks.map((r) => {
+              const rc = reworkStatusColor[r.status] || reworkStatusColor.Pending;
+              return (
+                <Box key={r._id} sx={{ border: "1px solid #F2F4F7", borderRadius: 1.5, p: 1.5 }}>
+                  <Box display="flex" justifyContent="space-between" alignItems="flex-start" gap={2}>
+                    <Box>
+                      <Typography fontSize={14} fontWeight={600}>
+                        {r.reason}
+                      </Typography>
+                      <Typography fontSize={12} color="text.secondary">
+                        {r.defectCategory ? `${r.defectCategory} · ` : ""}
+                        {r.jobCardStage ? `${r.jobCardStage.stage} stage · ` : ""}
+                        {r.quantity != null ? `Qty ${r.quantity} · ` : ""}
+                        {r.responsibleDepartment || "Unassigned department"}
+                        {r.responsibleStaff ? ` (${r.responsibleStaff.firstName} ${r.responsibleStaff.lastName})` : ""}
+                      </Typography>
+                      {r.additionalMaterialNotes && (
+                        <Typography fontSize={12} color="text.secondary">
+                          {r.additionalMaterialNotes}
+                        </Typography>
+                      )}
+                      {r.cost != null && (
+                        <Typography fontSize={12} color="text.secondary">
+                          Cost: {r.cost}
+                        </Typography>
+                      )}
+                      {r.approvedBy && (
+                        <Typography fontSize={12} color="text.secondary">
+                          Approved by {r.approvedBy.firstName} {r.approvedBy.lastName}
+                          {r.approvedAt ? ` · ${new Date(r.approvedAt).toLocaleString()}` : ""}
+                        </Typography>
+                      )}
+                    </Box>
+                    <ThemeChip label={r.status} sx={{ background: rc.bg, color: rc.color, fontWeight: 600, flexShrink: 0 }} />
+                  </Box>
+                  <Stack direction="row" spacing={1} mt={1.5}>
+                    {r.status === "Pending" && reworkPermissions?.edit && (
+                      <ThemeButton
+                        size="small"
+                        onClick={() => typeof id === "string" && dispatch(startReworkThunk({ jobCardId: id, reworkId: r._id }))}
+                        sx={{ background: "#175CD3" }}
+                      >
+                        Start
+                      </ThemeButton>
+                    )}
+                    {r.status === "In Progress" && reworkPermissions?.edit && (
+                      <ThemeButton
+                        size="small"
+                        onClick={() => typeof id === "string" && dispatch(submitReworkForApprovalThunk({ jobCardId: id, reworkId: r._id }))}
+                        sx={{ background: "#175CD3" }}
+                      >
+                        Submit for Approval
+                      </ThemeButton>
+                    )}
+                    {r.status === "Pending Approval" && reworkPermissions?.approve && (
+                      <>
+                        <ThemeButton
+                          size="small"
+                          onClick={() => typeof id === "string" && dispatch(approveReworkThunk({ jobCardId: id, reworkId: r._id }))}
+                          sx={{ background: "#12B76A" }}
+                        >
+                          Approve
+                        </ThemeButton>
+                        <ThemeButton
+                          size="small"
+                          variant="outlined"
+                          sx={{ borderColor: "#D92D20", color: "#D92D20" }}
+                          onClick={() => setRejectDialogFor(r._id)}
+                        >
+                          Reject
+                        </ThemeButton>
+                      </>
+                    )}
+                    {r.status === "Rejected" && reworkPermissions?.edit && (
+                      <ThemeButton
+                        size="small"
+                        onClick={() => typeof id === "string" && dispatch(startReworkThunk({ jobCardId: id, reworkId: r._id }))}
+                        sx={{ background: "#175CD3" }}
+                      >
+                        Restart
+                      </ThemeButton>
+                    )}
+                  </Stack>
+                </Box>
+              );
+            })}
+          </Stack>
+        )}
+      </Paper>
 
       <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mt: 2 }}>
         <Typography fontWeight={600} mb={2}>
@@ -513,6 +883,86 @@ const JobCardDetailPage = () => {
           </Typography>
         )}
       </Paper>
+
+      <CustomDialog open={reworkDialogOpen} onClose={() => setReworkDialogOpen(false)} title="New Rework Record" maxWidth="xs">
+        <Stack spacing={2} mt={1}>
+          <ThemeInput
+            labelName="Reason"
+            fullWidth
+            required
+            multiline
+            minRows={2}
+            value={reworkReason}
+            onChange={(e) => setReworkReason(e.target.value)}
+          />
+          <ThemeSelect
+            label="Defect Category"
+            options={DEFECT_CATEGORIES.map((c) => ({ label: c, value: c }))}
+            value={reworkDefectCategory}
+            onChange={(_, v) => setReworkDefectCategory(v)}
+          />
+          <ThemeInput
+            labelName="Quantity"
+            type="number"
+            fullWidth
+            value={reworkQuantity}
+            onChange={(e) => setReworkQuantity(e.target.value)}
+          />
+          <ThemeSelect
+            label="Responsible Department"
+            options={roleOptions}
+            value={reworkDepartment}
+            onChange={(_, v) => {
+              setReworkDepartment(v);
+              setReworkStaff(null);
+            }}
+          />
+          <RoleStaffSelect
+            label="Responsible Staff"
+            name="reworkStaff"
+            value={reworkStaff}
+            onChange={(_, v) => setReworkStaff(v)}
+            roleFilter={reworkDepartment?.label || ""}
+            disabled={!reworkDepartment}
+          />
+          <ThemeInput
+            labelName="Additional Material Notes"
+            fullWidth
+            value={reworkNotes}
+            onChange={(e) => setReworkNotes(e.target.value)}
+          />
+          <ThemeInput labelName="Cost" type="number" fullWidth value={reworkCost} onChange={(e) => setReworkCost(e.target.value)} />
+        </Stack>
+        <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
+          <ThemeButton variant="outlined" onClick={() => setReworkDialogOpen(false)}>
+            Cancel
+          </ThemeButton>
+          <ThemeButton onClick={handleCreateRework} sx={{ background: "#175CD3" }}>
+            Create
+          </ThemeButton>
+        </Box>
+      </CustomDialog>
+
+      <CustomDialog open={!!rejectDialogFor} onClose={() => setRejectDialogFor(null)} title="Reject Rework" maxWidth="xs">
+        <ThemeInput
+          labelName="Reason"
+          fullWidth
+          required
+          multiline
+          minRows={3}
+          value={rejectRemarks}
+          onChange={(e) => setRejectRemarks(e.target.value)}
+          sx={{ mb: 2, mt: 1 }}
+        />
+        <Box display="flex" justifyContent="flex-end" gap={2}>
+          <ThemeButton variant="outlined" onClick={() => setRejectDialogFor(null)}>
+            Cancel
+          </ThemeButton>
+          <ThemeButton sx={{ background: "#D92D20" }} onClick={handleReworkReject}>
+            Confirm Reject
+          </ThemeButton>
+        </Box>
+      </CustomDialog>
     </Box>
   );
 };

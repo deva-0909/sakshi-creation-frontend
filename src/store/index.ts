@@ -37,6 +37,7 @@ import notificationReducer from '@/store/slices/notificationSlice';
 import approvalReducer from '@/store/slices/approvalSlice';
 import dashboardReducer from '@/store/slices/dashboardSlice';
 import opportunityReducer from '@/store/slices/opportunitySlice';
+import jobCardReworkReducer from '@/store/slices/jobCardReworkSlice';
 // Persist configuration
 export const persistConfig = {
   key: 'auth',
@@ -86,6 +87,7 @@ export const store = configureStore({
     approvals: approvalReducer,
     dashboard: dashboardReducer,
     opportunities: opportunityReducer,
+    jobCardReworks: jobCardReworkReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

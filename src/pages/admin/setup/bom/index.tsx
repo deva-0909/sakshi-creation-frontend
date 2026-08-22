@@ -24,6 +24,7 @@ interface BomLineRow {
   quantityPerUnit: number;
   unit: string;
   notes?: string;
+  expectedWastagePercent?: number | null;
   material?: { _id: string; materialName: string };
 }
 
@@ -31,6 +32,7 @@ const columns = [
   { id: "material", label: "Material" },
   { id: "quantityPerUnit", label: "Qty per unit" },
   { id: "unit", label: "Unit" },
+  { id: "expectedWastagePercent", label: "Expected Wastage %" },
   { id: "notes", label: "Notes" },
   { id: "options", label: "Options" },
 ];
@@ -46,6 +48,7 @@ const BomPage = () => {
   const [quantityPerUnit, setQuantityPerUnit] = useState("");
   const [unit, setUnit] = useState("sheet");
   const [notes, setNotes] = useState("");
+  const [expectedWastagePercent, setExpectedWastagePercent] = useState("");
 
   useEffect(() => {
     dispatch(getAllProductItemsThunk());
@@ -90,6 +93,10 @@ const BomPage = () => {
       toast.error("Quantity per unit must be a positive number");
       return;
     }
+    if (expectedWastagePercent && (Number(expectedWastagePercent) < 0 || Number(expectedWastagePercent) > 100)) {
+      toast.error("Expected wastage % must be between 0 and 100");
+      return;
+    }
     dispatch(
       createBomLineThunk({
         productItem: String(selectedProduct.value),
@@ -97,11 +104,13 @@ const BomPage = () => {
         quantityPerUnit: Number(quantityPerUnit),
         unit,
         notes: notes || undefined,
+        expectedWastagePercent: expectedWastagePercent ? Number(expectedWastagePercent) : undefined,
       })
     );
     setSelectedMaterial(null);
     setQuantityPerUnit("");
     setNotes("");
+    setExpectedWastagePercent("");
   };
 
   const handleDelete = (id: string) => {
@@ -153,6 +162,14 @@ const BomPage = () => {
             <Box width={120}>
               <ThemeInput labelName="Unit" value={unit} onChange={(e) => setUnit(e.target.value)} />
             </Box>
+            <Box width={160}>
+              <ThemeInput
+                labelName="Expected Wastage %"
+                type="number"
+                value={expectedWastagePercent}
+                onChange={(e) => setExpectedWastagePercent(e.target.value)}
+              />
+            </Box>
             <Box minWidth={200} flex={1}>
               <ThemeInput labelName="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
             </Box>
@@ -182,6 +199,7 @@ const BomPage = () => {
                   <TableCell>{row.material?.materialName || "-"}</TableCell>
                   <TableCell>{row.quantityPerUnit}</TableCell>
                   <TableCell>{row.unit}</TableCell>
+                  <TableCell>{row.expectedWastagePercent != null ? `${row.expectedWastagePercent}%` : "-"}</TableCell>
                   <TableCell>{row.notes || "-"}</TableCell>
                   <TableCell>
                     <IconButton color="error" onClick={() => handleDelete(row._id)} disabled={loading}>

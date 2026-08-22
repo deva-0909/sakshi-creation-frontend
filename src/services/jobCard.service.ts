@@ -18,6 +18,10 @@ export interface JobCard {
   updatedAt?: string;
 }
 
+// Module 8: fixed starter list of defect categories -- kept as a fixed list
+// rather than free text so the wastage/QC reports can group meaningfully.
+export const DEFECT_CATEGORIES = ["Print Misalignment", "Binding Defect", "Paper Damage", "Color Mismatch", "Other"];
+
 export interface JobCardStage {
   _id: string;
   stage: string;
@@ -29,6 +33,41 @@ export interface JobCardStage {
   completedAt?: string;
   createdAt?: string;
   machine?: { _id: string; machineName: string; machineCode: string };
+  // Module 8: real quantity depth + QC/rework/wastage tracking.
+  completedQty?: number;
+  rejectedQty?: number;
+  reworkQty?: number;
+  qcResult?: "Passed" | "Failed";
+  defectCategory?: string;
+  defectReason?: string;
+  wastageReason?: string;
+  wastageMaterial?: { _id: string; materialName: string };
+}
+
+export interface JobCardRework {
+  _id: string;
+  reason: string;
+  defectCategory?: string;
+  quantity?: number;
+  responsibleDepartment?: string;
+  responsibleStaff?: { _id: string; firstName: string; lastName: string };
+  additionalMaterialNotes?: string;
+  cost?: number;
+  status: string;
+  jobCardStage?: { _id: string; stage: string };
+  createdBy?: { _id: string; firstName: string; lastName: string };
+  approvedBy?: { _id: string; firstName: string; lastName: string };
+  approvedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface WastageReportRow {
+  material: { _id: string; materialName: string };
+  totalWasted: number;
+  entries: number;
+  expectedWastagePercent: number | null;
+  byStage: Record<string, number>;
 }
 
 export interface MaterialUsage {
@@ -124,7 +163,27 @@ export const jobCardService = {
 
   async advanceStage(
     id: string,
-    data: { stage: string; assignedTo?: string; status: string; remarks?: string; wastedSheet?: number; machine?: string }
+    data: {
+      stage: string;
+      assignedTo?: string;
+      status: string;
+      remarks?: string;
+      machine?: string;
+      // Module 8: real quantity depth
+      completedQty?: number;
+      rejectedQty?: number;
+      reworkQty?: number;
+      // Module 8: QC (only meaningful when stage === "QC")
+      qcResult?: "Passed" | "Failed";
+      defectCategory?: string;
+      defectReason?: string;
+      // Module 8: wastage now requires naming the material + Role/Staff
+      wastedSheet?: number;
+      wastageReason?: string;
+      wastageMaterial?: string;
+      wastageForRole?: string;
+      wastageForCompany?: string;
+    }
   ): Promise<ApiResponse<{ jobCard: JobCard; stage: JobCardStage }>> {
     try {
       const response: AxiosResponse<ApiResponse<{ jobCard: JobCard; stage: JobCardStage }>> = await axios.patch(
@@ -163,6 +222,19 @@ export const jobCardService = {
       return { success: response.data.success, data: response.data.data, message: response.data.message };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Failed to record material usage");
+    }
+  },
+
+  async getWastageReport(params?: { from?: string; to?: string; materialId?: string; stage?: string }): Promise<ApiResponse<WastageReportRow[]>> {
+    try {
+      const response: AxiosResponse<ApiResponse<WastageReportRow[]>> = await axios.get(Endpoint.GET_WASTAGE_REPORT, {
+        headers: authHeaders(),
+        params,
+        withCredentials: true,
+      });
+      return { success: response.data.success, data: response.data.data || [], message: response.data.message };
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Failed to fetch wastage report");
     }
   },
 };

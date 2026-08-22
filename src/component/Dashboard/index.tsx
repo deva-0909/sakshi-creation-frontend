@@ -74,6 +74,7 @@ const permissionMapping: { [key: string]: string } = {
   Quotation: "quotation",
   "CRM Pipeline": "opportunity",
   "Job Card": "jobcard",
+  "Wastage Report": "jobcard",
   Machines: "machine",
   "Stock Ledger": "inventory",
   RFQs: "rfq",
@@ -92,6 +93,7 @@ const menuItems = [
   { label: "Quotation", icon: <MdLibraryBooks size={18} />, path: "/admin/quotation" },
   { label: "CRM Pipeline", icon: <MdTrendingUp size={18} />, path: "/admin/crm/opportunities" },
   { label: "Job Card", icon: <MdWork size={18} />, path: "/admin/job-card" },
+  { label: "Wastage Report", icon: <MdAssignment size={18} />, path: "/admin/job-card/wastage-report" },
   { label: "Quality Packaging", icon: <MdSettings size={18} />, path: "/admin/quality-packageing" },
   { label: "Performance invoice", icon: <MdSettings size={18} />, path: "/admin/performance-invoice" },
   {
