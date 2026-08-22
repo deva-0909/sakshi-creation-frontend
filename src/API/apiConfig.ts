@@ -197,5 +197,33 @@ const Endpoint = {
   // Stock Ledger endpoints
   GET_MATERIAL_LEDGER: `${BaseURL}/api/stock-ledger/material`,
   GET_STOCK_SUMMARY: `${BaseURL}/api/stock-ledger/summary`,
+
+  // Procurement: RFQ endpoints (Patch 20 -- RFQ -> PO -> GRN)
+  CREATE_RFQ: `${BaseURL}/api/rfqs`,
+  GET_ALL_RFQS: `${BaseURL}/api/rfqs`,
+  GET_RFQ_BY_ID: `${BaseURL}/api/rfqs`,
+  DELETE_RFQ: `${BaseURL}/api/rfqs`,
+  SEND_RFQ: `${BaseURL}/api/rfqs`,
+  CANCEL_RFQ: `${BaseURL}/api/rfqs`,
+  RECORD_VENDOR_QUOTE: `${BaseURL}/api/rfqs/quotes`,
+
+  // Procurement: Purchase Order endpoints
+  CREATE_PURCHASE_ORDER: `${BaseURL}/api/purchase-orders`,
+  SELECT_WINNING_QUOTE: `${BaseURL}/api/purchase-orders/from-quote`,
+  GET_ALL_PURCHASE_ORDERS: `${BaseURL}/api/purchase-orders`,
+  GET_PURCHASE_ORDER_BY_ID: `${BaseURL}/api/purchase-orders`,
+  UPDATE_PURCHASE_ORDER: `${BaseURL}/api/purchase-orders`,
+  DELETE_PURCHASE_ORDER: `${BaseURL}/api/purchase-orders`,
+  SUBMIT_PO_FOR_APPROVAL: `${BaseURL}/api/purchase-orders`,
+  APPROVE_PO: `${BaseURL}/api/purchase-orders`,
+  REJECT_PO: `${BaseURL}/api/purchase-orders`,
+  SEND_PO: `${BaseURL}/api/purchase-orders`,
+  CANCEL_PO: `${BaseURL}/api/purchase-orders`,
+  GET_PO_HISTORY: `${BaseURL}/api/purchase-orders`,
+
+  // Procurement: GRN endpoints
+  CREATE_GRN: `${BaseURL}/api/grns`,
+  GET_ALL_GRNS: `${BaseURL}/api/grns`,
+  GET_GRN_BY_ID: `${BaseURL}/api/grns`,
 };
 export default Endpoint;

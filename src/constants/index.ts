@@ -118,4 +118,25 @@ export const permissionsArray = {
     edit: false,
     delete: false,
   },
+  rfq: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
+  purchaseorder: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
+  grn: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
 }

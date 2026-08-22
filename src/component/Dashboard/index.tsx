@@ -71,6 +71,8 @@ const permissionMapping: { [key: string]: string } = {
   "Job Card": "jobcard",
   Machines: "machine",
   "Stock Ledger": "inventory",
+  RFQs: "rfq",
+  "Purchase Orders": "purchaseorder",
 };
 
 const menuItems = [
@@ -98,6 +100,15 @@ const menuItems = [
   { label: "Inventory", icon: <MdInventory size={18} />, path: "/admin/inventory" },
   { label: "Stock Ledger", icon: <MdInventory size={18} />, path: "/admin/inventory/stock-ledger" },
   { label: "Purchase", icon: <MdShoppingCart size={18} />, path: "/admin/purchase" },
+  {
+    label: "Procurement",
+    icon: <MdShoppingCart size={18} />,
+    path: "/admin/procurement/rfq",
+    children: [
+      { label: "RFQs", path: "/admin/procurement/rfq", icon: <MdLibraryBooks size={18} /> },
+      { label: "Purchase Orders", path: "/admin/procurement/purchase-orders", icon: <MdShoppingCart size={18} /> },
+    ],
+  },
   { label: "Task", icon: <MdShoppingCart size={18} />, path: "/admin/task" },
   { label: "History", icon: <MdShoppingCart size={18} />, path: "/admin/history" },
   {

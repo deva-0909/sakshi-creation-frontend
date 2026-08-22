@@ -26,6 +26,9 @@ import bomReducer from '@/store/slices/bomSlice';
 import jobCardReducer from '@/store/slices/jobCardSlice';
 import machineReducer from '@/store/slices/machineSlice';
 import stockLedgerReducer from '@/store/slices/stockLedgerSlice';
+import rfqReducer from '@/store/slices/rfqSlice';
+import purchaseOrderReducer from '@/store/slices/purchaseOrderSlice';
+import grnReducer from '@/store/slices/grnSlice';
 // Persist configuration
 export const persistConfig = {
   key: 'auth',
@@ -64,6 +67,9 @@ export const store = configureStore({
     jobCards: jobCardReducer,
     machines: machineReducer,
     stockLedger: stockLedgerReducer,
+    rfqs: rfqReducer,
+    purchaseOrders: purchaseOrderReducer,
+    grns: grnReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
