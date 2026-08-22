@@ -9,7 +9,9 @@ import {
 import { Add, Edit, Delete } from '@mui/icons-material';
 import BasicTable from '@/component/common_component/Table/themetable';
 import Input from '@/component/common_component/themeinput';
+import Select from '@/component/common_component/themeselect';
 import Button from '@/component/common_component/themebutton';
+import ThemeChip from '@/component/common_component/themechip';
 import CustomDialog from '@/component/customdialog';
 import CompanySelect from '@/component/reusablecomponents/CompanyWithPartyName';
 import AddNewVendorBulkDialog from '@/component/AddNewVendorBulkDialog';
@@ -24,6 +26,12 @@ import {
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 
+const STATUSES = ['Active', 'Inactive'];
+const statusColor: Record<string, { bg: string; color: string }> = {
+  Active: { bg: '#D1FADF', color: '#027A48' },
+  Inactive: { bg: '#FEE4E2', color: '#B42318' },
+};
+
 interface VendorForm {
   companyName: string;
   name: string;
@@ -34,6 +42,9 @@ interface VendorForm {
   // Module 9: optional payable credit limit, kept as a string in form state
   // (like every other Input here) and converted to a number on save.
   creditLimit: string;
+  // Module 10: activation status, added to the pre-existing masters that had
+  // no such concept before.
+  status: string;
 }
 
 const columns = [
@@ -45,6 +56,7 @@ const columns = [
   { id: 'gst', label: 'GST' },
   { id: 'address', label: 'Address' },
   { id: 'creditLimit', label: 'Credit Limit' },
+  { id: 'status', label: 'Status' },
   { id: 'action', label: 'Actions' },
 ];
 
@@ -62,6 +74,7 @@ const VendorPage = () => {
     gst: '',
     address: '',
     creditLimit: '',
+    status: 'Active',
   });
   const [gstError, setGstError] = useState<string | null>(null);
 
@@ -84,6 +97,7 @@ const VendorPage = () => {
         gst: vendor.gst || '',
         address: vendor.address,
         creditLimit: vendor.creditLimit != null ? String(vendor.creditLimit) : '',
+        status: vendor.status || 'Active',
       });
       setGstError(null); // Reset GST error on open
     } else {
@@ -96,6 +110,7 @@ const VendorPage = () => {
         gst: '',
         address: '',
         creditLimit: '',
+        status: 'Active',
       });
       setGstError(null); // Reset GST error on open
     }
@@ -158,6 +173,7 @@ const VendorPage = () => {
               gst: form.gst,
               address: form.address,
               creditLimit: form.creditLimit !== '' ? Number(form.creditLimit) : undefined,
+              status: form.status,
             },
           })
         ).unwrap();
@@ -172,6 +188,7 @@ const VendorPage = () => {
             gst: form.gst,
             address: form.address,
             creditLimit: form.creditLimit !== '' ? Number(form.creditLimit) : undefined,
+            status: form.status,
           })
         ).unwrap();
         toast.success('Vendor created successfully');
@@ -185,6 +202,7 @@ const VendorPage = () => {
         gst: '',
         address: '',
         creditLimit: '',
+        status: 'Active',
       });
       setEditId(null);
       setGstError(null);
@@ -259,6 +277,9 @@ const VendorPage = () => {
             <TableCell>{row.gst || 'N/A'}</TableCell>
             <TableCell>{row.address}</TableCell>
             <TableCell>{row.creditLimit != null ? row.creditLimit : 'No limit'}</TableCell>
+            <TableCell>
+              <ThemeChip label={row.status || 'Active'} sx={{ background: statusColor[row.status || 'Active']?.bg, color: statusColor[row.status || 'Active']?.color, fontWeight: 600 }} />
+            </TableCell>
             <TableCell>
               <IconButton color="primary" onClick={() => handleOpenDialog(row)}>
                 <Edit />
@@ -362,6 +383,14 @@ const VendorPage = () => {
             fullWidth
             sx={{ flex: 1 }}
           />
+          <Box sx={{ flex: 1 }}>
+            <Select
+              label="Status"
+              options={STATUSES.map((s) => ({ label: s, value: s }))}
+              value={form.status ? { label: form.status, value: form.status } : null}
+              onChange={(_, v) => setForm((f) => ({ ...f, status: v ? String(v.value) : 'Active' }))}
+            />
+          </Box>
         </Stack>
         <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
           <Button

@@ -41,6 +41,14 @@ import jobCardReworkReducer from '@/store/slices/jobCardReworkSlice';
 import creditNoteReducer from '@/store/slices/creditNoteSlice';
 import debitNoteReducer from '@/store/slices/debitNoteSlice';
 import financeReducer from '@/store/slices/financeSlice';
+import uomReducer from '@/store/slices/uomSlice';
+import taxRateReducer from '@/store/slices/taxRateSlice';
+import branchReducer from '@/store/slices/branchSlice';
+import designationReducer from '@/store/slices/designationSlice';
+import appSettingsReducer from '@/store/slices/appSettingsSlice';
+import numberingConfigReducer from '@/store/slices/numberingConfigSlice';
+import routingReducer from '@/store/slices/routingSlice';
+import loginHistoryReducer from '@/store/slices/loginHistorySlice';
 // Persist configuration
 export const persistConfig = {
   key: 'auth',
@@ -94,6 +102,14 @@ export const store = configureStore({
     creditNotes: creditNoteReducer,
     debitNotes: debitNoteReducer,
     finance: financeReducer,
+    uoms: uomReducer,
+    taxRates: taxRateReducer,
+    branches: branchReducer,
+    designations: designationReducer,
+    appSettings: appSettingsReducer,
+    numberingConfigs: numberingConfigReducer,
+    routing: routingReducer,
+    loginHistory: loginHistoryReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -12,6 +12,8 @@ import ThemeSelect from "@/component/common_component/themeselect"
 import { useAppDispatch, useAppSelector } from "@/store"
 import { getStaffByIdThunk, createStaffThunk, updateStaffThunk } from "@/store/slices/staffSlice"
 import { getAllRolesThunk } from "@/store/slices/roleSlice"
+import { getAllBranchesThunk } from "@/store/slices/branchSlice"
+import { getAllDesignationsThunk } from "@/store/slices/designationSlice"
 import { deleteFileThunk } from "@/store/slices/fileUploadSlice" // Import deleteFileThunk
 import CompanySelect from "@/component/reusablecomponents/CompanyWithPartyName"
 import FileUpload, { type FileUploadRef } from "@/component/reusablecomponents/FileUpload" // Adjust path if necessary
@@ -32,6 +34,8 @@ interface StaffFormData {
   birthDay: string;
   role: string;
   companyName: string;
+  branch: string;
+  designation: string;
   password?: string;
   aadharFiles: string[] // Array of file paths/URLs
   addressFiles: string[] // Array of file paths/URLs
@@ -77,6 +81,8 @@ const StaffView = () => {
   const {user} = useAppSelector((state) => state.auth) // For future use if needed
   const { currentStaff, loading: staffLoading } = useAppSelector((state) => state.staff)
   const { roles, loading: rolesLoading } = useAppSelector((state) => state.roles)
+  const { branches } = useAppSelector((state) => state.branches)
+  const { designations } = useAppSelector((state) => state.designations)
 
   // Refs for FileUpload components
   const aadharFileUploadRef = useRef<FileUploadRef>(null)
@@ -105,6 +111,8 @@ const StaffView = () => {
       birthDay: "",
       role: "",
       companyName: "",
+      branch: "",
+      designation: "",
       password: "",
       aadharFiles: [], // Initialize empty
       addressFiles: [], // Initialize empty
@@ -152,6 +160,8 @@ const StaffView = () => {
           birthDay: values.birthDay || undefined,
           role: values.role,
           CompanyName: values.companyName,
+          branch: values.branch || undefined,
+          designation: values.designation || undefined,
           password: values.password,
           aadharFiles: finalAadharFiles, // Include file paths
           addressFiles: finalAddressFiles, // Include file paths
@@ -184,6 +194,8 @@ const StaffView = () => {
 
   useEffect(() => {
     dispatch(getAllRolesThunk())
+    dispatch(getAllBranchesThunk(undefined))
+    dispatch(getAllDesignationsThunk(undefined))
     if (mode === "edit" && id) {
       dispatch(getStaffByIdThunk(id as string))
     }
@@ -215,6 +227,8 @@ const StaffView = () => {
         birthDay: currentStaff.birthDay ? new Date(currentStaff.birthDay).toISOString().split("T")[0] : "",
         role: currentStaff.role?._id || "",
         companyName: currentStaff.companyName?._id || currentStaff.companyName?.companyName,
+        branch: currentStaff.branch?.id || currentStaff.branch?._id || "",
+        designation: currentStaff.designation?.id || currentStaff.designation?._id || "",
         password: user?.role?.roleName === 'Admin' && user?.role?.isDelete === false ? decryptData(currentStaff?.password): "", // Password is not pre-filled for security
         aadharFiles: currentStaff.aadharFiles || [], // Populate existing files
         addressFiles: currentStaff.addressFiles || [], // Populate existing files
@@ -314,6 +328,8 @@ const handleEmailChange = (value: string) => {
         birthDay: currentStaff.birthDay ? new Date(currentStaff.birthDay).toISOString().split("T")[0] : "",
         role: currentStaff.role?._id || "",
         companyName: currentStaff.CompanyName ? currentStaff.CompanyName._id : "",
+        branch: currentStaff.branch?.id || currentStaff.branch?._id || "",
+        designation: currentStaff.designation?.id || currentStaff.designation?._id || "",
         password: "",
         aadharFiles: currentStaff.aadharFiles || [],
         addressFiles: currentStaff.addressFiles || [],
@@ -435,6 +451,29 @@ const handleEmailChange = (value: string) => {
           helperText={formik.errors.aadharNo}
           fullWidth
           required
+        />
+      </Stack>
+
+      <Stack direction="row" spacing={2} mb={2}>
+        <ThemeSelect
+          label="Branch (optional)"
+          options={branches.map((b: any) => ({ label: b.branchName, value: b._id }))}
+          value={
+            formik.values.branch
+              ? { label: branches.find((b: any) => b._id === formik.values.branch)?.branchName || "", value: formik.values.branch }
+              : null
+          }
+          onChange={(_, v) => formik.setFieldValue("branch", v ? v.value : "")}
+        />
+        <ThemeSelect
+          label="Designation (optional)"
+          options={designations.map((d: any) => ({ label: d.designationName, value: d._id }))}
+          value={
+            formik.values.designation
+              ? { label: designations.find((d: any) => d._id === formik.values.designation)?.designationName || "", value: formik.values.designation }
+              : null
+          }
+          onChange={(_, v) => formik.setFieldValue("designation", v ? v.value : "")}
         />
       </Stack>
 

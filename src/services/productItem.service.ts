@@ -5,12 +5,14 @@ import { authService } from "./auth.service";
 interface ProductItem {
   _id: string;
   itemName: string;
+  status?: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
 interface CreateProductItemData {
-  itemName: string;
+  itemName?: string;
+  status?: string;
 }
 
 interface ApiResponse<T> {

@@ -31,7 +31,10 @@ import { features } from "process";
 import { permissionsArray } from "@/constants";
 import { toTitleCase } from "@/utills/utills";
 import ThemeButton from "@/component/common_component/themebutton";
+import Select from "@/component/common_component/themeselect";
 import { ArrowBack } from "@mui/icons-material";
+
+const STATUSES = ["Active", "Inactive"];
 
 interface PermissionData {
   feature: string;
@@ -61,6 +64,7 @@ const AddRoleForm: React.FC<AddRoleFormProps> = ({ isEditMode = false, roleId })
 
   const [roleName, setRoleName] = useState("");
   const [permissions, setPermissions] = useState<Permission>(permissionsArray);
+  const [status, setStatus] = useState("Active");
   const [isSaving, setIsSaving] = useState(false);
 
   const prevErrorRef = useRef<string | null>(null);
@@ -82,6 +86,7 @@ const AddRoleForm: React.FC<AddRoleFormProps> = ({ isEditMode = false, roleId })
       setRoleName(singleRole.roleName);
 
       setPermissions(singleRole?.permissions);
+      setStatus(singleRole?.status || "Active");
     }
   }, [isEditMode, singleRole]);
 
@@ -131,6 +136,7 @@ const AddRoleForm: React.FC<AddRoleFormProps> = ({ isEditMode = false, roleId })
     const payload = {
       roleName,
       permissions: permissions,
+      status,
     };
 
     try {
@@ -213,6 +219,15 @@ const AddRoleForm: React.FC<AddRoleFormProps> = ({ isEditMode = false, roleId })
                     }}
                   />
                 )}
+              />
+            </Box>
+
+            <Box mb={3} maxWidth={300}>
+              <Select
+                label="Status"
+                options={STATUSES.map((s) => ({ label: s, value: s }))}
+                value={status ? { label: status, value: status } : null}
+                onChange={(_, v) => setStatus(v ? String(v.value) : "Active")}
               />
             </Box>
 

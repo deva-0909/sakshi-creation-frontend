@@ -6,7 +6,9 @@ import { Box, Typography, IconButton, TableCell, Button as MuiButton } from "@mu
 import { Add, Edit, Delete, CloudUpload as CloudUploadIcon } from "@mui/icons-material"
 import BasicTable from "@/component/common_component/Table/themetable"
 import Input from "@/component/common_component/themeinput"
+import Select from "@/component/common_component/themeselect"
 import Button from "@/component/common_component/themebutton"
+import ThemeChip from "@/component/common_component/themechip"
 import CustomDialog from "@/component/customdialog"
 import {
   createCompanyNameThunk,
@@ -21,11 +23,18 @@ import { toast } from "react-toastify"
 import { fileUploadService } from "@/services/fileUpload.service"
 import Swal from "sweetalert2"
 
+const STATUSES = ["Active", "Inactive"]
+const statusColor: Record<string, { bg: string; color: string }> = {
+  Active: { bg: "#D1FADF", color: "#027A48" },
+  Inactive: { bg: "#FEE4E2", color: "#B42318" },
+}
+
 interface CompanyName {
   _id: string
   companyName: string
   avatar?: string
   state?: string
+  status?: string
   createdAt?: string
   updatedAt?: string
 }
@@ -37,6 +46,7 @@ interface CompanyNameRow extends CompanyName {
 interface FormData {
   companyName: string
   state: string
+  status: string
   logo?: File | null
 }
 
@@ -45,6 +55,7 @@ const columns = [
   { id: "companyName", label: "Company Name" },
   { id: "state", label: "State" },
   { id: "avatar", label: "Logo" },
+  { id: "status", label: "Status" },
   { id: "options", label: "Options" },
 ]
 
@@ -57,6 +68,7 @@ const CompanyNamePage = () => {
   const [form, setForm] = useState<FormData>({
     companyName: "",
     state: "",
+    status: "Active",
     logo: null,
   })
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
@@ -82,11 +94,11 @@ const CompanyNamePage = () => {
   const handleOpenDialog = (company?: CompanyName) => {
     if (company) {
       setEditId(company._id)
-      setForm({ companyName: company.companyName, state: company.state || "", logo: null })
+      setForm({ companyName: company.companyName, state: company.state || "", status: company.status || "Active", logo: null })
       setLogoPreview(company.avatar || null)
     } else {
       setEditId(null)
-      setForm({ companyName: "", state: "", logo: null })
+      setForm({ companyName: "", state: "", status: "Active", logo: null })
       setLogoPreview(null)
     }
     setDialogOpen(true)
@@ -136,6 +148,7 @@ const CompanyNamePage = () => {
       const companyData = {
         companyName: form.companyName,
         state: form.state || undefined,
+        status: form.status,
         avatar: logoUrl || "", // Send existing logo URL or empty string if no logo
       };
 
@@ -146,7 +159,7 @@ const CompanyNamePage = () => {
       }
 
       setDialogOpen(false)
-      setForm({ companyName: "", state: "", logo: null })
+      setForm({ companyName: "", state: "", status: "Active", logo: null })
       setLogoPreview(null)
       setEditId(null)
     } catch (error: any) {
@@ -189,7 +202,7 @@ const CompanyNamePage = () => {
   // Close dialog handler
   const handleCloseDialog = () => {
     setDialogOpen(false)
-    setForm({ companyName: "", state: "", logo: null })
+    setForm({ companyName: "", state: "", status: "Active", logo: null })
     setLogoPreview(null)
     setEditId(null)
   }
@@ -221,6 +234,9 @@ const CompanyNamePage = () => {
                   style={{ width: 50, height: 50, borderRadius: "50%" }}
                 />
               )}
+            </TableCell>
+            <TableCell>
+              <ThemeChip label={row.status || "Active"} sx={{ background: statusColor[row.status || "Active"]?.bg, color: statusColor[row.status || "Active"]?.color, fontWeight: 600 }} />
             </TableCell>
             <TableCell>
               <IconButton color="primary" onClick={() => handleOpenDialog(row)} disabled={loading}>
@@ -263,6 +279,15 @@ const CompanyNamePage = () => {
         <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: "block", mt: -1 }}>
           Used to auto-determine CGST/SGST vs IGST when raising invoices against this company.
         </Typography>
+
+        <Box sx={{ mb: 2 }}>
+          <Select
+            label="Status"
+            options={STATUSES.map((s) => ({ label: s, value: s }))}
+            value={form.status ? { label: form.status, value: form.status } : null}
+            onChange={(_, v) => setForm((f) => ({ ...f, status: v ? String(v.value) : "Active" }))}
+          />
+        </Box>
 
         {/* Logo Upload Section */}
         <Box sx={{ mb: 2 }}>

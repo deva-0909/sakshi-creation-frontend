@@ -13,6 +13,7 @@ export interface Vendor {
   // Module 9: optional payable credit limit -- undefined/null means no
   // limit configured.
   creditLimit?: number;
+  status?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,6 +26,7 @@ export interface CreateVendor {
   gst?: string;
   address: string;
   creditLimit?: number;
+  status?: string;
 }
 
 export interface UpdateVendor {
@@ -35,6 +37,7 @@ export interface UpdateVendor {
   gst?: string;
   address?: string;
   creditLimit?: number;
+  status?: string;
 }
 
 export interface ApiResponse<T> {

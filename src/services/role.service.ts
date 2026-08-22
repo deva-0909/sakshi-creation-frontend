@@ -14,6 +14,7 @@ export interface Role {
   isDelete: boolean;
   totalUser: number;
   permissions: Permission;
+  status?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -21,11 +22,13 @@ export interface Role {
 export interface CreateRole {
   roleName: string;
   permissions: Permission;
+  status?: string;
 }
 
 export interface UpdateRole {
   roleName?: string;
   permissions?: Permission;
+  status?: string;
 }
 
 export interface ApiResponse<T> {

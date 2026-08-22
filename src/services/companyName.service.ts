@@ -5,6 +5,9 @@ import Endpoint from "@/API/apiConfig";
 export interface CompanyName {
   _id: string;
   companyName: string;
+  avatar?: string;
+  state?: string;
+  status?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -12,6 +15,8 @@ export interface CompanyName {
 export interface CreateCompanyNameData {
   companyName: string;
   avatar?: string;
+  state?: string;
+  status?: string;
 }
 
 export interface ApiResponse<T> {

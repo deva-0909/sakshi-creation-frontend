@@ -7,6 +7,8 @@ export interface Material {
   materialName: string;
   materialSize: string;
   materialGSM: number;
+  status?: string;
+  uom?: { id: string; name: string; symbol?: string } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -15,12 +17,16 @@ export interface CreateMaterial {
   materialName: string;
   materialSize: string;
   materialGSM: number;
+  status?: string;
+  uom?: string;
 }
 
 export interface UpdateMaterial {
   materialName?: string;
   materialSize?: string;
   materialGSM?: number;
+  status?: string;
+  uom?: string;
 }
 
 export interface ApiResponse<T> {

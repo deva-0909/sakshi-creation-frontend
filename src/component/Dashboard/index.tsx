@@ -31,6 +31,14 @@ import {
   MdReceiptLong,
   MdFactCheck,
   MdTrendingUp,
+  MdStraighten,
+  MdPercent,
+  MdAccountBalance,
+  MdBadge,
+  MdTune,
+  MdFormatListNumbered,
+  MdAltRoute,
+  MdHistory,
 } from "react-icons/md";
 import { IoChevronBack } from "react-icons/io5";
 import { useRouter } from "next/router";
@@ -358,6 +366,46 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
       label: "Vendor Name",
       path: "/admin/setup/vendor-name",
       icon: <MdGroup size={18} />,
+    },
+    {
+      label: "Units of Measure",
+      path: "/admin/setup/uom",
+      icon: <MdStraighten size={18} />,
+    },
+    {
+      label: "Tax Rates",
+      path: "/admin/setup/tax-rates",
+      icon: <MdPercent size={18} />,
+    },
+    {
+      label: "Branches",
+      path: "/admin/setup/branches",
+      icon: <MdAccountBalance size={18} />,
+    },
+    {
+      label: "Designations",
+      path: "/admin/setup/designations",
+      icon: <MdBadge size={18} />,
+    },
+    {
+      label: "Production Routing",
+      path: "/admin/setup/production-routing",
+      icon: <MdAltRoute size={18} />,
+    },
+    {
+      label: "General Settings",
+      path: "/admin/setup/general-settings",
+      icon: <MdTune size={18} />,
+    },
+    {
+      label: "Numbering Configuration",
+      path: "/admin/setup/numbering-configuration",
+      icon: <MdFormatListNumbered size={18} />,
+    },
+    {
+      label: "Login History",
+      path: "/admin/setup/login-history",
+      icon: <MdHistory size={18} />,
     },
   ];
 

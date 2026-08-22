@@ -9,7 +9,9 @@ import { Add, Edit, Delete } from "@mui/icons-material";
 import { useSelector } from "react-redux";
 import BasicTable from "@/component/common_component/Table/themetable";
 import Input from "@/component/common_component/themeinput";
+import Select from "@/component/common_component/themeselect";
 import Button from "@/component/common_component/themebutton";
+import ThemeChip from "@/component/common_component/themechip";
 import CustomDialog from "@/component/customdialog";
 import AddNewProductBulkDialog from "@/component/AddNewProductBulkDialog";
 import {
@@ -23,9 +25,16 @@ import {
 import { RootState, useAppDispatch } from "@/store";
 import { toast } from "react-toastify";
 
+const STATUSES = ["Active", "Inactive"];
+const statusColor: Record<string, { bg: string; color: string }> = {
+  Active: { bg: "#D1FADF", color: "#027A48" },
+  Inactive: { bg: "#FEE4E2", color: "#B42318" },
+};
+
 interface ProductItem {
   _id: string;
   itemName: string;
+  status?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -37,6 +46,7 @@ interface ProductItemRow extends ProductItem {
 const columns = [
   { id: "id", label: "ID" },
   { id: "itemName", label: "Name" },
+  { id: "status", label: "Status" },
   { id: "options", label: "Options" },
 ];
 
@@ -48,7 +58,7 @@ const ProductsPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState({ itemName: "" });
+  const [form, setForm] = useState({ itemName: "", status: "Active" });
 
   // Fetch all products on component mount
   useEffect(() => {
@@ -71,17 +81,17 @@ const ProductsPage = () => {
   const handleOpenDialog = (product?: ProductItem) => {
     if (product) {
       setEditId(product._id);
-      setForm({ itemName: product.itemName });
+      setForm({ itemName: product.itemName, status: product.status || "Active" });
     } else {
       setEditId(null);
-      setForm({ itemName: "" });
+      setForm({ itemName: "", status: "Active" });
     }
     setDialogOpen(true);
   };
 
   // Handle form input changes
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ itemName: e.target.value });
+    setForm((f) => ({ ...f, itemName: e.target.value }));
   };
 
   // Save new or edited product
@@ -93,6 +103,7 @@ const ProductsPage = () => {
 
     const productData = {
       itemName: form.itemName,
+      status: form.status,
     };
 
     if (editId) {
@@ -102,7 +113,7 @@ const ProductsPage = () => {
     }
 
     setDialogOpen(false);
-    setForm({ itemName: "" });
+    setForm({ itemName: "", status: "Active" });
     setEditId(null);
   };
 
@@ -146,6 +157,9 @@ const ProductsPage = () => {
               <TableCell>{idx + 1}</TableCell>
               <TableCell>{row.itemName}</TableCell>
               <TableCell>
+                <ThemeChip label={row.status || "Active"} sx={{ background: statusColor[row.status || "Active"]?.bg, color: statusColor[row.status || "Active"]?.color, fontWeight: 600 }} />
+              </TableCell>
+              <TableCell>
                 <IconButton
                   color="primary"
                   onClick={() => handleOpenDialog(row)}
@@ -182,6 +196,14 @@ const ProductsPage = () => {
             required
             sx={{ mb: 2, mt: 1 }}
           />
+          <Box sx={{ mb: 2 }}>
+            <Select
+              label="Status"
+              options={STATUSES.map((s) => ({ label: s, value: s }))}
+              value={form.status ? { label: form.status, value: form.status } : null}
+              onChange={(_, v) => setForm((f) => ({ ...f, status: v ? String(v.value) : "Active" }))}
+            />
+          </Box>
           <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
             <Button
               onClick={() => setDialogOpen(false)}

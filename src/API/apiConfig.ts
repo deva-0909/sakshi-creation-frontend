@@ -305,5 +305,45 @@ const Endpoint = {
   GET_OPPORTUNITY_HISTORY: `${BaseURL}/api/opportunities`,
   GET_OPPORTUNITY_ACTIVITIES: `${BaseURL}/api/opportunities`,
   ADD_OPPORTUNITY_ACTIVITY: `${BaseURL}/api/opportunities`,
+
+  // Module 10: Configuration Masters
+  CREATE_UOM: `${BaseURL}/api/uom`,
+  GET_ALL_UOM: `${BaseURL}/api/uom`,
+  UPDATE_UOM: `${BaseURL}/api/uom`,
+  DELETE_UOM: `${BaseURL}/api/uom`,
+
+  CREATE_TAX_RATE: `${BaseURL}/api/tax-rates`,
+  GET_ALL_TAX_RATES: `${BaseURL}/api/tax-rates`,
+  UPDATE_TAX_RATE: `${BaseURL}/api/tax-rates`,
+  DELETE_TAX_RATE: `${BaseURL}/api/tax-rates`,
+
+  CREATE_BRANCH: `${BaseURL}/api/branches`,
+  GET_ALL_BRANCHES: `${BaseURL}/api/branches`,
+  UPDATE_BRANCH: `${BaseURL}/api/branches`,
+  DELETE_BRANCH: `${BaseURL}/api/branches`,
+
+  CREATE_DESIGNATION: `${BaseURL}/api/designations`,
+  GET_ALL_DESIGNATIONS: `${BaseURL}/api/designations`,
+  UPDATE_DESIGNATION: `${BaseURL}/api/designations`,
+  DELETE_DESIGNATION: `${BaseURL}/api/designations`,
+
+  GET_APP_SETTINGS: `${BaseURL}/api/app-settings`,
+  BULK_UPDATE_APP_SETTINGS: `${BaseURL}/api/app-settings/bulk`,
+
+  GET_ALL_NUMBERING_CONFIGS: `${BaseURL}/api/numbering-configs`,
+  UPDATE_NUMBERING_CONFIG: `${BaseURL}/api/numbering-configs`,
+
+  CREATE_PROCESS_STAGE: `${BaseURL}/api/routing/stages`,
+  GET_ALL_PROCESS_STAGES: `${BaseURL}/api/routing/stages`,
+  UPDATE_PROCESS_STAGE: `${BaseURL}/api/routing/stages`,
+  DELETE_PROCESS_STAGE: `${BaseURL}/api/routing/stages`,
+
+  CREATE_ROUTING_TEMPLATE: `${BaseURL}/api/routing/templates`,
+  GET_ALL_ROUTING_TEMPLATES: `${BaseURL}/api/routing/templates`,
+  UPDATE_ROUTING_TEMPLATE: `${BaseURL}/api/routing/templates`,
+  DELETE_ROUTING_TEMPLATE: `${BaseURL}/api/routing/templates`,
+  GET_SUGGESTED_ROUTING_TEMPLATE: `${BaseURL}/api/routing/templates/suggested`,
+
+  GET_LOGIN_HISTORY: `${BaseURL}/api/login-history`,
 };
 export default Endpoint;

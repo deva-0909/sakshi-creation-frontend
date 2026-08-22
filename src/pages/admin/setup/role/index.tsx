@@ -9,6 +9,7 @@ import { Add } from "@mui/icons-material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Button from "@/component/common_component/themebutton";
+import ThemeChip from "@/component/common_component/themechip";
 import BasicTable from "@/component/common_component/Table/themetable";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,15 +19,22 @@ import { Role } from "@/services/role.service";
 import { toast } from "react-toastify";
 import Loader from "@/component/common_component/loader";
 
+const statusColor: Record<string, { bg: string; color: string }> = {
+  Active: { bg: "#D1FADF", color: "#027A48" },
+  Inactive: { bg: "#FEE4E2", color: "#B42318" },
+};
+
 interface RoleRow {
   id: string;
   name: string;
   totalStaff: number;
   canDelete: boolean;
+  status: string;
 }
 
 const columns = [
   { id: "name", label: "Role Name" },
+  { id: "status", label: "Status" },
   { id: "options", label: "Options", align: "right" as const },
 ];
 
@@ -53,6 +61,7 @@ const RoleTable: React.FC = () => {
     name: role.roleName,
     totalStaff: role.totalUser,
     canDelete: role.totalUser === 0,
+    status: role.status || "Active",
   }));
 
   // Fetch roles only if on the role list page
@@ -126,6 +135,9 @@ const RoleTable: React.FC = () => {
                     Total Staff: {row.totalStaff}
                   </Typography>
                 </Box>
+              </TableCell>
+              <TableCell>
+                <ThemeChip label={row.status} sx={{ background: statusColor[row.status]?.bg, color: statusColor[row.status]?.color, fontWeight: 600 }} />
               </TableCell>
               <TableCell align="right">
                 <IconButton onClick={() => handleEdit(row.id)}>

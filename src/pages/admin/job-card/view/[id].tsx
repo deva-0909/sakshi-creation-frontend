@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from "@/store";
 import { getAllRolesThunk } from "@/store/slices/roleSlice";
 import { getAllMaterialsThunk } from "@/store/slices/materialSlice";
 import { getAllMachinesThunk } from "@/store/slices/machineSlice";
+import { getSuggestedRoutingTemplateThunk } from "@/store/slices/routingSlice";
 import { DEFECT_CATEGORIES } from "@/services/jobCard.service";
 import {
   getJobCardByIdThunk,
@@ -81,6 +82,7 @@ const JobCardDetailPage = () => {
   const dispatch = useAppDispatch();
   const { id } = router.query;
   const { singleJobCard: jc, stageHistory, loading, error, successMessage } = useAppSelector((state) => state.jobCards);
+  const { suggestedTemplate } = useAppSelector((state) => state.routing);
   const { roles } = useAppSelector((state) => state.roles);
   const { materials } = useAppSelector((state) => state.materials);
   const { machines } = useAppSelector((state) => state.machines);
@@ -163,6 +165,15 @@ const JobCardDetailPage = () => {
       dispatch(clearReworks());
     };
   }, [id, dispatch]);
+
+  // Module 10: informational routing suggestion, keyed off the job card's
+  // product item -- falls back to the default template server-side if no
+  // product-specific template exists.
+  useEffect(() => {
+    if (jc?.productItem?._id) {
+      dispatch(getSuggestedRoutingTemplateThunk(jc.productItem._id));
+    }
+  }, [jc?.productItem?._id, dispatch]);
 
   useEffect(() => {
     if (jc) {
@@ -464,6 +475,32 @@ const JobCardDetailPage = () => {
               </Box>
             ))}
           </Stack>
+
+          <Divider sx={{ my: 2 }} />
+          <Typography fontWeight={600} mb={1}>
+            Suggested Routing
+          </Typography>
+          <Typography fontSize={12} color="text.secondary" mb={1}>
+            Informational only -- stage progression above is unaffected.
+          </Typography>
+          {suggestedTemplate ? (
+            <Box>
+              <Typography fontSize={13} fontWeight={600}>
+                {suggestedTemplate.templateName}
+              </Typography>
+              <Typography fontSize={13} color="text.secondary">
+                {(suggestedTemplate.stages || [])
+                  .slice()
+                  .sort((a: any, b: any) => a.sequenceOrder - b.sequenceOrder)
+                  .map((s: any) => s.processStage.stageName)
+                  .join(" -> ") || "-"}
+              </Typography>
+            </Box>
+          ) : (
+            <Typography fontSize={13} color="text.secondary">
+              No routing template configured for this item.
+            </Typography>
+          )}
         </Paper>
 
         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, flex: 1 }}>

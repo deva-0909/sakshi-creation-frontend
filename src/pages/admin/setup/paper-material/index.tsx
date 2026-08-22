@@ -8,7 +8,9 @@ import {
 import { Add, Edit, Delete } from '@mui/icons-material';
 import BasicTable from '@/component/common_component/Table/themetable';
 import Input from '@/component/common_component/themeinput';
+import Select from '@/component/common_component/themeselect';
 import Button from '@/component/common_component/themebutton';
+import ThemeChip from '@/component/common_component/themechip';
 import CustomDialog from '@/component/customdialog';
 import AddNewMaterialBulkDialog from '@/component/AddNewMaterialBulkDialog';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -19,13 +21,22 @@ import {
   deleteMaterialThunk,
   clearError,
 } from '@/store/slices/materialSlice';
+import { getAllUomsThunk } from '@/store/slices/uomSlice';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+
+const STATUSES = ['Active', 'Inactive'];
+const statusColor: Record<string, { bg: string; color: string }> = {
+  Active: { bg: '#D1FADF', color: '#027A48' },
+  Inactive: { bg: '#FEE4E2', color: '#B42318' },
+};
 
 interface MaterialForm {
   materialName: string;
   materialSize: string;
   materialGSM: string;
+  uom: string;
+  status: string;
 }
 
 const columns = [
@@ -33,12 +44,15 @@ const columns = [
   { id: 'materialName', label: 'Material Name' },
   { id: 'materialSize', label: 'Size' },
   { id: 'materialGSM', label: 'GSM' },
+  { id: 'uom', label: 'UOM' },
+  { id: 'status', label: 'Status' },
   { id: 'action', label: 'Actions' },
 ];
 
 const MaterialPage = () => {
   const dispatch = useAppDispatch();
   const { materials, loading, error } = useAppSelector((state) => state.materials);
+  const { uoms } = useAppSelector((state) => state.uoms);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -46,12 +60,15 @@ const MaterialPage = () => {
     materialName: '',
     materialSize: '',
     materialGSM: '',
+    uom: '',
+    status: 'Active',
   });
 
   useEffect(() => {
     dispatch(getAllMaterialsThunk())
       .unwrap()
       .catch((err) => toast.error(err));
+    dispatch(getAllUomsThunk(undefined));
   }, [dispatch]);
 
   const handleOpenDialog = (material?: any) => {
@@ -61,10 +78,12 @@ const MaterialPage = () => {
         materialName: material.materialName,
         materialSize: material.materialSize,
         materialGSM: material.materialGSM.toString(),
+        uom: material.uom?.id || material.uom?._id || '',
+        status: material.status || 'Active',
       });
     } else {
       setEditId(null);
-      setForm({ materialName: '', materialSize: '', materialGSM: '' });
+      setForm({ materialName: '', materialSize: '', materialGSM: '', uom: '', status: 'Active' });
     }
     setDialogOpen(true);
   };
@@ -90,6 +109,8 @@ const MaterialPage = () => {
               materialName: form.materialName,
               materialSize: form.materialSize,
               materialGSM,
+              uom: form.uom || undefined,
+              status: form.status,
             },
           })
         ).unwrap();
@@ -100,12 +121,14 @@ const MaterialPage = () => {
             materialName: form.materialName,
             materialSize: form.materialSize,
             materialGSM,
+            uom: form.uom || undefined,
+            status: form.status,
           })
         ).unwrap();
         toast.success('Material created successfully');
       }
       setDialogOpen(false);
-      setForm({ materialName: '', materialSize: '', materialGSM: '' });
+      setForm({ materialName: '', materialSize: '', materialGSM: '', uom: '', status: 'Active' });
       setEditId(null);
     } catch (err: any) {
       toast.error(err || 'Failed to save material');
@@ -173,6 +196,10 @@ const MaterialPage = () => {
             <TableCell>{row.materialName}</TableCell>
             <TableCell>{row.materialSize}</TableCell>
             <TableCell>{row.materialGSM}</TableCell>
+            <TableCell>{row.uom ? `${row.uom.name}${row.uom.symbol ? ` (${row.uom.symbol})` : ''}` : '-'}</TableCell>
+            <TableCell>
+              <ThemeChip label={row.status || 'Active'} sx={{ background: statusColor[row.status || 'Active']?.bg, color: statusColor[row.status || 'Active']?.color, fontWeight: 600 }} />
+            </TableCell>
             <TableCell>
               <IconButton color="primary" onClick={() => handleOpenDialog(row)}>
                 <Edit />
@@ -225,6 +252,22 @@ const MaterialPage = () => {
           type="number"
           sx={{ mb: 2 }}
         />
+        <Box mb={2}>
+          <Select
+            label="Unit of Measure (optional)"
+            options={uoms.map((u: any) => ({ label: u.symbol ? `${u.name} (${u.symbol})` : u.name, value: u._id }))}
+            value={form.uom ? { label: uoms.find((u: any) => u._id === form.uom)?.name || '', value: form.uom } : null}
+            onChange={(_, v) => setForm((f) => ({ ...f, uom: v ? String(v.value) : '' }))}
+          />
+        </Box>
+        <Box mb={2}>
+          <Select
+            label="Status"
+            options={STATUSES.map((s) => ({ label: s, value: s }))}
+            value={form.status ? { label: form.status, value: form.status } : null}
+            onChange={(_, v) => setForm((f) => ({ ...f, status: v ? String(v.value) : 'Active' }))}
+          />
+        </Box>
         <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
           <Button
             onClick={() => setDialogOpen(false)}
