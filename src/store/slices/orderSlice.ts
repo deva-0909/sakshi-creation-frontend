@@ -139,6 +139,10 @@ export interface Order {
 
   deliveryDate?: string;
   deliveryTime?: string;
+
+  // Module 12: Sales Order commercial fields.
+  customerPoNumber?: string;
+  priority?: "Low" | "Normal" | "High" | "Urgent" | (string & {});
 }
 export interface PaperField {
   paperName?: string;
@@ -157,6 +161,8 @@ interface CreateOrderData {
   remarks?: string;
   filePaths?: string[]; // केवल paths
   createdBy?: string;
+  customerPoNumber?: string;
+  priority?: string;
 }
 
 interface OrderState {

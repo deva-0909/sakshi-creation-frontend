@@ -171,6 +171,7 @@ const Endpoint = {
   RESPOND_QUOTATION: `${BaseURL}/api/quotations`,
   CONVERT_QUOTATION: `${BaseURL}/api/quotations`,
   GET_QUOTATION_HISTORY: `${BaseURL}/api/quotations`,
+  GET_QUOTATION_PDF: `${BaseURL}/api/quotations`,
 
   // BOM endpoints
   CREATE_BOM_LINE: `${BaseURL}/api/boms`,
@@ -280,6 +281,15 @@ const Endpoint = {
   ISSUE_INVOICE: `${BaseURL}/api/invoices`,
   CANCEL_INVOICE: `${BaseURL}/api/invoices`,
   GET_INVOICE_HISTORY: `${BaseURL}/api/invoices`,
+  GET_INVOICE_PDF: `${BaseURL}/api/invoices`,
+
+  // Delivery Challan endpoints (Module 12)
+  CREATE_DELIVERY_CHALLAN: `${BaseURL}/api/delivery-challans`,
+  GET_ALL_DELIVERY_CHALLANS: `${BaseURL}/api/delivery-challans`,
+  GET_DELIVERY_CHALLAN_BY_ID: `${BaseURL}/api/delivery-challans`,
+  RECORD_DELIVERY_CHALLAN_POD: `${BaseURL}/api/delivery-challans`,
+  CANCEL_DELIVERY_CHALLAN: `${BaseURL}/api/delivery-challans`,
+  GET_DELIVERY_CHALLAN_PDF: `${BaseURL}/api/delivery-challans`,
 
   // Accounting: Receipt endpoints
   CREATE_RECEIPT: `${BaseURL}/api/receipts`,

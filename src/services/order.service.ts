@@ -16,6 +16,8 @@ interface CreateOrderData {
   remarks?: string;
   filePaths?: string[];
   createdBy?: string;
+  customerPoNumber?: string;
+  priority?: string;
 }
 
 interface ApiResponse<T> {

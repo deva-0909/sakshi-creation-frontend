@@ -47,6 +47,9 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
     size: "", // New field
     rate: "", // New field
     rateType: "new", // New field: default to "new"
+    // Module 12: Sales Order commercial fields.
+    customerPoNumber: "",
+    priority: "Normal",
   })
 
   const [gstNotApplicable, setGstNotApplicable] = useState(false)
@@ -192,6 +195,8 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
         size: formData.size || "", // Include size
         rate: formData.rate ? Number.parseFloat(formData.rate) : undefined, // Include rate (optional)
         rateType: formData.rate ? formData.rateType : undefined, // Include rateType only if rate is provided
+        customerPoNumber: formData.customerPoNumber || undefined,
+        priority: formData.priority || undefined,
       }
 
       await dispatch(createOrderThunk(orderData)).unwrap()
@@ -220,6 +225,8 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
       size: "",
       rate: "",
       rateType: "new",
+      customerPoNumber: "",
+      priority: "Normal",
     })
     setGstNotApplicable(false)
     setSelectedFiles([])
@@ -348,6 +355,27 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
               }}
             />
           </Box>
+        </Stack>
+
+        <Stack direction="row" spacing={2} mb={2}>
+          <ThemeInput
+            labelName="Customer PO Number"
+            placeholder="Customer's own purchase order reference (optional)"
+            fullWidth
+            value={formData.customerPoNumber}
+            onChange={(e) => handleChange("customerPoNumber", e.target.value)}
+          />
+          <ThemeSelect
+            label="Priority"
+            value={{ label: formData.priority, value: formData.priority }}
+            options={[
+              { label: "Low", value: "Low" },
+              { label: "Normal", value: "Normal" },
+              { label: "High", value: "High" },
+              { label: "Urgent", value: "Urgent" },
+            ]}
+            onChange={(_, v) => handleChange("priority", v ? v.value : "Normal")}
+          />
         </Stack>
 
         <ThemeInput

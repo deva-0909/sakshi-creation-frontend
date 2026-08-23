@@ -154,4 +154,17 @@ export const invoiceService = {
       throw new Error(error.response?.data?.message || "Failed to fetch invoice history");
     }
   },
+
+  async getInvoicePdf(id: string): Promise<Blob> {
+    try {
+      const response = await axios.get(`${Endpoint.GET_INVOICE_PDF}/${id}/pdf`, {
+        headers: authHeaders(),
+        withCredentials: true,
+        responseType: "blob",
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Failed to generate invoice PDF");
+    }
+  },
 };

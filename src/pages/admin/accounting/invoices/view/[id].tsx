@@ -30,6 +30,7 @@ import {
 } from "@/store/slices/invoiceSlice";
 import { getAllReceiptsThunk, createReceiptThunk, clearReceiptError, clearReceiptSuccessMessage } from "@/store/slices/receiptSlice";
 import { toast } from "react-toastify";
+import { invoiceService } from "@/services/invoice.service";
 
 const statusColor = (status: string): { bg: string; color: string } => {
   switch (status) {
@@ -139,6 +140,17 @@ const InvoiceDetailPage = () => {
   const { bg, color } = statusColor(inv.status);
   const outstanding = inv.grandTotal - inv.amountPaid;
 
+  const handleDownloadPdf = async () => {
+    try {
+      const blob = await invoiceService.getInvoicePdf(inv._id);
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, "_blank");
+      setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to download invoice PDF");
+    }
+  };
+
   const handlePostReceipt = async () => {
     if (!amount || Number(amount) <= 0 || !mode) {
       toast.error("Enter a positive amount and select a payment mode");
@@ -171,9 +183,14 @@ const InvoiceDetailPage = () => {
           </Typography>
           <ThemeChip label={inv.status} sx={{ background: bg, color, fontWeight: 600 }} />
         </Box>
-        <ThemeButton variant="outlined" onClick={() => router.push("/admin/accounting/invoices")}>
-          Back to list
-        </ThemeButton>
+        <Stack direction="row" spacing={1.5}>
+          <ThemeButton variant="outlined" onClick={handleDownloadPdf}>
+            Download PDF
+          </ThemeButton>
+          <ThemeButton variant="outlined" onClick={() => router.push("/admin/accounting/invoices")}>
+            Back to list
+          </ThemeButton>
+        </Stack>
       </Box>
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} mb={2}>

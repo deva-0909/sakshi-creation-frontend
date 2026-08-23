@@ -311,4 +311,14 @@ export const permissionsArray = {
     delete: false,
     approve: false,
   },
+  // Module 12: Delivery Management (multi-challan, POD). No approval gate in
+  // this module's design; `approve` kept for template consistency with other entries.
+  deliverychallan: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+    approve: false,
+  },
 }

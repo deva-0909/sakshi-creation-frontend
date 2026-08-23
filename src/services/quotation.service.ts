@@ -228,4 +228,17 @@ export const quotationService = {
       throw new Error(error.response?.data?.message || "Failed to fetch quotation history");
     }
   },
+
+  async getQuotationPdf(id: string): Promise<Blob> {
+    try {
+      const response = await axios.get(`${Endpoint.GET_QUOTATION_PDF}/${id}/pdf`, {
+        headers: authHeaders(),
+        withCredentials: true,
+        responseType: "blob",
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Failed to generate quotation PDF");
+    }
+  },
 };

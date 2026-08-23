@@ -276,6 +276,27 @@
                 / Placed by {singleOrder?.createdBy?.firstName || "Unknown"} {singleOrder?.createdBy?.lastName || "Unknown"} [
                 {singleOrder?.createdAt ? new Date(singleOrder.createdAt).toLocaleString() : "Unknown"}]
               </Typography>
+              {singleOrder?.priority && singleOrder.priority !== "Normal" && (
+                <Typography
+                  fontSize={12}
+                  fontWeight={600}
+                  ml={1.5}
+                  px={1}
+                  py={0.3}
+                  borderRadius={1}
+                  sx={{
+                    background: singleOrder.priority === "Urgent" ? "#FEE4E2" : singleOrder.priority === "High" ? "#FEF0C7" : "#F2F4F7",
+                    color: singleOrder.priority === "Urgent" ? "#B42318" : singleOrder.priority === "High" ? "#B54708" : "#344054",
+                  }}
+                >
+                  {singleOrder.priority}
+                </Typography>
+              )}
+              {singleOrder?.customerPoNumber && (
+                <Typography fontSize={12} color="text.secondary" ml={1.5}>
+                  Customer PO: {singleOrder.customerPoNumber}
+                </Typography>
+              )}
             </Box>
 
             <Box component="form" noValidate onSubmit={formik.handleSubmit}>

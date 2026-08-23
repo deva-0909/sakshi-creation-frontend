@@ -11,6 +11,7 @@ import { toast } from "react-toastify"
 import RoleStaffSelect from "@/component/reusablecomponents/RoleStaffSelect"
 import { useFormik } from "formik"
 import * as Yup from "yup"
+import DeliveryChallanPanel from "@/component/deliverychallanpanel"
 
 type OptionType = {
   label: string
@@ -242,6 +243,11 @@ const DeliveryForm = () => {
             </ThemeButton>
           </Stack>
         </Box>
+
+        {/* Delivery Challans (Module 12): available once the order has entered the Delivery stage */}
+        {singleOrder.deliveryStaff && typeof orderId === "string" && (
+          <DeliveryChallanPanel orderId={orderId} orderQty={Number(singleOrder.qty) || 0} />
+        )}
       </Box>
     </>
   )
