@@ -206,6 +206,23 @@ const Endpoint = {
   // Stock Ledger endpoints
   GET_MATERIAL_LEDGER: `${BaseURL}/api/stock-ledger/material`,
   GET_STOCK_SUMMARY: `${BaseURL}/api/stock-ledger/summary`,
+  GET_STOCK_AVAILABILITY: `${BaseURL}/api/stock-ledger/availability`,
+
+  // Module 11 Part A: Warehouse master
+  CREATE_WAREHOUSE: `${BaseURL}/api/warehouses`,
+  GET_ALL_WAREHOUSES: `${BaseURL}/api/warehouses`,
+  UPDATE_WAREHOUSE: `${BaseURL}/api/warehouses`,
+  DELETE_WAREHOUSE: `${BaseURL}/api/warehouses`,
+
+  // Module 11 Part A: Stock Transfer / Adjustment / Reservation
+  CREATE_STOCK_TRANSFER: `${BaseURL}/api/stock-movements/transfers`,
+  GET_ALL_STOCK_TRANSFERS: `${BaseURL}/api/stock-movements/transfers`,
+  CREATE_STOCK_ADJUSTMENT: `${BaseURL}/api/stock-movements/adjustments`,
+  GET_ALL_STOCK_ADJUSTMENTS: `${BaseURL}/api/stock-movements/adjustments`,
+  CREATE_STOCK_RESERVATION: `${BaseURL}/api/stock-movements/reservations`,
+  GET_ALL_STOCK_RESERVATIONS: `${BaseURL}/api/stock-movements/reservations`,
+  UPDATE_STOCK_RESERVATION_STATUS: `${BaseURL}/api/stock-movements/reservations`,
+  DELETE_STOCK_RESERVATION: `${BaseURL}/api/stock-movements/reservations`,
 
   // Procurement: RFQ endpoints (Patch 20 -- RFQ -> PO -> GRN)
   CREATE_RFQ: `${BaseURL}/api/rfqs`,

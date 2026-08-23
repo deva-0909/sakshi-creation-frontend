@@ -39,6 +39,8 @@ import {
   MdFormatListNumbered,
   MdAltRoute,
   MdHistory,
+  MdWarehouse,
+  MdSwapHoriz,
 } from "react-icons/md";
 import { IoChevronBack } from "react-icons/io5";
 import { useRouter } from "next/router";
@@ -85,6 +87,7 @@ const permissionMapping: { [key: string]: string } = {
   "Wastage Report": "jobcard",
   Machines: "machine",
   "Stock Ledger": "inventory",
+  "Stock Movements": "inventory",
   RFQs: "rfq",
   "Purchase Orders": "purchaseorder",
   Invoices: "invoice",
@@ -125,6 +128,7 @@ const menuItems = [
   },
   { label: "Inventory", icon: <MdInventory size={18} />, path: "/admin/inventory" },
   { label: "Stock Ledger", icon: <MdInventory size={18} />, path: "/admin/inventory/stock-ledger" },
+  { label: "Stock Movements", icon: <MdSwapHoriz size={18} />, path: "/admin/inventory/stock-movements" },
   { label: "Purchase", icon: <MdShoppingCart size={18} />, path: "/admin/purchase" },
   {
     label: "Procurement",
@@ -381,6 +385,11 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
       label: "Branches",
       path: "/admin/setup/branches",
       icon: <MdAccountBalance size={18} />,
+    },
+    {
+      label: "Warehouses",
+      path: "/admin/setup/warehouses",
+      icon: <MdWarehouse size={18} />,
     },
     {
       label: "Designations",

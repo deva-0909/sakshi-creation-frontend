@@ -23,6 +23,15 @@ export interface StockSummaryEntry {
   balance: number;
 }
 
+// Module 11: On Hand vs Available -- available narrows on-hand by active
+// Stock Reservations only (see stockMovement.controller.js).
+export interface StockAvailability {
+  materialId: string;
+  onHand: number;
+  reserved: number;
+  available: number;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -61,6 +70,18 @@ export const stockLedgerService = {
       return { success: response.data.success, data: response.data.data || [], message: response.data.message };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Failed to fetch stock summary");
+    }
+  },
+
+  async getAvailability(materialId: string, params?: { category?: string; warehouse?: string; companyName?: string }): Promise<ApiResponse<StockAvailability>> {
+    try {
+      const response: AxiosResponse<ApiResponse<StockAvailability>> = await axios.get(
+        `${Endpoint.GET_STOCK_AVAILABILITY}/${materialId}`,
+        { headers: authHeaders(), params, withCredentials: true }
+      );
+      return { success: response.data.success, data: response.data.data, message: response.data.message };
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Failed to fetch stock availability");
     }
   },
 };

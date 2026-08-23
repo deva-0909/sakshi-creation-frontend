@@ -1,21 +1,41 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
-import { stockLedgerService, MaterialLedger, StockSummaryEntry } from "@/services/stockLedger.service";
+import { stockLedgerService, MaterialLedger, StockSummaryEntry, StockAvailability } from "@/services/stockLedger.service";
 
 interface StockLedgerState {
   ledger: MaterialLedger | null;
   summary: StockSummaryEntry[];
+  availability: StockAvailability | null;
   loading: boolean;
   summaryLoading: boolean;
+  availabilityLoading: boolean;
   error: string | null;
 }
 
 const initialState: StockLedgerState = {
   ledger: null,
   summary: [],
+  availability: null,
   loading: false,
   summaryLoading: false,
+  availabilityLoading: false,
   error: null,
 };
+
+export const getStockAvailabilityThunk = createAsyncThunk(
+  "stockLedger/getAvailability",
+  async (
+    { materialId, params }: { materialId: string; params?: { category?: string; warehouse?: string; companyName?: string } },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await stockLedgerService.getAvailability(materialId, params);
+      if (response.success && response.data) return response.data;
+      return rejectWithValue(response.message || "Failed to fetch stock availability");
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to fetch stock availability");
+    }
+  }
+);
 
 export const getMaterialLedgerThunk = createAsyncThunk(
   "stockLedger/getMaterialLedger",
@@ -55,10 +75,23 @@ const stockLedgerSlice = createSlice({
     },
     clearMaterialLedger(state) {
       state.ledger = null;
+      state.availability = null;
     },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(getStockAvailabilityThunk.pending, (state) => {
+        state.availabilityLoading = true;
+      })
+      .addCase(getStockAvailabilityThunk.fulfilled, (state, action: PayloadAction<StockAvailability>) => {
+        state.availabilityLoading = false;
+        state.availability = action.payload;
+      })
+      .addCase(getStockAvailabilityThunk.rejected, (state, action) => {
+        state.availabilityLoading = false;
+        state.error = action.payload as string;
+        state.availability = null;
+      })
       .addCase(getMaterialLedgerThunk.pending, (state) => {
         state.loading = true;
         state.error = null;

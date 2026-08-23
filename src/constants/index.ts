@@ -261,4 +261,37 @@ export const permissionsArray = {
     delete: false,
     approve: false,
   },
+  // Module 11 Part A: Warehouse + Inventory Depth.
+  warehouse: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+    approve: false,
+  },
+  stocktransfer: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+    approve: false,
+  },
+  stockadjustment: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+    approve: false,
+  },
+  stockreservation: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+    approve: false,
+  },
 }

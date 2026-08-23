@@ -5,7 +5,7 @@ import ThemeSelect from "@/component/common_component/themeselect";
 import ThemeInput from "@/component/common_component/themeinput";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { getAllMaterialsThunk } from "@/store/slices/materialSlice";
-import { getMaterialLedgerThunk, getStockSummaryThunk, clearMaterialLedger } from "@/store/slices/stockLedgerSlice";
+import { getMaterialLedgerThunk, getStockSummaryThunk, getStockAvailabilityThunk, clearMaterialLedger } from "@/store/slices/stockLedgerSlice";
 import { toast } from "react-toastify";
 
 // Matches the lowercase category enum on `inventories` (see stockLedger.controller.js's
@@ -36,7 +36,7 @@ const ledgerColumns = [
 const StockLedgerPage = () => {
   const dispatch = useAppDispatch();
   const { materials } = useAppSelector((state) => state.materials);
-  const { ledger, summary, loading, summaryLoading, error } = useAppSelector((state) => state.stockLedger);
+  const { ledger, summary, availability, loading, summaryLoading, error } = useAppSelector((state) => state.stockLedger);
 
   const [summaryCategory, setSummaryCategory] = useState<{ label: string; value: string | number } | null>(null);
   const [selectedMaterial, setSelectedMaterial] = useState<{ label: string; value: string | number } | null>(null);
@@ -62,6 +62,15 @@ const StockLedgerPage = () => {
             from: fromDate || undefined,
             to: toDate || undefined,
           },
+        })
+      );
+      // Module 11: On Hand vs Available -- scoped the same way as the ledger
+      // above (material + optional category), independent of the from/to
+      // date window since availability is always "right now".
+      dispatch(
+        getStockAvailabilityThunk({
+          materialId: String(selectedMaterial.value),
+          params: { category: ledgerCategory ? String(ledgerCategory.value) : undefined },
         })
       );
     } else {
@@ -181,13 +190,26 @@ const StockLedgerPage = () => {
         ) : (
           ledger && (
             <>
-              <Stack direction="row" spacing={4} mb={2}>
+              <Stack direction="row" spacing={4} mb={2} flexWrap="wrap" useFlexGap>
                 <Typography fontSize={14} fontWeight={600}>
                   Opening Balance: {ledger.openingBalance}
                 </Typography>
                 <Typography fontSize={14} fontWeight={600}>
                   Closing Balance: {ledger.closingBalance}
                 </Typography>
+                {availability && (
+                  <>
+                    <Typography fontSize={14} fontWeight={600}>
+                      On Hand: {availability.onHand}
+                    </Typography>
+                    <Typography fontSize={14} fontWeight={600} color="warning.main">
+                      Reserved: {availability.reserved}
+                    </Typography>
+                    <Typography fontSize={14} fontWeight={700} color="success.main">
+                      Available: {availability.available}
+                    </Typography>
+                  </>
+                )}
               </Stack>
               <Divider sx={{ mb: 2 }} />
               <BasicTable

@@ -49,6 +49,8 @@ import appSettingsReducer from '@/store/slices/appSettingsSlice';
 import numberingConfigReducer from '@/store/slices/numberingConfigSlice';
 import routingReducer from '@/store/slices/routingSlice';
 import loginHistoryReducer from '@/store/slices/loginHistorySlice';
+import warehouseReducer from '@/store/slices/warehouseSlice';
+import stockMovementReducer from '@/store/slices/stockMovementSlice';
 // Persist configuration
 export const persistConfig = {
   key: 'auth',
@@ -110,6 +112,8 @@ export const store = configureStore({
     numberingConfigs: numberingConfigReducer,
     routing: routingReducer,
     loginHistory: loginHistoryReducer,
+    warehouses: warehouseReducer,
+    stockMovements: stockMovementReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
