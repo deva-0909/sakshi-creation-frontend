@@ -24,6 +24,8 @@ interface CreateGrnData {
   forCompany: string;
   notes?: string;
   items: { purchaseOrderItemId: string; materialId: string; quantityReceived: number; rate: number }[];
+  vendorInvoiceNumber?: string;
+  vendorInvoiceDate?: string;
 }
 
 export const createGrnThunk = createAsyncThunk("grn/create", async (data: CreateGrnData, { rejectWithValue }) => {

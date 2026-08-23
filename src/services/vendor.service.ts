@@ -14,6 +14,14 @@ export interface Vendor {
   // limit configured.
   creditLimit?: number;
   status?: string;
+  // Module 11 Part B: banking/commercial terms -- all optional.
+  pan?: string;
+  bankAccountNumber?: string;
+  bankIfsc?: string;
+  bankName?: string;
+  paymentTerms?: string;
+  creditPeriodDays?: number;
+  vendorCategory?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +35,13 @@ export interface CreateVendor {
   address: string;
   creditLimit?: number;
   status?: string;
+  pan?: string;
+  bankAccountNumber?: string;
+  bankIfsc?: string;
+  bankName?: string;
+  paymentTerms?: string;
+  creditPeriodDays?: number;
+  vendorCategory?: string;
 }
 
 export interface UpdateVendor {
@@ -38,6 +53,41 @@ export interface UpdateVendor {
   address?: string;
   creditLimit?: number;
   status?: string;
+  pan?: string;
+  bankAccountNumber?: string;
+  bankIfsc?: string;
+  bankName?: string;
+  paymentTerms?: string;
+  creditPeriodDays?: number;
+  vendorCategory?: string;
+}
+
+// Module 11 Part B: live-computed rate history + on-time-delivery
+// performance -- no new table, matches Stock Ledger/Costing's precedent.
+export interface VendorRateHistoryRow {
+  material: { _id: string; materialName: string } | null;
+  rate: number;
+  quantityOrdered: number;
+  purchaseOrder: { _id: string; poNumber: string; status: string } | null;
+  orderedAt: string;
+}
+
+export interface VendorDelivery {
+  poId: string;
+  poNumber: string;
+  expectedDate: string;
+  firstReceivedDate: string;
+  delayDays: number;
+  onTime: boolean;
+}
+
+export interface VendorPerformance {
+  totalDeliveries: number;
+  onTimeCount: number;
+  lateCount: number;
+  onTimePercentage: number | null;
+  averageDelayDays: number | null;
+  deliveries: VendorDelivery[];
 }
 
 export interface ApiResponse<T> {
@@ -187,6 +237,34 @@ export const vendorService = {
       throw new Error(
         error.response?.data?.message || 'Failed to bulk create vendors'
       );
+    }
+  },
+
+  async getVendorRateHistory(vendorId: string, materialId?: string): Promise<ApiResponse<VendorRateHistoryRow[]>> {
+    try {
+      const token = authService.getToken();
+      if (!token) throw new Error('No authentication token found');
+      const response: AxiosResponse<ApiResponse<VendorRateHistoryRow[]>> = await axios.get(
+        `${Endpoint.GET_VENDOR_RATE_HISTORY}/${vendorId}/rate-history`,
+        { headers: { Authorization: `Bearer ${token}` }, params: materialId ? { materialId } : undefined, withCredentials: true }
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch vendor rate history');
+    }
+  },
+
+  async getVendorPerformance(vendorId: string): Promise<ApiResponse<VendorPerformance>> {
+    try {
+      const token = authService.getToken();
+      if (!token) throw new Error('No authentication token found');
+      const response: AxiosResponse<ApiResponse<VendorPerformance>> = await axios.get(
+        `${Endpoint.GET_VENDOR_PERFORMANCE}/${vendorId}/performance`,
+        { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch vendor performance');
     }
   },
 };

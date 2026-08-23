@@ -5,7 +5,35 @@ import {
   CreateVendor,
   UpdateVendor,
   BulkImportResponse,
+  VendorRateHistoryRow,
+  VendorPerformance,
 } from '@/services/vendor.service';
+
+export const getVendorRateHistoryThunk = createAsyncThunk(
+  'vendors/getRateHistory',
+  async ({ vendorId, materialId }: { vendorId: string; materialId?: string }, { rejectWithValue }) => {
+    try {
+      const response = await vendorService.getVendorRateHistory(vendorId, materialId);
+      if (response.success && Array.isArray(response.data)) return response.data;
+      return rejectWithValue(response.message || 'Failed to fetch vendor rate history');
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to fetch vendor rate history');
+    }
+  }
+);
+
+export const getVendorPerformanceThunk = createAsyncThunk(
+  'vendors/getPerformance',
+  async (vendorId: string, { rejectWithValue }) => {
+    try {
+      const response = await vendorService.getVendorPerformance(vendorId);
+      if (response.success && response.data) return response.data;
+      return rejectWithValue(response.message || 'Failed to fetch vendor performance');
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to fetch vendor performance');
+    }
+  }
+);
 
 export const getAllVendorsThunk = createAsyncThunk(
   'vendors/getAll',
@@ -101,6 +129,9 @@ interface VendorState {
   loading: boolean;
   error: string | null;
   successMessage: string | null;
+  rateHistory: VendorRateHistoryRow[];
+  performance: VendorPerformance | null;
+  rateHistoryLoading: boolean;
 }
 
 const initialState: VendorState = {
@@ -109,6 +140,9 @@ const initialState: VendorState = {
   loading: false,
   error: null,
   successMessage: null,
+  rateHistory: [],
+  performance: null,
+  rateHistoryLoading: false,
 };
 
 const vendorSlice = createSlice({
@@ -123,6 +157,10 @@ const vendorSlice = createSlice({
     },
     clearSingleVendor(state) {
       state.singleVendor = null;
+    },
+    clearVendorRateHistory(state) {
+      state.rateHistory = [];
+      state.performance = null;
     },
   },
   extraReducers: (builder) => {
@@ -233,10 +271,34 @@ const vendorSlice = createSlice({
       .addCase(bulkCreateVendorsThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(getVendorRateHistoryThunk.pending, (state) => {
+        state.rateHistoryLoading = true;
+      })
+      .addCase(getVendorRateHistoryThunk.fulfilled, (state, action: PayloadAction<VendorRateHistoryRow[]>) => {
+        state.rateHistoryLoading = false;
+        state.rateHistory = action.payload;
+      })
+      .addCase(getVendorRateHistoryThunk.rejected, (state, action) => {
+        state.rateHistoryLoading = false;
+        state.error = action.payload as string;
+        state.rateHistory = [];
+      })
+      .addCase(getVendorPerformanceThunk.pending, (state) => {
+        state.rateHistoryLoading = true;
+      })
+      .addCase(getVendorPerformanceThunk.fulfilled, (state, action: PayloadAction<VendorPerformance>) => {
+        state.rateHistoryLoading = false;
+        state.performance = action.payload;
+      })
+      .addCase(getVendorPerformanceThunk.rejected, (state, action) => {
+        state.rateHistoryLoading = false;
+        state.error = action.payload as string;
+        state.performance = null;
       });
   },
 });
 
-export const { clearError, clearSuccessMessage, clearSingleVendor } =
+export const { clearError, clearSuccessMessage, clearSingleVendor, clearVendorRateHistory } =
   vendorSlice.actions;
 export default vendorSlice.reducer;

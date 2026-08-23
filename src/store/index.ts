@@ -51,6 +51,8 @@ import routingReducer from '@/store/slices/routingSlice';
 import loginHistoryReducer from '@/store/slices/loginHistorySlice';
 import warehouseReducer from '@/store/slices/warehouseSlice';
 import stockMovementReducer from '@/store/slices/stockMovementSlice';
+import purchaseReturnReducer from '@/store/slices/purchaseReturnSlice';
+import purchaseRequisitionReducer from '@/store/slices/purchaseRequisitionSlice';
 // Persist configuration
 export const persistConfig = {
   key: 'auth',
@@ -114,6 +116,8 @@ export const store = configureStore({
     loginHistory: loginHistoryReducer,
     warehouses: warehouseReducer,
     stockMovements: stockMovementReducer,
+    purchaseReturns: purchaseReturnReducer,
+    purchaseRequisitions: purchaseRequisitionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

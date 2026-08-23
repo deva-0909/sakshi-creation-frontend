@@ -16,6 +16,9 @@ export interface Grn {
   grnNumber: string;
   receivedDate: string;
   notes?: string;
+  // Module 11 Part B: supplier invoice reference, both optional.
+  vendorInvoiceNumber?: string;
+  vendorInvoiceDate?: string;
   purchaseOrder?: { _id: string; poNumber: string; status: string };
   vendor?: { _id: string; name: string };
   companyName?: { _id: string; companyName: string };
@@ -32,6 +35,8 @@ interface CreateGrnData {
   forCompany: string;
   notes?: string;
   items: { purchaseOrderItemId: string; materialId: string; quantityReceived: number; rate: number }[];
+  vendorInvoiceNumber?: string;
+  vendorInvoiceDate?: string;
 }
 
 interface ApiResponse<T> {

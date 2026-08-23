@@ -18,10 +18,14 @@ export interface PurchaseOrder {
   notes?: string;
   approvedAt?: string;
   sentAt?: string;
+  // Module 11 Part B: additive vendor-facing acknowledgement -- not a
+  // status, orthogonal metadata set any time after "Sent".
+  acknowledgedAt?: string;
   rfqId?: string;
   vendor?: { _id: string; name: string };
   companyName?: { _id: string; companyName: string };
   approvedBy?: { _id: string; firstName: string; lastName: string };
+  acknowledgedBy?: { _id: string; firstName: string; lastName: string };
   createdBy?: { _id: string; firstName: string; lastName: string };
   items?: PurchaseOrderItem[];
   createdAt?: string;
@@ -171,6 +175,19 @@ export const purchaseOrderService = {
       return { success: response.data.success, data: response.data.data, message: response.data.message };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Failed to send purchase order");
+    }
+  },
+
+  async acknowledgePurchaseOrder(id: string): Promise<ApiResponse<PurchaseOrder>> {
+    try {
+      const response: AxiosResponse<ApiResponse<PurchaseOrder>> = await axios.patch(
+        `${Endpoint.ACKNOWLEDGE_PO}/${id}/acknowledge`,
+        {},
+        { headers: authHeaders(), withCredentials: true }
+      );
+      return { success: response.data.success, data: response.data.data, message: response.data.message };
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Failed to acknowledge purchase order");
     }
   },
 

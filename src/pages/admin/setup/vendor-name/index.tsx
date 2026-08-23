@@ -6,7 +6,7 @@ import {
   TableCell,
   Stack,
 } from '@mui/material';
-import { Add, Edit, Delete } from '@mui/icons-material';
+import { Add, Edit, Delete, TrendingUp } from '@mui/icons-material';
 import BasicTable from '@/component/common_component/Table/themetable';
 import Input from '@/component/common_component/themeinput';
 import Select from '@/component/common_component/themeselect';
@@ -22,6 +22,9 @@ import {
   updateVendorThunk,
   deleteVendorThunk,
   clearError,
+  getVendorRateHistoryThunk,
+  getVendorPerformanceThunk,
+  clearVendorRateHistory,
 } from '@/store/slices/vendorSlice';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
@@ -45,7 +48,33 @@ interface VendorForm {
   // Module 10: activation status, added to the pre-existing masters that had
   // no such concept before.
   status: string;
+  // Module 11 Part B: banking/commercial terms, all optional.
+  pan: string;
+  bankAccountNumber: string;
+  bankIfsc: string;
+  bankName: string;
+  paymentTerms: string;
+  creditPeriodDays: string;
+  vendorCategory: string;
 }
+
+const emptyVendorForm: VendorForm = {
+  companyName: '',
+  name: '',
+  contactNumber: '',
+  whatsappNumber: '',
+  gst: '',
+  address: '',
+  creditLimit: '',
+  status: 'Active',
+  pan: '',
+  bankAccountNumber: '',
+  bankIfsc: '',
+  bankName: '',
+  paymentTerms: '',
+  creditPeriodDays: '',
+  vendorCategory: '',
+};
 
 const columns = [
   { id: 'id', label: 'ID' },
@@ -63,20 +92,14 @@ const columns = [
 const VendorPage = () => {
   const dispatch = useAppDispatch();
   const { vendors, loading, error } = useAppSelector((state) => state.vendors);
+  const { rateHistory, performance, rateHistoryLoading } = useAppSelector((state) => state.vendors);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState<VendorForm>({
-    companyName: '',
-    name: '',
-    contactNumber: '',
-    whatsappNumber: '',
-    gst: '',
-    address: '',
-    creditLimit: '',
-    status: 'Active',
-  });
+  const [form, setForm] = useState<VendorForm>(emptyVendorForm);
   const [gstError, setGstError] = useState<string | null>(null);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyVendor, setHistoryVendor] = useState<{ id: string; name: string } | null>(null);
 
   // Fetch vendors on component mount
   useEffect(() => {
@@ -98,23 +121,34 @@ const VendorPage = () => {
         address: vendor.address,
         creditLimit: vendor.creditLimit != null ? String(vendor.creditLimit) : '',
         status: vendor.status || 'Active',
+        pan: vendor.pan || '',
+        bankAccountNumber: vendor.bankAccountNumber || '',
+        bankIfsc: vendor.bankIfsc || '',
+        bankName: vendor.bankName || '',
+        paymentTerms: vendor.paymentTerms || '',
+        creditPeriodDays: vendor.creditPeriodDays != null ? String(vendor.creditPeriodDays) : '',
+        vendorCategory: vendor.vendorCategory || '',
       });
       setGstError(null); // Reset GST error on open
     } else {
       setEditId(null);
-      setForm({
-        companyName: '',
-        name: '',
-        contactNumber: '',
-        whatsappNumber: '',
-        gst: '',
-        address: '',
-        creditLimit: '',
-        status: 'Active',
-      });
+      setForm(emptyVendorForm);
       setGstError(null); // Reset GST error on open
     }
     setDialogOpen(true);
+  };
+
+  const handleOpenHistory = (vendor: any) => {
+    setHistoryVendor({ id: vendor._id, name: vendor.name });
+    dispatch(getVendorRateHistoryThunk({ vendorId: vendor._id }));
+    dispatch(getVendorPerformanceThunk(vendor._id));
+    setHistoryDialogOpen(true);
+  };
+
+  const handleCloseHistory = () => {
+    setHistoryDialogOpen(false);
+    setHistoryVendor(null);
+    dispatch(clearVendorRateHistory());
   };
 
   // GST validation function
@@ -174,6 +208,13 @@ const VendorPage = () => {
               address: form.address,
               creditLimit: form.creditLimit !== '' ? Number(form.creditLimit) : undefined,
               status: form.status,
+              pan: form.pan || undefined,
+              bankAccountNumber: form.bankAccountNumber || undefined,
+              bankIfsc: form.bankIfsc || undefined,
+              bankName: form.bankName || undefined,
+              paymentTerms: form.paymentTerms || undefined,
+              creditPeriodDays: form.creditPeriodDays !== '' ? Number(form.creditPeriodDays) : undefined,
+              vendorCategory: form.vendorCategory || undefined,
             },
           })
         ).unwrap();
@@ -189,21 +230,19 @@ const VendorPage = () => {
             address: form.address,
             creditLimit: form.creditLimit !== '' ? Number(form.creditLimit) : undefined,
             status: form.status,
+            pan: form.pan || undefined,
+            bankAccountNumber: form.bankAccountNumber || undefined,
+            bankIfsc: form.bankIfsc || undefined,
+            bankName: form.bankName || undefined,
+            paymentTerms: form.paymentTerms || undefined,
+            creditPeriodDays: form.creditPeriodDays !== '' ? Number(form.creditPeriodDays) : undefined,
+            vendorCategory: form.vendorCategory || undefined,
           })
         ).unwrap();
         toast.success('Vendor created successfully');
       }
       setDialogOpen(false);
-      setForm({
-        companyName: '',
-        name: '',
-        contactNumber: '',
-        whatsappNumber: '',
-        gst: '',
-        address: '',
-        creditLimit: '',
-        status: 'Active',
-      });
+      setForm(emptyVendorForm);
       setEditId(null);
       setGstError(null);
     } catch (err: any) {
@@ -289,6 +328,12 @@ const VendorPage = () => {
                 onClick={() => handleDelete(row._id, row.name)}
               >
                 <Delete />
+              </IconButton>
+              <IconButton
+                onClick={() => handleOpenHistory(row)}
+                title="Rate History & Performance"
+              >
+                <TrendingUp />
               </IconButton>
             </TableCell>
           </>
@@ -392,6 +437,63 @@ const VendorPage = () => {
             />
           </Box>
         </Stack>
+        {/* Module 11 Part B: banking/commercial terms -- all optional. */}
+        <Stack direction="row" spacing={2} mb={2}>
+          <Input
+            labelName="PAN (optional)"
+            value={form.pan}
+            onChange={(e: any) => setForm((f) => ({ ...f, pan: e.target.value.toUpperCase() }))}
+            fullWidth
+            sx={{ flex: 1 }}
+          />
+          <Input
+            labelName="Vendor Category (optional)"
+            value={form.vendorCategory}
+            onChange={(e: any) => setForm((f) => ({ ...f, vendorCategory: e.target.value }))}
+            fullWidth
+            sx={{ flex: 1 }}
+          />
+        </Stack>
+        <Stack direction="row" spacing={2} mb={2}>
+          <Input
+            labelName="Bank Account Number (optional)"
+            value={form.bankAccountNumber}
+            onChange={(e: any) => setForm((f) => ({ ...f, bankAccountNumber: e.target.value }))}
+            fullWidth
+            sx={{ flex: 1 }}
+          />
+          <Input
+            labelName="Bank IFSC (optional)"
+            value={form.bankIfsc}
+            onChange={(e: any) => setForm((f) => ({ ...f, bankIfsc: e.target.value.toUpperCase() }))}
+            fullWidth
+            sx={{ flex: 1 }}
+          />
+        </Stack>
+        <Stack direction="row" spacing={2} mb={2}>
+          <Input
+            labelName="Bank Name (optional)"
+            value={form.bankName}
+            onChange={(e: any) => setForm((f) => ({ ...f, bankName: e.target.value }))}
+            fullWidth
+            sx={{ flex: 1 }}
+          />
+          <Input
+            labelName="Payment Terms (optional, e.g. Net 30)"
+            value={form.paymentTerms}
+            onChange={(e: any) => setForm((f) => ({ ...f, paymentTerms: e.target.value }))}
+            fullWidth
+            sx={{ flex: 1 }}
+          />
+          <Input
+            labelName="Credit Period (days, optional)"
+            type="number"
+            value={form.creditPeriodDays}
+            onChange={(e: any) => setForm((f) => ({ ...f, creditPeriodDays: e.target.value }))}
+            fullWidth
+            sx={{ flex: 1 }}
+          />
+        </Stack>
         <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
           <Button
             onClick={() => setDialogOpen(false)}
@@ -415,6 +517,72 @@ const VendorPage = () => {
         onClose={() => setBulkDialogOpen(false)}
         refreshData={() => dispatch(getAllVendorsThunk())}
       />
+
+      {/* Module 11 Part B: live-computed rate history + on-time-delivery
+          performance -- no separate table, read straight from PO/GRN data. */}
+      <CustomDialog open={historyDialogOpen} onClose={handleCloseHistory} title={historyVendor ? `${historyVendor.name} -- Rate History & Performance` : ''} maxWidth="md" fullWidth>
+        {rateHistoryLoading ? (
+          <Typography fontSize={14} color="text.secondary" py={2}>
+            Loading...
+          </Typography>
+        ) : (
+          <Box py={1}>
+            <Typography fontWeight={600} mb={1}>
+              On-Time Delivery Performance
+            </Typography>
+            {performance && performance.totalDeliveries > 0 ? (
+              <Stack direction="row" spacing={4} mb={3} flexWrap="wrap" useFlexGap>
+                <Typography fontSize={14}>Total Deliveries: {performance.totalDeliveries}</Typography>
+                <Typography fontSize={14} color="success.main">On Time: {performance.onTimeCount}</Typography>
+                <Typography fontSize={14} color="error.main">Late: {performance.lateCount}</Typography>
+                <Typography fontSize={14} fontWeight={700}>On-Time %: {performance.onTimePercentage}%</Typography>
+                <Typography fontSize={14}>Avg. Delay: {performance.averageDelayDays} days</Typography>
+              </Stack>
+            ) : (
+              <Typography fontSize={14} color="text.secondary" mb={3}>
+                No deliveries recorded yet for this vendor.
+              </Typography>
+            )}
+
+            <Typography fontWeight={600} mb={1}>
+              Rate History
+            </Typography>
+            {rateHistory.length === 0 ? (
+              <Typography fontSize={14} color="text.secondary">
+                No purchase order lines recorded yet for this vendor.
+              </Typography>
+            ) : (
+              <BasicTable
+                showFillter={false}
+                showDatePicker={false}
+                showSearch={false}
+                tableHeader={[
+                  { id: 'material', label: 'Material' },
+                  { id: 'rate', label: 'Rate' },
+                  { id: 'quantity', label: 'Qty Ordered' },
+                  { id: 'po', label: 'PO #' },
+                  { id: 'orderedAt', label: 'Ordered' },
+                ]}
+                rowData={rateHistory.map((r, idx) => ({ ...r, id: String(idx) }))}
+                renderRow={(row: any) => (
+                  <>
+                    <TableCell>{row.material?.materialName || '-'}</TableCell>
+                    <TableCell>{row.rate}</TableCell>
+                    <TableCell>{row.quantityOrdered}</TableCell>
+                    <TableCell>{row.purchaseOrder?.poNumber || '-'}</TableCell>
+                    <TableCell>{row.orderedAt ? new Date(row.orderedAt).toLocaleDateString() : '-'}</TableCell>
+                  </>
+                )}
+              />
+            )}
+          </Box>
+        )}
+        <Box display="flex" justifyContent="flex-end" mt={2}>
+          <Button onClick={handleCloseHistory} variant="outlined" sx={{ borderRadius: 2, borderColor: '#A409F8', color: '#A409F8', '&:hover': { borderColor: '#7B06C2', color: '#7B06C2' } }}>
+            Close
+          </Button>
+        </Box>
+      </CustomDialog>
     </Box>
   );
 };

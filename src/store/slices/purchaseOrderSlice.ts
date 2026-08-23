@@ -146,6 +146,16 @@ export const cancelPurchaseOrderThunk = createAsyncThunk(
   }
 );
 
+export const acknowledgePurchaseOrderThunk = createAsyncThunk("purchaseOrder/acknowledge", async (id: string, { rejectWithValue }) => {
+  try {
+    const response = await purchaseOrderService.acknowledgePurchaseOrder(id);
+    if (response.success && response.data) return response.data;
+    return rejectWithValue(response.message || "Failed to acknowledge purchase order");
+  } catch (error: any) {
+    return rejectWithValue(error.message || "Failed to acknowledge purchase order");
+  }
+});
+
 export const getPurchaseOrderHistoryThunk = createAsyncThunk("purchaseOrder/getHistory", async (id: string, { rejectWithValue }) => {
   try {
     const response = await purchaseOrderService.getPurchaseOrderHistory(id);
@@ -230,7 +240,8 @@ const purchaseOrderSlice = createSlice({
           approvePurchaseOrderThunk.pending,
           rejectPurchaseOrderThunk.pending,
           sendPurchaseOrderThunk.pending,
-          cancelPurchaseOrderThunk.pending
+          cancelPurchaseOrderThunk.pending,
+          acknowledgePurchaseOrderThunk.pending
         ),
         (state) => {
           state.loading = true;
@@ -243,7 +254,8 @@ const purchaseOrderSlice = createSlice({
           approvePurchaseOrderThunk.fulfilled,
           rejectPurchaseOrderThunk.fulfilled,
           sendPurchaseOrderThunk.fulfilled,
-          cancelPurchaseOrderThunk.fulfilled
+          cancelPurchaseOrderThunk.fulfilled,
+          acknowledgePurchaseOrderThunk.fulfilled
         ),
         (state, action: PayloadAction<PurchaseOrder>) => {
           state.loading = false;
@@ -261,7 +273,8 @@ const purchaseOrderSlice = createSlice({
           approvePurchaseOrderThunk.rejected,
           rejectPurchaseOrderThunk.rejected,
           sendPurchaseOrderThunk.rejected,
-          cancelPurchaseOrderThunk.rejected
+          cancelPurchaseOrderThunk.rejected,
+          acknowledgePurchaseOrderThunk.rejected
         ),
         (state, action) => {
           state.loading = false;

@@ -89,6 +89,7 @@ const permissionMapping: { [key: string]: string } = {
   "Stock Ledger": "inventory",
   "Stock Movements": "inventory",
   RFQs: "rfq",
+  "Purchase Requisitions": "purchaserequisition",
   "Purchase Orders": "purchaseorder",
   Invoices: "invoice",
   "Vendor Payments": "vendorpayment",
@@ -136,6 +137,7 @@ const menuItems = [
     path: "/admin/procurement/rfq",
     children: [
       { label: "RFQs", path: "/admin/procurement/rfq", icon: <MdLibraryBooks size={18} /> },
+      { label: "Purchase Requisitions", path: "/admin/procurement/purchase-requisitions", icon: <MdAssignment size={18} /> },
       { label: "Purchase Orders", path: "/admin/procurement/purchase-orders", icon: <MdShoppingCart size={18} /> },
     ],
   },

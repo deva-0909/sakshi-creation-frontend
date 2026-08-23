@@ -294,4 +294,21 @@ export const permissionsArray = {
     delete: false,
     approve: false,
   },
+  // Module 11 Part B: Vendor Management + Procurement Depth.
+  purchaserequisition: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+    approve: false,
+  },
+  purchasereturn: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+    approve: false,
+  },
 }

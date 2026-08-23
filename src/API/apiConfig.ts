@@ -139,6 +139,8 @@ const Endpoint = {
   DELETE_VENDOR: `${BaseURL}/api/vendor/delete`,
   BULK_CREATE_VENDORS: `${BaseURL}/api/vendor/bulk`,
   BULK_VENDOR_TEMPLATE: `${BaseURL}/api/vendor/bulk/template`,
+  GET_VENDOR_RATE_HISTORY: `${BaseURL}/api/vendor`,
+  GET_VENDOR_PERFORMANCE: `${BaseURL}/api/vendor`,
   IMPORT_HISTORY: `${BaseURL}/api/import-history`,
 
   // ComapnyName
@@ -245,12 +247,30 @@ const Endpoint = {
   REJECT_PO: `${BaseURL}/api/purchase-orders`,
   SEND_PO: `${BaseURL}/api/purchase-orders`,
   CANCEL_PO: `${BaseURL}/api/purchase-orders`,
+  ACKNOWLEDGE_PO: `${BaseURL}/api/purchase-orders`,
   GET_PO_HISTORY: `${BaseURL}/api/purchase-orders`,
 
   // Procurement: GRN endpoints
   CREATE_GRN: `${BaseURL}/api/grns`,
   GET_ALL_GRNS: `${BaseURL}/api/grns`,
   GET_GRN_BY_ID: `${BaseURL}/api/grns`,
+
+  // Procurement: Purchase Requisition endpoints (Module 11 Part B)
+  CREATE_PURCHASE_REQUISITION: `${BaseURL}/api/purchase-requisitions`,
+  GET_ALL_PURCHASE_REQUISITIONS: `${BaseURL}/api/purchase-requisitions`,
+  GET_PURCHASE_REQUISITION_BY_ID: `${BaseURL}/api/purchase-requisitions`,
+  DELETE_PURCHASE_REQUISITION: `${BaseURL}/api/purchase-requisitions`,
+  SUBMIT_PR_FOR_APPROVAL: `${BaseURL}/api/purchase-requisitions`,
+  APPROVE_PR: `${BaseURL}/api/purchase-requisitions`,
+  REJECT_PR: `${BaseURL}/api/purchase-requisitions`,
+  CANCEL_PR: `${BaseURL}/api/purchase-requisitions`,
+  GET_PR_HISTORY: `${BaseURL}/api/purchase-requisitions`,
+  CONVERT_PR_TO_RFQ: `${BaseURL}/api/purchase-requisitions`,
+  CONVERT_PR_TO_PO: `${BaseURL}/api/purchase-requisitions`,
+
+  // Procurement: Purchase Return endpoints (Module 11 Part B)
+  CREATE_PURCHASE_RETURN: `${BaseURL}/api/purchase-returns`,
+  GET_ALL_PURCHASE_RETURNS: `${BaseURL}/api/purchase-returns`,
 
   // Accounting: Invoice endpoints (Patch 22 -- Invoicing, GST & Payments)
   CREATE_INVOICE: `${BaseURL}/api/invoices`,

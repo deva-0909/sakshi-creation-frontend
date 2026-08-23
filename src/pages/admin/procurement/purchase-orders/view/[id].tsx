@@ -29,11 +29,18 @@ import {
   rejectPurchaseOrderThunk,
   sendPurchaseOrderThunk,
   cancelPurchaseOrderThunk,
+  acknowledgePurchaseOrderThunk,
   clearSinglePurchaseOrder,
   clearPurchaseOrderError,
   clearPurchaseOrderSuccessMessage,
 } from "@/store/slices/purchaseOrderSlice";
 import { getAllGrnsThunk, createGrnThunk, clearGrnError, clearGrnSuccessMessage } from "@/store/slices/grnSlice";
+import {
+  createPurchaseReturnThunk,
+  getAllPurchaseReturnsThunk,
+  clearPurchaseReturnError,
+  clearPurchaseReturnSuccessMessage,
+} from "@/store/slices/purchaseReturnSlice";
 import { toast } from "react-toastify";
 
 const statusColor = (status: string): { bg: string; color: string } => {
@@ -78,11 +85,18 @@ const PurchaseOrderDetailPage = () => {
   const { id } = router.query;
   const { singlePurchaseOrder: po, history, loading, error, successMessage } = useAppSelector((state) => state.purchaseOrders);
   const { grns, loading: grnLoading, error: grnError, successMessage: grnSuccessMessage } = useAppSelector((state) => state.grns);
+  const {
+    purchaseReturns,
+    loading: returnLoading,
+    error: returnError,
+    successMessage: returnSuccessMessage,
+  } = useAppSelector((state) => state.purchaseReturns);
   const { roles } = useAppSelector((state) => state.roles);
   const { user } = useAppSelector((state) => state.auth);
 
   const permissions = user?.role?.permissions?.purchaseorder;
   const grnPermissions = user?.role?.permissions?.grn;
+  const returnPermissions = user?.role?.permissions?.purchasereturn;
 
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectRemarks, setRejectRemarks] = useState("");
@@ -93,6 +107,16 @@ const PurchaseOrderDetailPage = () => {
   const [grnStaff, setGrnStaff] = useState<any>(null);
   const [grnNotes, setGrnNotes] = useState("");
   const [grnQty, setGrnQty] = useState<Record<string, string>>({});
+  const [vendorInvoiceNumber, setVendorInvoiceNumber] = useState("");
+  const [vendorInvoiceDate, setVendorInvoiceDate] = useState("");
+
+  const [returnDialogOpen, setReturnDialogOpen] = useState(false);
+  const [returnGrn, setReturnGrn] = useState<any>(null);
+  const [returnRole, setReturnRole] = useState<{ label: string; value: string | number } | null>(null);
+  const [returnStaff, setReturnStaff] = useState<any>(null);
+  const [returnReason, setReturnReason] = useState("");
+  const [returnNotes, setReturnNotes] = useState("");
+  const [returnQty, setReturnQty] = useState<Record<string, string>>({});
 
   const load = () => {
     if (typeof id === "string") {
@@ -128,6 +152,8 @@ const PurchaseOrderDetailPage = () => {
       setGrnQty({});
       setGrnStaff(null);
       setGrnNotes("");
+      setVendorInvoiceNumber("");
+      setVendorInvoiceDate("");
       load();
     }
     if (grnError) {
@@ -135,6 +161,24 @@ const PurchaseOrderDetailPage = () => {
       dispatch(clearGrnError());
     }
   }, [grnSuccessMessage, grnError, dispatch]);
+
+  useEffect(() => {
+    if (returnSuccessMessage) {
+      toast.success(returnSuccessMessage);
+      dispatch(clearPurchaseReturnSuccessMessage());
+      setReturnDialogOpen(false);
+      setReturnGrn(null);
+      setReturnRole(null);
+      setReturnStaff(null);
+      setReturnReason("");
+      setReturnNotes("");
+      setReturnQty({});
+    }
+    if (returnError) {
+      toast.error(returnError);
+      dispatch(clearPurchaseReturnError());
+    }
+  }, [returnSuccessMessage, returnError, dispatch]);
 
   if (loading && !po) {
     return (
@@ -183,12 +227,72 @@ const PurchaseOrderDetailPage = () => {
         forRole: String(grnRole.value),
         forCompany: grnStaff.value,
         notes: grnNotes || undefined,
+        vendorInvoiceNumber: vendorInvoiceNumber || undefined,
+        vendorInvoiceDate: vendorInvoiceDate || undefined,
         items: items.map(({ purchaseOrderItemId, materialId, quantityReceived, rate }) => ({
           purchaseOrderItemId,
           materialId: materialId as string,
           quantityReceived,
           rate,
         })),
+      })
+    );
+  };
+
+  const handleOpenReturn = (grn: any) => {
+    setReturnGrn(grn);
+    setReturnRole(null);
+    setReturnStaff(null);
+    setReturnReason("");
+    setReturnNotes("");
+    setReturnQty({});
+    dispatch(getAllPurchaseReturnsThunk({ grnId: grn._id }));
+    setReturnDialogOpen(true);
+  };
+
+  const alreadyReturnedByItem: Record<string, number> = {};
+  if (returnGrn) {
+    purchaseReturns
+      .filter((pr) => pr.grn?._id === returnGrn._id)
+      .forEach((pr) => {
+        (pr.items || []).forEach((it) => {
+          alreadyReturnedByItem[it.grnItemId] = (alreadyReturnedByItem[it.grnItemId] || 0) + Number(it.quantityReturned);
+        });
+      });
+  }
+
+  const handleSubmitReturn = async () => {
+    if (!returnGrn || !returnRole || !returnStaff || !returnReason.trim()) {
+      toast.error("Fill role, staff member, and a reason for the return");
+      return;
+    }
+    const items = (returnGrn.items || [])
+      .map((it: any) => {
+        const alreadyReturned = alreadyReturnedByItem[it._id] || 0;
+        const remaining = it.quantityReceived - alreadyReturned;
+        const qty = Number(returnQty[it._id] || 0);
+        return { grnItemId: it._id, quantityReturned: qty, remaining };
+      })
+      .filter((it: any) => it.quantityReturned > 0);
+
+    if (items.length === 0) {
+      toast.error("Enter a return quantity for at least one material");
+      return;
+    }
+    const overReturned = items.find((it: any) => it.quantityReturned > it.remaining);
+    if (overReturned) {
+      toast.error("Return quantity cannot exceed the receivable remainder for that material");
+      return;
+    }
+
+    await dispatch(
+      createPurchaseReturnThunk({
+        grnId: returnGrn._id,
+        forRole: String(returnRole.value),
+        forCompany: returnStaff.value,
+        reason: returnReason,
+        notes: returnNotes || undefined,
+        items: items.map(({ grnItemId, quantityReturned }: any) => ({ grnItemId, quantityReturned })),
       })
     );
   };
@@ -285,6 +389,17 @@ const PurchaseOrderDetailPage = () => {
                 Mark as Sent
               </ThemeButton>
             )}
+            {["Sent", "Partially Received", "Received"].includes(po.status) && !po.acknowledgedAt && permissions?.edit && (
+              <ThemeButton onClick={() => doAction(acknowledgePurchaseOrderThunk(po._id))} sx={{ background: "#12B76A" }}>
+                Acknowledge Receipt of PO
+              </ThemeButton>
+            )}
+            {po.acknowledgedAt && (
+              <Typography fontSize={13} color="success.main">
+                Acknowledged on {new Date(po.acknowledgedAt).toLocaleDateString()}
+                {po.acknowledgedBy ? ` by ${po.acknowledgedBy.firstName} ${po.acknowledgedBy.lastName}` : ""}
+              </Typography>
+            )}
             {["Draft", "Approved", "Sent"].includes(po.status) && permissions?.edit && (
               <ThemeButton
                 variant="outlined"
@@ -355,6 +470,12 @@ const PurchaseOrderDetailPage = () => {
                   {g.receivedDate ? new Date(g.receivedDate).toLocaleDateString() : "-"}
                 </Typography>
               </Box>
+              {(g.vendorInvoiceNumber || g.vendorInvoiceDate) && (
+                <Typography fontSize={12} color="text.secondary">
+                  Supplier Invoice: {g.vendorInvoiceNumber || "-"}
+                  {g.vendorInvoiceDate ? ` (${new Date(g.vendorInvoiceDate).toLocaleDateString()})` : ""}
+                </Typography>
+              )}
               <Table size="small" sx={{ mt: 1 }}>
                 <TableBody>
                   {(g.items || []).map((it) => (
@@ -366,6 +487,13 @@ const PurchaseOrderDetailPage = () => {
                   ))}
                 </TableBody>
               </Table>
+              {returnPermissions?.create && (
+                <Box display="flex" justifyContent="flex-end" mt={1}>
+                  <ThemeButton variant="outlined" onClick={() => handleOpenReturn(g)}>
+                    Post Return
+                  </ThemeButton>
+                </Box>
+              )}
             </Box>
           ))}
         </Stack>
@@ -409,6 +537,26 @@ const PurchaseOrderDetailPage = () => {
                   roleFilter={grnRole?.label || ""}
                   disabled={!grnRole}
                   required
+                />
+              </Box>
+            </Stack>
+            <Stack direction={{ xs: "column", md: "row" }} spacing={2} mb={2}>
+              <Box flex={1}>
+                <ThemeInput
+                  labelName="Supplier Invoice Number (optional)"
+                  fullWidth
+                  value={vendorInvoiceNumber}
+                  onChange={(e) => setVendorInvoiceNumber(e.target.value)}
+                />
+              </Box>
+              <Box flex={1}>
+                <ThemeInput
+                  labelName="Supplier Invoice Date (optional)"
+                  type="date"
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  value={vendorInvoiceDate}
+                  onChange={(e) => setVendorInvoiceDate(e.target.value)}
                 />
               </Box>
             </Stack>
@@ -490,6 +638,109 @@ const PurchaseOrderDetailPage = () => {
             Confirm Reject
           </ThemeButton>
         </Box>
+      </CustomDialog>
+
+      <CustomDialog
+        open={returnDialogOpen}
+        onClose={() => setReturnDialogOpen(false)}
+        title={returnGrn ? `Post Return against ${returnGrn.grnNumber}` : "Post Return"}
+        maxWidth="sm"
+      >
+        {returnGrn && (
+          <Box mt={1}>
+            <Stack direction={{ xs: "column", md: "row" }} spacing={2} mb={2}>
+              <Box flex={1}>
+                <ThemeSelect
+                  label="Role"
+                  options={roleOptions}
+                  value={returnRole}
+                  onChange={(_, v) => {
+                    setReturnRole(v);
+                    setReturnStaff(null);
+                  }}
+                  required
+                />
+              </Box>
+              <Box flex={1}>
+                <RoleStaffSelect
+                  label="Staff Member"
+                  name="returnStaff"
+                  value={returnStaff}
+                  onChange={(_, v) => setReturnStaff(v)}
+                  roleFilter={returnRole?.label || ""}
+                  disabled={!returnRole}
+                  required
+                />
+              </Box>
+            </Stack>
+
+            <ThemeInput
+              labelName="Reason"
+              fullWidth
+              required
+              value={returnReason}
+              onChange={(e) => setReturnReason(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+
+            <Table size="small" sx={{ mb: 2 }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Material</TableCell>
+                  <TableCell>Returnable</TableCell>
+                  <TableCell>Rate</TableCell>
+                  <TableCell>Return Qty</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(returnGrn.items || [])
+                  .filter((it: any) => it.quantityReceived - (alreadyReturnedByItem[it._id] || 0) > 0)
+                  .map((it: any) => {
+                    const remaining = it.quantityReceived - (alreadyReturnedByItem[it._id] || 0);
+                    return (
+                      <TableRow key={it._id}>
+                        <TableCell>{it.material?.materialName || "-"}</TableCell>
+                        <TableCell>{remaining}</TableCell>
+                        <TableCell>{it.rate}</TableCell>
+                        <TableCell sx={{ width: 140 }}>
+                          <ThemeInput
+                            type="number"
+                            fullWidth
+                            value={returnQty[it._id] || ""}
+                            onChange={(e) => setReturnQty((prev) => ({ ...prev, [it._id]: e.target.value }))}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+              </TableBody>
+            </Table>
+            {(returnGrn.items || []).every((it: any) => it.quantityReceived - (alreadyReturnedByItem[it._id] || 0) <= 0) && (
+              <Typography fontSize={13} color="text.secondary" mb={2}>
+                Every material on this GRN has already been fully returned.
+              </Typography>
+            )}
+
+            <ThemeInput
+              labelName="Notes"
+              fullWidth
+              multiline
+              minRows={2}
+              value={returnNotes}
+              onChange={(e) => setReturnNotes(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+
+            <Box display="flex" justifyContent="flex-end" gap={2}>
+              <ThemeButton variant="outlined" onClick={() => setReturnDialogOpen(false)}>
+                Cancel
+              </ThemeButton>
+              <ThemeButton onClick={handleSubmitReturn} disabled={returnLoading} sx={{ background: "#D92D20" }}>
+                {returnLoading ? <CircularProgress size={20} color="inherit" /> : "Post Return"}
+              </ThemeButton>
+            </Box>
+          </Box>
+        )}
       </CustomDialog>
     </Box>
   );
