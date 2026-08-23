@@ -256,6 +256,16 @@ const aggregateInventory = (): AggregatedInventory[] => {
             showDatePicker={false}
             showSearch={false}
             showFillter={false}
+            csvColumns={[
+              { id: 'material', label: 'MATERIAL', value: (row: any) => row.material?.materialName || 'N/A' },
+              { id: 'size', label: 'SIZE', value: (row: any) => row.material?.materialSize || 'N/A' },
+              { id: 'gsm', label: 'GSM', value: (row: any) => row.material?.materialGSM || 'N/A' },
+              { id: 'kg', label: 'KG', value: (row: any) => row.kg },
+              { id: 'qty', label: 'QTY', value: (row: any) => row.quantity },
+              { id: 'date', label: 'DATE', value: (row: any) => new Date(row.date).toLocaleDateString() },
+              { id: 'vendor', label: 'VENDOR', value: (row: any) => row.vendor?.name || 'N/A' },
+            ]}
+            exportFilename="inventory-factory"
           />
         </>
       ) : (
@@ -341,6 +351,17 @@ const aggregateInventory = (): AggregatedInventory[] => {
                 showDatePicker={false}
                 showSearch={false}
                 showFillter={false}
+                csvColumns={[
+                  { id: 'printer', label: 'PRINTER NAME', value: (row: AggregatedInventory) => row.printerName },
+                  { id: 'material', label: 'PAPER', value: (row: AggregatedInventory) => row.materialName },
+                  { id: 'gsm', label: 'GSM', value: (row: AggregatedInventory) => row.materialGSM },
+                  { id: 'size', label: 'SIZE', value: (row: AggregatedInventory) => row.materialSize },
+                  { id: 'quantity', label: 'QUANTITY IN STOCK', value: (row: AggregatedInventory) => row.totalQuantity },
+                  { id: 'lastPurchase', label: 'LAST PURCHASE', value: (row: AggregatedInventory) => row.lastPurchase },
+                  { id: 'usedQty', label: 'USED QUANTITY', value: (row: AggregatedInventory) => row.usedQty },
+                  { id: 'balance', label: 'BALANCE', value: (row: AggregatedInventory) => row.balance },
+                ]}
+                exportFilename="inventory-printer-summary"
               />
             </>
           ) : (
@@ -422,6 +443,15 @@ const aggregateInventory = (): AggregatedInventory[] => {
                     </TableCell>
                   </>
                 )}
+                csvColumns={[
+                  { id: 'paper', label: 'PAPER', value: (row: any) => row.material?.materialName || 'N/A' },
+                  { id: 'gsm', label: 'GSM', value: (row: any) => row.material?.materialGSM || 'N/A' },
+                  { id: 'size', label: 'SIZE', value: (row: any) => row.material?.materialSize || 'N/A' },
+                  { id: 'qty', label: 'QTY', value: (row: any) => row.quantity },
+                  { id: 'date', label: 'DATE IN WARD', value: (row: any) => new Date(row.date).toLocaleDateString() },
+                  { id: 'vendor', label: 'VENDOR', value: (row: any) => row.vendor?.name || 'N/A' },
+                ]}
+                exportFilename="inventory-printer-detail"
               />
 
               <Box sx={styles.backButton}>

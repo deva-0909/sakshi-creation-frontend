@@ -33,6 +33,15 @@ const columns = [
   { id: "action", label: "Actions" },
 ];
 
+const csvColumns = [
+  { id: "docType", label: "Document Type", value: (row: any) => row.docType },
+  { id: "label", label: "Label", value: (row: any) => row.label },
+  { id: "prefix", label: "Prefix", value: (row: any) => row.prefix || "-" },
+  { id: "separator", label: "Separator", value: (row: any) => row.separator },
+  { id: "includeInitials", label: "Includes Initials", value: (row: any) => (row.includeInitials ? "Yes" : "No") },
+  { id: "paddingWidth", label: "Padding", value: (row: any) => row.paddingWidth ?? "-" },
+];
+
 // Module 10: docType and sequence_offset are intentionally not editable here --
 // see numberingConfig.controller.js for why changing either would break the
 // next_document_number() lookup or jump/repeat an already-issued document series.
@@ -108,6 +117,8 @@ const NumberingConfigurationPage = () => {
         showSearch={false}
         tableHeader={columns}
         rowData={configs.map((c: any) => ({ ...c, id: c._id }))}
+        csvColumns={csvColumns}
+        exportFilename="numbering-configuration"
         renderRow={(row: any, idx: number) => (
           <>
             <TableCell>{idx + 1}</TableCell>

@@ -51,6 +51,17 @@ interface InvoiceRow {
   party?: { partyName: string };
 }
 
+const csvColumns = [
+  { id: "invoiceNumber", label: "Invoice No.", value: (row: InvoiceRow) => row.invoiceNumber },
+  { id: "company", label: "Company", value: (row: InvoiceRow) => row.companyName?.companyName || "-" },
+  { id: "party", label: "Party", value: (row: InvoiceRow) => row.party?.partyName || "-" },
+  { id: "gstType", label: "GST", value: (row: InvoiceRow) => (row.gstType === "CGST_SGST" ? "CGST+SGST" : row.gstType) },
+  { id: "grandTotal", label: "Total", value: (row: InvoiceRow) => row.grandTotal },
+  { id: "amountPaid", label: "Paid", value: (row: InvoiceRow) => row.amountPaid },
+  { id: "status", label: "Status", value: (row: InvoiceRow) => row.status },
+  { id: "invoiceDate", label: "Date", value: (row: InvoiceRow) => (row.invoiceDate ? new Date(row.invoiceDate).toLocaleDateString() : "-") },
+];
+
 const InvoicePage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -93,6 +104,8 @@ const InvoicePage = () => {
           rowData={invoices.map((i: any) => ({ ...i, id: i._id }))}
           totalCount={totalCount}
           showDatePicker={false}
+          csvColumns={csvColumns}
+          exportFilename="invoices"
           renderRow={(row: InvoiceRow) => {
             const { bg, color } = statusColor(row.status);
             return (

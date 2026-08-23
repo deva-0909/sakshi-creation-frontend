@@ -24,6 +24,22 @@ const columns = [
   { id: "actions", label: "Actions" },
 ]
 
+const csvColumns = [
+  { id: "name", label: "Staff", value: (row: any) => row.name },
+  { id: "role", label: "Role", value: (row: any) => row.role },
+  { id: "joiningDate", label: "Date of Joining", value: (row: any) => row.joiningDate },
+  {
+    id: "aadharFiles",
+    label: "Aadhar Files",
+    value: (row: any) => (row.aadharFiles.length > 0 ? row.aadharFiles.map((f: string) => f.split("/").pop()).join(", ") : "-"),
+  },
+  {
+    id: "addressFiles",
+    label: "Address Files",
+    value: (row: any) => (row.addressFiles.length > 0 ? row.addressFiles.map((f: string) => f.split("/").pop()).join(", ") : "-"),
+  },
+]
+
 const StaffPage = () => {
   const [tab, setTab] = useState(0)
   const router = useRouter()
@@ -215,6 +231,8 @@ const StaffPage = () => {
         <BasicTable
           tableHeader={columns}
           rowData={formattedStaffList}
+          csvColumns={csvColumns}
+          exportFilename="staff"
           renderRow={(row) => (
             <>
               <TableCell sx={{ fontWeight: 500, cursor: "pointer" }} onClick={() => handleEdit(row.id)}>

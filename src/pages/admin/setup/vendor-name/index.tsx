@@ -89,6 +89,17 @@ const columns = [
   { id: 'action', label: 'Actions' },
 ];
 
+const csvColumns = [
+  { id: 'companyName', label: 'Company Name', value: (row: any) => row.companyName?.companyName || 'N/A' },
+  { id: 'name', label: 'Vendor Name', value: (row: any) => row.name },
+  { id: 'contactNumber', label: 'Contact Number', value: (row: any) => row.contactNumber },
+  { id: 'whatsappNumber', label: 'WhatsApp Number', value: (row: any) => row.whatsappNumber },
+  { id: 'gst', label: 'GST', value: (row: any) => row.gst || 'N/A' },
+  { id: 'address', label: 'Address', value: (row: any) => row.address },
+  { id: 'creditLimit', label: 'Credit Limit', value: (row: any) => (row.creditLimit != null ? row.creditLimit : 'No limit') },
+  { id: 'status', label: 'Status', value: (row: any) => row.status || 'Active' },
+];
+
 const VendorPage = () => {
   const dispatch = useAppDispatch();
   const { vendors, loading, error } = useAppSelector((state) => state.vendors);
@@ -306,6 +317,8 @@ const VendorPage = () => {
         showSearch={false}
         tableHeader={columns}
         rowData={vendors.map((v: any) => ({ ...v, id: v._id }))}
+        csvColumns={csvColumns}
+        exportFilename="vendors"
         renderRow={(row: any, idx: number) => (
           <>
             <TableCell>{idx + 1}</TableCell>

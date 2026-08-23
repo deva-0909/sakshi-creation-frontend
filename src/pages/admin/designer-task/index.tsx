@@ -125,6 +125,15 @@ const DesignerTask : React.FC<DesignerTaskProps> = ({ tasks }) => {
     </>
   );
 
+  const csvColumns = [
+    { id: "party", label: "Party", value: (row: (typeof rowData)[number]) => row.party },
+    { id: "date", label: "Date", value: (row: (typeof rowData)[number]) => row.date },
+    { id: "size", label: "Size", value: (row: (typeof rowData)[number]) => row.size },
+    { id: "itemName", label: "Item Name", value: (row: (typeof rowData)[number]) => row.itemName },
+    { id: "remarks", label: "Remarks", value: (row: (typeof rowData)[number]) => row.remarks },
+    { id: "status", label: "Status", value: (row: (typeof rowData)[number]) => row.status },
+  ];
+
   return (
     <BasicTable
       tableHeader={tableHeader}
@@ -133,6 +142,8 @@ const DesignerTask : React.FC<DesignerTaskProps> = ({ tasks }) => {
       showDatePicker={false}
       showSearch={false}
       showFillter={false}
+      csvColumns={csvColumns}
+      exportFilename="designer-task"
     />
   );
 };

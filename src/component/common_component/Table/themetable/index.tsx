@@ -17,8 +17,10 @@ import {
 } from "@mui/material";
 import Button from "@/component/common_component/themebutton";
 import { FiSearch } from "react-icons/fi";
+import { FiDownload } from "react-icons/fi";
 import FilterDropdown from "@/component/fillter";
 import DateRangePicker from "@/component/daterangepicker";
+import { exportRowsToCsv, type CsvColumn } from "@/utils/exportCsv";
 
 interface Column {
   id: string;
@@ -46,6 +48,12 @@ interface BasicTableProps<T> {
     hasNext: boolean;
     hasPrev: boolean;
   };
+  // Module 13: Data Export. When csvColumns is supplied, an "Export CSV"
+  // button appears in the table header and downloads a CSV built from
+  // filteredRows (the same rows currently on screen after search/date/
+  // filter are applied) using these column value-accessors.
+  csvColumns?: CsvColumn<T>[];
+  exportFilename?: string;
 }
 
 const BasicTable = <T extends { id: string }>({
@@ -68,6 +76,8 @@ const BasicTable = <T extends { id: string }>({
     hasNext: rowData.length > 10,
     hasPrev: false,
   },
+  csvColumns,
+  exportFilename,
 }: BasicTableProps<T>) => {
   const [page, setPage] = useState(pagination.currentPage - 1 || 0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -311,6 +321,12 @@ const BasicTable = <T extends { id: string }>({
     return items;
   };
 
+  const handleExportCsv = () => {
+    if (!csvColumns || csvColumns.length === 0) return;
+    const name = exportFilename || title || "export";
+    exportRowsToCsv(name, csvColumns, filteredRows);
+  };
+
   return (
     <Paper elevation={0} sx={{ width: "100%", overflow: "hidden", p: 0, maxWidth: "100%" }}>
       <Box
@@ -326,6 +342,18 @@ const BasicTable = <T extends { id: string }>({
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             {title}
           </Typography>
+        )}
+
+        {csvColumns && csvColumns.length > 0 && (
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<FiDownload size={14} />}
+            onClick={handleExportCsv}
+            sx={{ ml: 1.5 }}
+          >
+            Export CSV
+          </Button>
         )}
 
         {/* Search + Date + Filter */}

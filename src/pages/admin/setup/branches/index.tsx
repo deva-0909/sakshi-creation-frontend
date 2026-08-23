@@ -43,6 +43,13 @@ const columns = [
   { id: "action", label: "Actions" },
 ];
 
+const csvColumns = [
+  { id: "branchName", label: "Branch Name", value: (row: any) => row.branchName },
+  { id: "companyName", label: "Company", value: (row: any) => row.companyName?.companyName || "-" },
+  { id: "address", label: "Address", value: (row: any) => row.address || "-" },
+  { id: "status", label: "Status", value: (row: any) => row.status },
+];
+
 const BranchPage = () => {
   const dispatch = useAppDispatch();
   const { branches, loading, error, successMessage } = useAppSelector((state) => state.branches);
@@ -155,6 +162,8 @@ const BranchPage = () => {
         showSearch={false}
         tableHeader={columns}
         rowData={branches.map((b: any) => ({ ...b, id: b._id }))}
+        csvColumns={csvColumns}
+        exportFilename="branches"
         renderRow={(row: any, idx: number) => (
           <>
             <TableCell>{idx + 1}</TableCell>

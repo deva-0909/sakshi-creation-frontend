@@ -40,6 +40,12 @@ const columns = [
   { id: "action", label: "Actions" },
 ];
 
+const csvColumns = [
+  { id: "name", label: "Name", value: (row: any) => row.name },
+  { id: "symbol", label: "Symbol", value: (row: any) => row.symbol || "-" },
+  { id: "status", label: "Status", value: (row: any) => row.status },
+];
+
 const UomPage = () => {
   const dispatch = useAppDispatch();
   const { uoms, loading, error, successMessage } = useAppSelector((state) => state.uoms);
@@ -142,6 +148,8 @@ const UomPage = () => {
         showSearch={false}
         tableHeader={columns}
         rowData={uoms.map((u: any) => ({ ...u, id: u._id }))}
+        csvColumns={csvColumns}
+        exportFilename="uom"
         renderRow={(row: any, idx: number) => (
           <>
             <TableCell>{idx + 1}</TableCell>

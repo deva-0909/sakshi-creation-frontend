@@ -38,6 +38,12 @@ const columns = [
   { id: "options", label: "Options", align: "right" as const },
 ];
 
+const csvColumns = [
+  { id: "name", label: "Role Name", value: (row: RoleRow) => row.name },
+  { id: "totalStaff", label: "Total Staff", value: (row: RoleRow) => row.totalStaff },
+  { id: "status", label: "Status", value: (row: RoleRow) => row.status },
+];
+
 const RoleTable: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -126,6 +132,8 @@ const RoleTable: React.FC = () => {
           tableHeader={columns}
           rowData={roleRows}
           showSearch
+          csvColumns={csvColumns}
+          exportFilename="roles"
           renderRow={(row: RoleRow) => (
             <>
               <TableCell>

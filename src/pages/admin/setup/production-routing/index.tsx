@@ -66,6 +66,30 @@ const templateColumns = [
   { id: "action", label: "Actions" },
 ];
 
+const stageCsvColumns = [
+  { id: "stageName", label: "Stage Name", value: (row: any) => row.stageName },
+  { id: "stageOrder", label: "Order", value: (row: any) => row.stageOrder ?? "-" },
+  { id: "description", label: "Description", value: (row: any) => row.description || "-" },
+  { id: "status", label: "Status", value: (row: any) => row.status },
+];
+
+const templateCsvColumns = [
+  { id: "templateName", label: "Template Name", value: (row: any) => row.templateName },
+  { id: "productItem", label: "Product Item", value: (row: any) => row.productItem?.itemName || "Any product" },
+  {
+    id: "stages",
+    label: "Stages",
+    value: (row: any) =>
+      (row.stages || [])
+        .slice()
+        .sort((a: any, b: any) => a.sequenceOrder - b.sequenceOrder)
+        .map((s: any) => s.processStage.stageName)
+        .join(" -> ") || "-",
+  },
+  { id: "isDefault", label: "Default", value: (row: any) => (row.isDefault ? "Yes" : "-") },
+  { id: "status", label: "Status", value: (row: any) => row.status },
+];
+
 // Module 10 (scope §13): a configurable, advisory routing reference. The
 // hardcoded job-card STAGE_ORDER and its DB CHECK constraint are untouched --
 // a routing template only feeds the "Suggested Routing" panel on the job card.
@@ -281,6 +305,8 @@ const ProductionRoutingPage = () => {
             showSearch={false}
             tableHeader={stageColumns}
             rowData={processStages.map((s: any) => ({ ...s, id: s._id }))}
+            csvColumns={stageCsvColumns}
+            exportFilename="process-stages"
             renderRow={(row: any, idx: number) => (
               <>
                 <TableCell>{idx + 1}</TableCell>
@@ -328,6 +354,8 @@ const ProductionRoutingPage = () => {
             showSearch={false}
             tableHeader={templateColumns}
             rowData={routingTemplates.map((t: any) => ({ ...t, id: t._id }))}
+            csvColumns={templateCsvColumns}
+            exportFilename="routing-templates"
             renderRow={(row: any, idx: number) => (
               <>
                 <TableCell>{idx + 1}</TableCell>

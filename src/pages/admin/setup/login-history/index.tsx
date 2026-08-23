@@ -15,6 +15,20 @@ const columns = [
   { id: "ipAddress", label: "IP Address" },
 ];
 
+const csvColumns = [
+  {
+    id: "staff",
+    label: "Staff",
+    value: (row: any) =>
+      row.staffId ? `${row.staffId.firstName || ""} ${row.staffId.lastName || ""}`.trim() || row.staffId.email : "-",
+  },
+  { id: "attemptedEmail", label: "Email Used", value: (row: any) => row.attemptedEmail },
+  { id: "loginAt", label: "When", value: (row: any) => (row.loginAt ? new Date(row.loginAt).toLocaleString() : "-") },
+  { id: "success", label: "Result", value: (row: any) => (row.success ? "Success" : "Failed") },
+  { id: "failureReason", label: "Failure Reason", value: (row: any) => row.failureReason || "-" },
+  { id: "ipAddress", label: "IP Address", value: (row: any) => row.ipAddress || "-" },
+];
+
 // Module 10: read-only audit trail of login attempts (success and failure),
 // recorded fire-and-forget from staff.controller.js's loginStaff on every outcome.
 const LoginHistoryPage = () => {
@@ -54,6 +68,8 @@ const LoginHistoryPage = () => {
         showSearch={false}
         tableHeader={columns}
         rowData={entries.map((e: any) => ({ ...e }))}
+        csvColumns={csvColumns}
+        exportFilename="login-history"
         renderRow={(row: any, idx: number) => (
           <>
             <TableCell>{(page - 1) * 25 + idx + 1}</TableCell>

@@ -44,6 +44,14 @@ const columns = [
   { id: "action", label: "Actions" },
 ];
 
+const csvColumns = [
+  { id: "debitNoteNumber", label: "Debit Note #", value: (row: any) => row.debitNoteNumber },
+  { id: "purchaseOrder", label: "Purchase Order", value: (row: any) => row.purchaseOrder?.poNumber || "-" },
+  { id: "vendor", label: "Vendor", value: (row: any) => row.vendor?.name || "-" },
+  { id: "amount", label: "Amount", value: (row: any) => row.amount },
+  { id: "status", label: "Status", value: (row: any) => row.status },
+];
+
 const DebitNotesPage = () => {
   const dispatch = useAppDispatch();
   const { debitNotes, loading, error, successMessage } = useAppSelector((state) => state.debitNotes);
@@ -139,6 +147,8 @@ const DebitNotesPage = () => {
         showDatePicker={false}
         showSearch={false}
         showFillter={false}
+        csvColumns={csvColumns}
+        exportFilename="debit-notes"
         renderRow={(row: any) => {
           const { bg, color } = statusColor(row.status);
           return (

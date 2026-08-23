@@ -121,6 +121,13 @@ const StockLedgerPage = () => {
             showDatePicker={false}
             showSearch={false}
             showFillter={false}
+            csvColumns={[
+              { id: "material", label: "Material", value: (row: any) => row.material.materialName },
+              { id: "size", label: "Size", value: (row: any) => row.material.materialSize || "-" },
+              { id: "gsm", label: "GSM", value: (row: any) => row.material.materialGSM || "-" },
+              { id: "balance", label: "Current Balance", value: (row: any) => row.balance },
+            ]}
+            exportFilename="stock-balances"
             renderRow={(row: any) => (
               <>
                 <TableCell>{row.material.materialName}</TableCell>
@@ -218,6 +225,14 @@ const StockLedgerPage = () => {
                 showDatePicker={false}
                 showSearch={false}
                 showFillter={false}
+                csvColumns={[
+                  { id: "date", label: "Date", value: (row: any) => new Date(row.date).toLocaleDateString() },
+                  { id: "category", label: "Category", value: (row: any) => row.category },
+                  { id: "type", label: "Type", value: (row: any) => row.type },
+                  { id: "quantity", label: "Quantity", value: (row: any) => row.quantity },
+                  { id: "runningBalance", label: "Running Balance", value: (row: any) => row.runningBalance },
+                ]}
+                exportFilename="material-ledger"
                 renderRow={(row: any) => (
                   <>
                     <TableCell>{new Date(row.date).toLocaleDateString()}</TableCell>

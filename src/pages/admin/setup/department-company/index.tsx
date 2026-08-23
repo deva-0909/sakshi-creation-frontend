@@ -351,6 +351,16 @@ const DepartmentCompany = () => {
     return companyRef.companyName || 'Unknown Company';
   };
 
+  const departmentCsvColumns = [
+    { id: 'name', label: 'Department Name', value: (row: any) => row.roleDepartment },
+    { id: 'company', label: 'Company', value: (row: any) => getCompanyName(row.CompanyName) },
+  ];
+
+  const companyCsvColumns = [
+    { id: 'companyName', label: 'Sub Company Name', value: (row: any) => row.roleDepartmentCompanyName },
+    { id: 'roleDepartment', label: 'Department', value: (row: any) => getDepartmentName(row.roleDepartment) },
+  ];
+
   return (
     <Box p={3}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
@@ -390,6 +400,8 @@ const DepartmentCompany = () => {
             showSearch={false}
             tableHeader={departmentTableHeader}
             rowData={roleDepartments.map((dept: any) => ({ ...dept, id: dept._id }))}
+            csvColumns={departmentCsvColumns}
+            exportFilename="departments"
             renderRow={(row: any, idx: number) => (
               <>
                 <TableCell>{idx + 1}</TableCell>
@@ -443,6 +455,8 @@ const DepartmentCompany = () => {
             showSearch={false}
             tableHeader={companyTableHeader}
             rowData={roleDepartmentCompanies.map((c: any) => ({ ...c, id: c._id }))}
+            csvColumns={companyCsvColumns}
+            exportFilename="department-companies"
             renderRow={(row: any, idx: number) => (
               <>
                 <TableCell>{idx + 1}</TableCell>

@@ -37,6 +37,18 @@ const columns = [
   { id: "options", label: "Options" },
 ];
 
+const csvColumns = [
+  { id: "material", label: "Material", value: (row: BomLineRow) => row.material?.materialName || "-" },
+  { id: "quantityPerUnit", label: "Qty per unit", value: (row: BomLineRow) => row.quantityPerUnit },
+  { id: "unit", label: "Unit", value: (row: BomLineRow) => row.unit },
+  {
+    id: "expectedWastagePercent",
+    label: "Expected Wastage %",
+    value: (row: BomLineRow) => (row.expectedWastagePercent != null ? `${row.expectedWastagePercent}%` : "-"),
+  },
+  { id: "notes", label: "Notes", value: (row: BomLineRow) => row.notes || "-" },
+];
+
 const BomPage = () => {
   const dispatch = useAppDispatch();
   const { productItems } = useAppSelector((state) => state.productItems);
@@ -194,6 +206,8 @@ const BomPage = () => {
               showDatePicker={false}
               showSearch={false}
               showFillter={false}
+              csvColumns={csvColumns}
+              exportFilename="bill-of-materials"
               renderRow={(row: BomLineRow) => (
                 <>
                   <TableCell>{row.material?.materialName || "-"}</TableCell>

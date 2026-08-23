@@ -59,6 +59,12 @@ const columns = [
   { id: "options", label: "Options" },
 ]
 
+const csvColumns = [
+  { id: "companyName", label: "Company Name", value: (row: CompanyNameRow) => row.companyName },
+  { id: "state", label: "State", value: (row: CompanyNameRow) => row.state || "-" },
+  { id: "status", label: "Status", value: (row: CompanyNameRow) => row.status || "Active" },
+]
+
 const CompanyNamePage = () => {
   const dispatch = useAppDispatch()
   const { companyNames, loading, error, successMessage } = useAppSelector((state: RootState) => state.companyNames)
@@ -221,6 +227,8 @@ const CompanyNamePage = () => {
         tableHeader={columns}
         rowData={companyNames.map((c: CompanyName) => ({ ...c, id: c._id }))}
         showDatePicker={false}
+        csvColumns={csvColumns}
+        exportFilename="company-names"
         renderRow={(row: CompanyNameRow, idx: number) => (
           <>
             <TableCell>{idx + 1}</TableCell>

@@ -163,6 +163,19 @@ const PerformanceInvoicePage: React.FC = () => {
         <BasicTable
           tableHeader={columns}
           rowData={formattedRows}
+          csvColumns={[
+            { id: "company", label: "Company", value: (row: RowData) => row.company.name },
+            { id: "createdDate", label: "Created Date", value: (row: RowData) => row.createdDate },
+            { id: "party", label: "Party", value: (row: RowData) => row.party },
+            { id: "orderNumber", label: "Order Number", value: (row: RowData) => row.orderNumber },
+            { id: "quantity", label: "Quantity", value: (row: RowData) => row.quantity },
+            { id: "unitPrice", label: "Unit Price", value: (row: RowData) => row.unitPrice },
+            { id: "total", label: "Total", value: (row: RowData) => row.total },
+            { id: "applyGST", label: "GST Applied", value: (row: RowData) => (row.applyGST ? "Yes" : "No") },
+            { id: "finalAmount", label: "Final Amount", value: (row: RowData) => row.finalAmount },
+            { id: "servicePerformance", label: "Service/Performance", value: (row: RowData) => row.servicePerformance },
+          ]}
+          exportFilename="performance-invoices"
           renderRow={(row: RowData) => (
             <>
               <TableCell

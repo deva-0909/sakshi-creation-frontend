@@ -60,6 +60,15 @@ const ApprovalsPage = () => {
     load();
   };
 
+  const csvColumns = [
+    { id: "type", label: "Type", value: (row: any) => TYPE_LABEL[row.type] || row.type },
+    { id: "number", label: "Number", value: (row: any) => row.number },
+    { id: "companyName", label: "Company", value: (row: any) => row.companyName?.companyName || "-" },
+    { id: "who", label: "Party / Vendor", value: (row: any) => row.party?.partyName || row.vendor?.name || "-" },
+    { id: "createdBy", label: "Submitted By", value: (row: any) => row.createdBy ? `${row.createdBy.firstName} ${row.createdBy.lastName}` : "-" },
+    { id: "createdAt", label: "Submitted", value: (row: any) => new Date(row.createdAt).toLocaleDateString() },
+  ];
+
   return (
     <Box p={3}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -82,6 +91,8 @@ const ApprovalsPage = () => {
           rowData={pending.map((p: any) => ({ ...p, id: p._id }))}
           totalCount={pending.length}
           showDatePicker={false}
+          csvColumns={csvColumns}
+          exportFilename="pending-approvals"
           renderRow={(row: PendingApproval) => (
             <>
               <TableCell>

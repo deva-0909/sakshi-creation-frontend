@@ -27,6 +27,15 @@ const columns = [
   { id: "bucket", label: "Bucket" },
 ];
 
+const csvColumns = [
+  { id: "reference", label: "Reference", value: (row: any) => row.reference },
+  { id: "type", label: "Type", value: (row: any) => row.type },
+  { id: "vendor", label: "Vendor", value: (row: any) => row.vendor?.name || "-" },
+  { id: "amount", label: "Amount", value: (row: any) => row.amount },
+  { id: "daysOld", label: "Days Old", value: (row: any) => row.daysOld },
+  { id: "bucket", label: "Bucket", value: (row: any) => row.bucket },
+];
+
 const VendorAgeingPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -82,6 +91,8 @@ const VendorAgeingPage = () => {
               showDatePicker={false}
               showSearch={false}
               showFillter={false}
+              csvColumns={csvColumns}
+              exportFilename="vendor-ageing"
               renderRow={(row: any) => (
                 <>
                   <TableCell>{row.reference}</TableCell>

@@ -30,6 +30,16 @@ interface VendorPaymentRow {
   companyName?: { companyName: string };
 }
 
+const csvColumns = [
+  { id: "paymentNumber", label: "Payment No.", value: (row: VendorPaymentRow) => row.paymentNumber },
+  { id: "vendor", label: "Vendor", value: (row: VendorPaymentRow) => row.vendor?.name || "-" },
+  { id: "purchaseOrder", label: "Purchase Order", value: (row: VendorPaymentRow) => row.purchaseOrder?.poNumber || "-" },
+  { id: "company", label: "Company", value: (row: VendorPaymentRow) => row.companyName?.companyName || "-" },
+  { id: "amount", label: "Amount", value: (row: VendorPaymentRow) => row.amount },
+  { id: "mode", label: "Mode", value: (row: VendorPaymentRow) => row.mode },
+  { id: "paymentDate", label: "Date", value: (row: VendorPaymentRow) => (row.paymentDate ? new Date(row.paymentDate).toLocaleDateString() : "-") },
+];
+
 const VendorPaymentPage = () => {
   const dispatch = useAppDispatch();
   const { vendorPayments, loading, totalCount } = useAppSelector((state) => state.vendorPayments);
@@ -71,6 +81,8 @@ const VendorPaymentPage = () => {
           rowData={vendorPayments.map((vp: any) => ({ ...vp, id: vp._id }))}
           totalCount={totalCount}
           showDatePicker={false}
+          csvColumns={csvColumns}
+          exportFilename="vendor-payments"
           renderRow={(row: VendorPaymentRow) => (
             <>
               <TableCell>{row.paymentNumber}</TableCell>

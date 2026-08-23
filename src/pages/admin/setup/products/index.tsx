@@ -50,6 +50,11 @@ const columns = [
   { id: "options", label: "Options" },
 ];
 
+const csvColumns = [
+  { id: "itemName", label: "Name", value: (row: ProductItemRow) => row.itemName },
+  { id: "status", label: "Status", value: (row: ProductItemRow) => row.status || "Active" },
+];
+
 const ProductsPage = () => {
   const dispatch = useAppDispatch();
   const { productItems, loading, error, successMessage } = useSelector(
@@ -152,6 +157,8 @@ const ProductsPage = () => {
           tableHeader={columns}
           rowData={productItems.map((item: ProductItem) => ({ ...item, id: item._id }))}
           showDatePicker={false}
+          csvColumns={csvColumns}
+          exportFilename="products"
           renderRow={(row: ProductItemRow, idx: number) => (
             <>
               <TableCell>{idx + 1}</TableCell>

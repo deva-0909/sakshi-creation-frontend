@@ -45,6 +45,14 @@ const columns = [
   { id: "action", label: "Actions" },
 ];
 
+const csvColumns = [
+  { id: "creditNoteNumber", label: "Credit Note #", value: (row: any) => row.creditNoteNumber },
+  { id: "invoice", label: "Invoice", value: (row: any) => row.invoice?.invoiceNumber || "-" },
+  { id: "party", label: "Party", value: (row: any) => row.party?.partyName || "-" },
+  { id: "amount", label: "Amount", value: (row: any) => row.amount },
+  { id: "status", label: "Status", value: (row: any) => row.status },
+];
+
 const CreditNotesPage = () => {
   const dispatch = useAppDispatch();
   const { creditNotes, loading, error, successMessage } = useAppSelector((state) => state.creditNotes);
@@ -123,6 +131,8 @@ const CreditNotesPage = () => {
         showDatePicker={false}
         showSearch={false}
         showFillter={false}
+        csvColumns={csvColumns}
+        exportFilename="credit-notes"
         renderRow={(row: any) => {
           const { bg, color } = statusColor(row.status);
           return (

@@ -324,6 +324,18 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
   if (loading) return <Typography>Loading orders...</Typography>;
   if (error) return <Typography color="error">Error: {error}</Typography>;
 
+  const csvColumns = [
+    { id: "company", label: "Company", value: (row: OrderRow) => row.companyName?.companyName || "N/A" },
+    { id: "party", label: "Party", value: (row: OrderRow) => row.party?.partyName || "N/A" },
+    { id: "orderNumber", label: "Order No.", value: (row: OrderRow) => row.orderNumber || "N/A" },
+    { id: "date", label: "Date", value: (row: OrderRow) => formatDate(row.createdAt) },
+    { id: "item", label: "Item Name", value: (row: OrderRow) => row.productItem?.itemName || "N/A" },
+    { id: "size", label: "Size", value: (row: OrderRow) => row.size || "N/A" },
+    { id: "remarks", label: "Remarks", value: (row: OrderRow) => row.remarks || "None" },
+    { id: "orderedBy", label: "Ordered By", value: (row: OrderRow) => `${row.createdBy?.firstName || "N/A"} ${row.createdBy?.lastName || "N/A"}` },
+    { id: "orderStatus", label: "Order Status", value: (row: OrderRow) => getDisplayStatus(row).text },
+  ];
+
   return (
     <>
       <Box
@@ -415,6 +427,8 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
           rowData={filteredOrders.map((order): OrderRow => ({ ...order, id: order._id }))}
           totalCount={totalCount} // Pass totalCount from Redux
           pagination={pagination} // Pass pagination from Redux
+          csvColumns={csvColumns}
+          exportFilename="all-orders"
           renderRow={(row: OrderRow) => (
             <>
               <TableCell>

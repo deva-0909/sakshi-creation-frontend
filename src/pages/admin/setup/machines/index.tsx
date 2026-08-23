@@ -62,6 +62,15 @@ const columns = [
   { id: "action", label: "Actions" },
 ];
 
+const csvColumns = [
+  { id: "machineName", label: "Machine Name", value: (row: any) => row.machineName },
+  { id: "machineCode", label: "Code", value: (row: any) => row.machineCode },
+  { id: "category", label: "Category", value: (row: any) => row.category },
+  { id: "companyName", label: "Company", value: (row: any) => row.companyName?.companyName || "-" },
+  { id: "capacity", label: "Capacity", value: (row: any) => row.capacity || "-" },
+  { id: "status", label: "Status", value: (row: any) => row.status },
+];
+
 const MachinePage = () => {
   const dispatch = useAppDispatch();
   const { machines, loading, error, successMessage } = useAppSelector((state) => state.machines);
@@ -184,6 +193,8 @@ const MachinePage = () => {
         showSearch={false}
         tableHeader={columns}
         rowData={machines.map((m: any) => ({ ...m, id: m._id }))}
+        csvColumns={csvColumns}
+        exportFilename="machines"
         renderRow={(row: any, idx: number) => (
           <>
             <TableCell>{idx + 1}</TableCell>

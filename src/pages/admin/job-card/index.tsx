@@ -77,6 +77,17 @@ const JobCardPage = () => {
           rowData={jobCards.map((j: any) => ({ ...j, id: j._id }))}
           totalCount={totalCount}
           showDatePicker={false}
+          csvColumns={[
+            { id: "jobCardNumber", label: "Job Card No.", value: (row: JobCardRow) => row.jobCardNumber },
+            { id: "orderNumber", label: "Order No.", value: (row: JobCardRow) => row.order?.orderNumber || "-" },
+            { id: "item", label: "Item", value: (row: JobCardRow) => row.productItem?.itemName || "-" },
+            { id: "qty", label: "Qty", value: (row: JobCardRow) => row.qty },
+            { id: "priority", label: "Priority", value: (row: JobCardRow) => row.priority },
+            { id: "currentStage", label: "Current Stage", value: (row: JobCardRow) => row.currentStage },
+            { id: "status", label: "Status", value: (row: JobCardRow) => row.status },
+            { id: "assignedTo", label: "Assigned To", value: (row: JobCardRow) => (row.assignedTo ? `${row.assignedTo.firstName} ${row.assignedTo.lastName}` : "-") },
+          ]}
+          exportFilename="job-cards"
           renderRow={(row: JobCardRow) => {
             const pColor = priorityColor[row.priority] || priorityColor.Normal;
             const sColor = statusColor[row.status] || statusColor.Pending;

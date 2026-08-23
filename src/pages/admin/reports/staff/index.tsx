@@ -26,6 +26,13 @@ const columns = [
   { id: 'left', label: 'Date of left' },
 ];
 
+const csvColumns = [
+  { id: 'name', label: 'Staff', value: (row: (typeof staffList1)[number]) => row.name },
+  { id: 'department', label: 'Department', value: (row: (typeof staffList1)[number]) => row.department },
+  { id: 'joining', label: 'Date of Joining', value: (row: (typeof staffList1)[number]) => row.joining },
+  { id: 'left', label: 'Date of left', value: (row: (typeof staffList1)[number]) => row.left },
+];
+
 const StaffPage = () => {
   const [tab, setTab] = useState(0);
   const router = useRouter();
@@ -115,6 +122,8 @@ const StaffPage = () => {
           <BasicTable
             tableHeader={columns}
             rowData={staffList}
+            csvColumns={csvColumns}
+            exportFilename="staff"
             renderRow={(row, idx) => (
               <>
                 <TableCell

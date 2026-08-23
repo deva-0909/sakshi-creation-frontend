@@ -81,6 +81,18 @@ const PurchasePage = () => {
     forValue: purchase.forCompany ? `${purchase.forCompany.firstName} ${purchase.forCompany.lastName}` : 'N/A',
   }));
 
+  const csvColumns = [
+    { id: 'vendor', label: 'VENDOR', value: (row: typeof rows[number]) => row.vendor },
+    { id: 'billNumber', label: 'BILL NUMBER', value: (row: typeof rows[number]) => row.billNumber },
+    { id: 'material', label: 'MATERIAL', value: (row: typeof rows[number]) => row.material },
+    { id: 'size', label: 'SIZE', value: (row: typeof rows[number]) => row.size },
+    { id: 'qty', label: 'QTY', value: (row: typeof rows[number]) => row.qty },
+    { id: 'gsm', label: 'GSM', value: (row: typeof rows[number]) => row.gsm },
+    { id: 'rate', label: 'RATE / SHEET/UNIT', value: (row: typeof rows[number]) => row.rate },
+    { id: 'kg', label: 'KG', value: (row: typeof rows[number]) => row.kg },
+    { id: 'forValue', label: 'FOR', value: (row: typeof rows[number]) => row.forValue },
+  ];
+
   return (
     <>
       <Box sx={{ display: 'flex', justifyContent: 'end', alignItems: 'center', mb: 2 }}>
@@ -95,6 +107,8 @@ const PurchasePage = () => {
       <BasicTable
         tableHeader={columns}
         rowData={rows}
+        csvColumns={csvColumns}
+        exportFilename="purchases"
         renderRow={(row) => (
           <>
             <TableCell>{row.vendor}</TableCell>

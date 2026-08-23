@@ -66,6 +66,16 @@ const OpportunitiesPage = () => {
 
   const refreshData = () => dispatch(getAllOpportunitiesThunk(undefined));
 
+  const csvColumns = [
+    { id: "opportunityNumber", label: "Opportunity No.", value: (row: OpportunityRow) => row.opportunityNumber },
+    { id: "prospectName", label: "Prospect", value: (row: OpportunityRow) => row.prospectName },
+    { id: "company", label: "Company", value: (row: OpportunityRow) => row.companyName?.companyName || "-" },
+    { id: "estimatedValue", label: "Est. Value", value: (row: OpportunityRow) => row.estimatedValue ? row.estimatedValue.toLocaleString() : "-" },
+    { id: "stage", label: "Stage", value: (row: OpportunityRow) => row.stage },
+    { id: "assignedTo", label: "Assigned To", value: (row: OpportunityRow) => row.assignedTo ? `${row.assignedTo.firstName} ${row.assignedTo.lastName}` : "-" },
+    { id: "createdAt", label: "Created", value: (row: OpportunityRow) => row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "-" },
+  ];
+
   return (
     <Box p={3}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -93,6 +103,8 @@ const OpportunitiesPage = () => {
           rowData={opportunities.map((o: any) => ({ ...o, id: o._id }))}
           totalCount={totalCount}
           showDatePicker={false}
+          csvColumns={csvColumns}
+          exportFilename="opportunities"
           renderRow={(row: OpportunityRow) => {
             const { bg, color } = stageColor(row.stage);
             return (

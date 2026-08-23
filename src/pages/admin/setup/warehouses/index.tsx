@@ -47,6 +47,14 @@ const columns = [
   { id: "action", label: "Actions" },
 ];
 
+const csvColumns = [
+  { id: "warehouseName", label: "Warehouse Name", value: (row: any) => row.warehouseName },
+  { id: "warehouseCode", label: "Code", value: (row: any) => row.warehouseCode || "-" },
+  { id: "companyName", label: "Company", value: (row: any) => row.companyName?.companyName || "-" },
+  { id: "address", label: "Address", value: (row: any) => row.address || "-" },
+  { id: "status", label: "Status", value: (row: any) => row.status },
+];
+
 const WarehousePage = () => {
   const dispatch = useAppDispatch();
   const { warehouses, loading, error, successMessage } = useAppSelector((state) => state.warehouses);
@@ -162,6 +170,8 @@ const WarehousePage = () => {
         showSearch={false}
         tableHeader={columns}
         rowData={warehouses.map((w: any) => ({ ...w, id: w._id }))}
+        csvColumns={csvColumns}
+        exportFilename="warehouses"
         renderRow={(row: any, idx: number) => (
           <>
             <TableCell>{idx + 1}</TableCell>

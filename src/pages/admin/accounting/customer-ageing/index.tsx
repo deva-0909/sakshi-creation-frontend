@@ -24,6 +24,14 @@ const columns = [
   { id: "bucket", label: "Bucket" },
 ];
 
+const csvColumns = [
+  { id: "invoiceNumber", label: "Invoice", value: (row: any) => row.invoiceNumber },
+  { id: "party", label: "Party", value: (row: any) => row.party?.partyName || "-" },
+  { id: "outstanding", label: "Outstanding", value: (row: any) => row.outstanding },
+  { id: "daysOverdue", label: "Days Overdue", value: (row: any) => row.daysOverdue },
+  { id: "bucket", label: "Bucket", value: (row: any) => row.bucket },
+];
+
 const CustomerAgeingPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -79,6 +87,8 @@ const CustomerAgeingPage = () => {
               showDatePicker={false}
               showSearch={false}
               showFillter={false}
+              csvColumns={csvColumns}
+              exportFilename="customer-ageing"
               renderRow={(row: any) => (
                 <>
                   <TableCell>{row.invoiceNumber}</TableCell>

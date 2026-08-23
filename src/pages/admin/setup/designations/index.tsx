@@ -38,6 +38,11 @@ const columns = [
   { id: "action", label: "Actions" },
 ];
 
+const csvColumns = [
+  { id: "designationName", label: "Designation", value: (row: any) => row.designationName },
+  { id: "status", label: "Status", value: (row: any) => row.status },
+];
+
 const DesignationPage = () => {
   const dispatch = useAppDispatch();
   const { designations, loading, error, successMessage } = useAppSelector((state) => state.designations);
@@ -140,6 +145,8 @@ const DesignationPage = () => {
         showSearch={false}
         tableHeader={columns}
         rowData={designations.map((d: any) => ({ ...d, id: d._id }))}
+        csvColumns={csvColumns}
+        exportFilename="designations"
         renderRow={(row: any, idx: number) => (
           <>
             <TableCell>{idx + 1}</TableCell>

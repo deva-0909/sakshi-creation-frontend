@@ -42,6 +42,13 @@ const columns = [
   { id: "action", label: "Actions" },
 ];
 
+const csvColumns = [
+  { id: "name", label: "Name", value: (row: any) => row.name },
+  { id: "ratePercent", label: "Rate %", value: (row: any) => `${row.ratePercent}%` },
+  { id: "isDefault", label: "Default", value: (row: any) => (row.isDefault ? "Yes" : "-") },
+  { id: "status", label: "Status", value: (row: any) => row.status },
+];
+
 // Module 10: convenience picker for invoice/quotation GST line entry only --
 // not enforced. Invoice/quotation validators still accept any non-negative
 // numeric rate.
@@ -147,6 +154,8 @@ const TaxRatePage = () => {
         showSearch={false}
         tableHeader={columns}
         rowData={taxRates.map((t: any) => ({ ...t, id: t._id }))}
+        csvColumns={csvColumns}
+        exportFilename="tax-rates"
         renderRow={(row: any, idx: number) => (
           <>
             <TableCell>{idx + 1}</TableCell>

@@ -108,6 +108,20 @@ const WastageReportPage = () => {
             showDatePicker={false}
             showSearch={false}
             showFillter={false}
+            csvColumns={[
+              { id: "material", label: "Material", value: (row: WastageRow) => row.material?.materialName || "-" },
+              { id: "totalWasted", label: "Total Wasted", value: (row: WastageRow) => row.totalWasted },
+              { id: "expectedWastagePercent", label: "Expected Wastage %", value: (row: WastageRow) => (row.expectedWastagePercent != null ? `${row.expectedWastagePercent}%` : "No plan set") },
+              {
+                id: "byStage",
+                label: "By Stage",
+                value: (row: WastageRow) =>
+                  Object.entries(row.byStage || {})
+                    .map(([s, qty]) => `${s}: ${qty}`)
+                    .join("; "),
+              },
+            ]}
+            exportFilename="wastage-report"
             renderRow={(row: WastageRow) => (
               <>
                 <TableCell>{row.material?.materialName || "-"}</TableCell>

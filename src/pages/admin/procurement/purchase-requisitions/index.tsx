@@ -91,6 +91,15 @@ const PurchaseRequisitionPage = () => {
           rowData={purchaseRequisitions.map((p: any) => ({ ...p, id: p._id }))}
           totalCount={totalCount}
           showDatePicker={false}
+          csvColumns={[
+            { id: "requisitionNumber", label: "Requisition No.", value: (row: PurchaseRequisitionRow) => row.requisitionNumber },
+            { id: "company", label: "Company", value: (row: PurchaseRequisitionRow) => row.companyName?.companyName || "-" },
+            { id: "items", label: "Items", value: (row: PurchaseRequisitionRow) => row.items?.length ?? "-" },
+            { id: "status", label: "Status", value: (row: PurchaseRequisitionRow) => row.status },
+            { id: "requestedBy", label: "Requested By", value: (row: PurchaseRequisitionRow) => (row.requestedBy ? `${row.requestedBy.firstName} ${row.requestedBy.lastName}` : "-") },
+            { id: "createdAt", label: "Created", value: (row: PurchaseRequisitionRow) => (row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "-") },
+          ]}
+          exportFilename="purchase-requisitions"
           renderRow={(row: PurchaseRequisitionRow) => {
             const { bg, color } = statusColor(row.status);
             return (

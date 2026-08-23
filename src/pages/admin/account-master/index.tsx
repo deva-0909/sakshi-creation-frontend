@@ -75,6 +75,22 @@ const columns = [
   { id: "action", label: "Action" },
 ];
 
+const csvColumns = [
+  { id: "company", label: "Company", value: (row: RowData) => row.company?.name },
+  { id: "createdDate", label: "Created Date", value: (row: RowData) => row.createdDate },
+  { id: "party", label: "Party", value: (row: RowData) => row.party },
+  { id: "contactPerson", label: "Contact Person", value: (row: RowData) => row.contactPerson },
+  { id: "partyTag", label: "Party Tag", value: (row: RowData) => row.partyTag },
+  { id: "mobile", label: "Mobile No.", value: (row: RowData) => row.mobile },
+  { id: "reason", label: "Reason to Visit", value: (row: RowData) => row.reason },
+  { id: "market", label: "Market", value: (row: RowData) => row.market },
+  { id: "area", label: "Area", value: (row: RowData) => row.area },
+  { id: "remarks", label: "Remarks", value: (row: RowData) => row.remarks },
+  { id: "status", label: "Status", value: (row: RowData) => row.status },
+  { id: "createdBy", label: "Created By", value: (row: RowData) => row.createdBy },
+  { id: "assignedTo", label: "Assigned to", value: (row: RowData) => row.assignedTo },
+];
+
 const IndexPage: React.FC = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -687,6 +703,8 @@ const IndexPage: React.FC = () => {
           showFillter={false}
           showSearch={false}
           rowData={formattedRows}
+          csvColumns={csvColumns}
+          exportFilename="account-master"
           renderRow={(row: RowData, index: number) => (
             <>
               <TableCell>

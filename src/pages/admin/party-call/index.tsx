@@ -734,6 +734,21 @@ const LeadManagementPage: React.FC = () => {
                 showDatePicker={false}
                 showSearch={false}
                 showFillter={false}
+                csvColumns={[
+                  { id: "company", label: "Company", value: (row: Lead) => row.companyName?.companyName || "N/A" },
+                  { id: "createdAt", label: "Created Date", value: (row: Lead) => (row.createdAt ? new Date(row.createdAt).toLocaleDateString("en-GB") : "N/A") },
+                  { id: "party", label: "Party", value: (row: Lead) => row.partyName?.partyName || "N/A" },
+                  { id: "address", label: "Unit No", value: (row: Lead) => row.partyName?.address?.unitNo || "N/A" },
+                  { id: "market", label: "Market Name", value: (row: Lead) => row.partyName?.address?.marketName || "N/A" },
+                  { id: "mobile", label: "Mobile No.", value: (row: Lead) => row.partyName?.ownerWhatsAppNo || "N/A" },
+                  { id: "reason", label: "Reason to Call", value: (row: Lead) => (row.reason === "Other" ? row.customReason || "Other" : row.reason) },
+                  { id: "area", label: "Area", value: (row: Lead) => row.partyName?.address?.area || "N/A" },
+                  { id: "createdBy", label: "Created By", value: (row: Lead) => (row.partyName?.createdBy ? `${row.partyName.createdBy.firstName} ${row.partyName.createdBy.lastName}`.trim() : "N/A") },
+                  { id: "statusofparty", label: "Status of Party", value: (row: Lead) => row.partyName?.partyTag || "N/A" },
+                  { id: "status", label: "Status", value: (row: Lead) => (row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : "N/A") },
+                  { id: "assignedTo", label: "Assigned To", value: (row: Lead) => (row.assignedTo ? `${row.assignedTo.firstName} ${row.assignedTo.lastName}`.trim() : "N/A") },
+                ]}
+                exportFilename="party-calls"
                 renderRow={renderRow}
               />
             </Box>

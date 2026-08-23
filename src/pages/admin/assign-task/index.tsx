@@ -459,6 +459,21 @@ const AssignTaskPage: React.FC = () => {
     </>
   );
 
+  const csvColumns = [
+    { id: "company", label: "Company", value: (row: RowData) => row.company.name },
+    { id: "date", label: "Created Date", value: (row: RowData) => row.date },
+    { id: "party", label: "Party", value: (row: RowData) => row.party },
+    { id: "address", label: "Unit No", value: (row: RowData) => row.address },
+    { id: "market", label: "Market Name", value: (row: RowData) => row.market },
+    { id: "mobile", label: "Mobile No.", value: (row: RowData) => row.mobile },
+    { id: "reason", label: "Reason to Visit", value: (row: RowData) => row.reason },
+    { id: "remarks", label: "Remarks", value: (row: RowData) => row.remarks },
+    { id: "area", label: "Area", value: (row: RowData) => row.area },
+    { id: "assignBy", label: "Assign By", value: (row: RowData) => row.assignBy },
+    { id: "assignTo", label: "Assign To", value: (row: RowData) => row.assignTo },
+    { id: "status", label: "Status", value: (row: RowData) => row.status },
+  ];
+
   const isToday = (dateString: string): boolean => {
     const today = new Date();
     const [day, month, year] = dateString.split("/");
@@ -663,6 +678,8 @@ const AssignTaskPage: React.FC = () => {
                 showSearch={false}
                 showFillter={false}
                 renderRow={renderRow}
+                csvColumns={csvColumns}
+                exportFilename="assign-task"
               />
             </Box>
           ))

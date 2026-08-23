@@ -72,6 +72,21 @@ const QuotationPage = () => {
 
   const refreshData = () => dispatch(getAllQuotationsThunk(undefined));
 
+  const csvColumns = [
+    { id: "quotationNumber", label: "Quotation No.", value: (row: QuotationRow) => row.quotationNumber },
+    { id: "company", label: "Company", value: (row: QuotationRow) => row.companyName?.companyName || "-" },
+    { id: "party", label: "Party", value: (row: QuotationRow) => row.party?.partyName || "-" },
+    { id: "item", label: "Item", value: (row: QuotationRow) => row.productItem?.itemName || "-" },
+    { id: "qty", label: "Qty", value: (row: QuotationRow) => row.qty },
+    { id: "totalAmount", label: "Amount", value: (row: QuotationRow) => (row.totalAmount != null ? row.totalAmount : "-") },
+    { id: "status", label: "Status", value: (row: QuotationRow) => row.status },
+    {
+      id: "createdAt",
+      label: "Created",
+      value: (row: QuotationRow) => (row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "-"),
+    },
+  ];
+
   return (
     <Box p={3}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -99,6 +114,8 @@ const QuotationPage = () => {
           rowData={quotations.map((q: any) => ({ ...q, id: q._id }))}
           totalCount={totalCount}
           showDatePicker={false}
+          csvColumns={csvColumns}
+          exportFilename="quotations"
           renderRow={(row: QuotationRow) => {
             const { bg, color } = statusColor(row.status);
             return (

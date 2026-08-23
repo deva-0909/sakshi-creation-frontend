@@ -60,6 +60,19 @@ const RfqPage = () => {
 
   const refreshData = () => dispatch(getAllRfqsThunk(undefined));
 
+  const csvColumns = [
+    { id: "rfqNumber", label: "RFQ No.", value: (row: RfqRow) => row.rfqNumber },
+    { id: "company", label: "Company", value: (row: RfqRow) => row.companyName?.companyName || "-" },
+    { id: "items", label: "Items", value: (row: RfqRow) => row.items?.length ?? "-" },
+    { id: "vendors", label: "Vendors Invited", value: (row: RfqRow) => row.quotes?.length ?? "-" },
+    { id: "status", label: "Status", value: (row: RfqRow) => row.status },
+    {
+      id: "createdAt",
+      label: "Created",
+      value: (row: RfqRow) => (row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "-"),
+    },
+  ];
+
   return (
     <Box p={3}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -87,6 +100,8 @@ const RfqPage = () => {
           rowData={rfqs.map((r: any) => ({ ...r, id: r._id }))}
           totalCount={totalCount}
           showDatePicker={false}
+          csvColumns={csvColumns}
+          exportFilename="rfqs"
           renderRow={(row: RfqRow) => {
             const { bg, color } = statusColor(row.status);
             return (

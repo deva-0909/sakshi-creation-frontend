@@ -49,6 +49,18 @@ const columns = [
   { id: 'action', label: 'Actions' },
 ];
 
+const csvColumns = [
+  { id: 'materialName', label: 'Material Name', value: (row: any) => row.materialName },
+  { id: 'materialSize', label: 'Size', value: (row: any) => row.materialSize },
+  { id: 'materialGSM', label: 'GSM', value: (row: any) => row.materialGSM },
+  {
+    id: 'uom',
+    label: 'UOM',
+    value: (row: any) => (row.uom ? `${row.uom.name}${row.uom.symbol ? ` (${row.uom.symbol})` : ''}` : '-'),
+  },
+  { id: 'status', label: 'Status', value: (row: any) => row.status || 'Active' },
+];
+
 const MaterialPage = () => {
   const dispatch = useAppDispatch();
   const { materials, loading, error } = useAppSelector((state) => state.materials);
@@ -190,6 +202,8 @@ const MaterialPage = () => {
         showSearch={false}
         tableHeader={columns}
         rowData={materials.map((m: any) => ({ ...m, id: m._id }))}
+        csvColumns={csvColumns}
+        exportFilename="paper-material"
         renderRow={(row: any, idx: number) => (
           <>
             <TableCell>{idx + 1}</TableCell>

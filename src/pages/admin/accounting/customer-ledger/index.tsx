@@ -32,6 +32,15 @@ const ledgerColumns = [
   { id: "runningBalance", label: "Balance" },
 ];
 
+const csvColumns = [
+  { id: "date", label: "Date", value: (row: any) => (row.date ? new Date(row.date).toLocaleDateString() : "-") },
+  { id: "type", label: "Type", value: (row: any) => row.type },
+  { id: "reference", label: "Reference", value: (row: any) => row.reference },
+  { id: "debit", label: "Debit", value: (row: any) => row.debit || "-" },
+  { id: "credit", label: "Credit", value: (row: any) => row.credit || "-" },
+  { id: "runningBalance", label: "Balance", value: (row: any) => row.runningBalance },
+];
+
 const CustomerLedgerPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -206,6 +215,8 @@ const CustomerLedgerPage = () => {
             showDatePicker={false}
             showSearch={false}
             showFillter={false}
+            csvColumns={csvColumns}
+            exportFilename="customer-ledger"
             renderRow={(row: any) => (
               <>
                 <TableCell>{row.date ? new Date(row.date).toLocaleDateString() : "-"}</TableCell>

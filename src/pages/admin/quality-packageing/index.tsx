@@ -313,6 +313,34 @@ const getOrderStatusChip = (status: string) => {
   return null;
 };
 
+const csvColumns = [
+  { id: 'party', label: 'Party', value: (row: RowData) => row.party },
+  { id: 'person', label: 'Person', value: (row: RowData) => row.person },
+  { id: 'partyTag', label: 'Party Tag', value: (row: RowData) => row.partyTag },
+  { id: 'mobile', label: 'Mobile No.', value: (row: RowData) => row.mobile },
+  { id: 'reason', label: 'Reason to visit', value: (row: RowData) => row.reason },
+  { id: 'market', label: 'Market', value: (row: RowData) => row.market },
+  { id: 'area', label: 'Area', value: (row: RowData) => row.area },
+  { id: 'remarks', label: 'Remarks', value: (row: RowData) => row.remarks },
+  { id: 'orderNo', label: 'Order No.', value: (row: RowData) => row.orderNo },
+  { id: 'status', label: 'Status', value: (row: RowData) => row.status },
+  { id: 'createdBy', label: 'Created By', value: (row: RowData) => row.createdBy },
+  { id: 'assignedTo', label: 'Assigned to', value: (row: RowData) => row.assignedTo },
+];
+
+const orderCsvColumns = [
+  { id: 'orderFormNo', label: 'ORDER FORM NO.', value: (row: OrderRowData) => row.orderFormNo },
+  { id: 'noOfOrders', label: 'NO. OF ORDERS', value: (row: OrderRowData) => row.noOfOrders },
+  { id: 'date', label: 'DATE', value: (row: OrderRowData) => row.date },
+  { id: 'time', label: 'TIME', value: (row: OrderRowData) => row.time },
+  { id: 'size', label: 'SIZE', value: (row: OrderRowData) => row.size },
+  { id: 'rate', label: 'RATE', value: (row: OrderRowData) => row.rate },
+  { id: 'amount', label: 'AMOUNT', value: (row: OrderRowData) => row.amount },
+  { id: 'status', label: 'STATUS', value: (row: OrderRowData) => row.status },
+  { id: 'startDate', label: 'START DATE', value: (row: OrderRowData) => row.startDate },
+  { id: 'endDate', label: 'END DATE', value: (row: OrderRowData) => row.endDate },
+];
+
 const QualityPackagingPage = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [editRow, setEditRow] = useState<RowData | null>(null);
@@ -338,6 +366,8 @@ const QualityPackagingPage = () => {
         <BasicTable
           tableHeader={columns}
           rowData={rows}
+          csvColumns={csvColumns}
+          exportFilename="account-master"
           renderRow={(row) => (
             <>
               <TableCell>{row.party}</TableCell>
@@ -382,6 +412,8 @@ const QualityPackagingPage = () => {
         <BasicTable
           tableHeader={orderColumns}
           rowData={orderRows}
+          csvColumns={orderCsvColumns}
+          exportFilename="quality-packaging-orders"
           renderRow={(row) => (
             <>
               <TableCell>{row.orderFormNo}</TableCell>

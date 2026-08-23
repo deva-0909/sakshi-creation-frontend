@@ -52,6 +52,17 @@ const rows = [
   },
 ];
 
+const csvColumns = [
+  { id: 'received', label: 'Received', value: (row: (typeof rows)[number]) => row.received },
+  { id: 'party', label: 'Party Name', value: (row: (typeof rows)[number]) => row.party },
+  { id: 'designer', label: 'Designer', value: (row: (typeof rows)[number]) => row.designer },
+  { id: 'orderNo', label: 'Order No', value: (row: (typeof rows)[number]) => row.orderNo },
+  { id: 'item', label: 'Item Name', value: (row: (typeof rows)[number]) => row.item },
+  { id: 'sentForApproval', label: 'Sent for approval', value: (row: (typeof rows)[number]) => row.sentForApproval },
+  { id: 'approvalReceived', label: 'Approval Received', value: (row: (typeof rows)[number]) => row.approvalReceived },
+  { id: 'finalPrintFile', label: 'Final Print file', value: (row: (typeof rows)[number]) => row.finalPrintFile },
+];
+
 const DesignerPage = () => {
   const router = useRouter();
 
@@ -81,6 +92,8 @@ const DesignerPage = () => {
       <BasicTable
         tableHeader={columns}
         rowData={rows}
+        csvColumns={csvColumns}
+        exportFilename="designer"
         renderRow={(row) => (
           <>
           <TableCell>{row.received}</TableCell>

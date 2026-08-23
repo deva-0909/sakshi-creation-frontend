@@ -313,6 +313,16 @@ const StockMovementsPage = () => {
             { id: "date", label: "Date" },
           ]}
           rowData={transfers.map((t: any) => ({ ...t, id: t._id }))}
+          csvColumns={[
+            { id: "transferNumber", label: "Transfer #", value: (row: any) => row.transferNumber },
+            { id: "material", label: "Material", value: (row: any) => row.material?.materialName || "-" },
+            { id: "quantity", label: "Qty", value: (row: any) => row.quantity },
+            { id: "category", label: "Category", value: (row: any) => row.category },
+            { id: "from", label: "From", value: (row: any) => row.fromWarehouse?.warehouseName || "Unassigned" },
+            { id: "to", label: "To", value: (row: any) => row.toWarehouse?.warehouseName || "-" },
+            { id: "date", label: "Date", value: (row: any) => (row.transferDate ? new Date(row.transferDate).toLocaleDateString() : "-") },
+          ]}
+          exportFilename="stock-transfers"
           renderRow={(row: any) => (
             <>
               <TableCell>{row.transferNumber}</TableCell>
@@ -342,6 +352,16 @@ const StockMovementsPage = () => {
             { id: "date", label: "Date" },
           ]}
           rowData={adjustments.map((a: any) => ({ ...a, id: a._id }))}
+          csvColumns={[
+            { id: "adjustmentNumber", label: "Adjustment #", value: (row: any) => row.adjustmentNumber },
+            { id: "material", label: "Material", value: (row: any) => row.material?.materialName || "-" },
+            { id: "type", label: "Type", value: (row: any) => row.adjustmentType },
+            { id: "quantity", label: "Qty", value: (row: any) => row.quantity },
+            { id: "warehouse", label: "Warehouse", value: (row: any) => row.warehouse?.warehouseName || "-" },
+            { id: "reason", label: "Reason", value: (row: any) => row.reason },
+            { id: "date", label: "Date", value: (row: any) => (row.adjustmentDate ? new Date(row.adjustmentDate).toLocaleDateString() : "-") },
+          ]}
+          exportFilename="stock-adjustments"
           renderRow={(row: any) => (
             <>
               <TableCell>{row.adjustmentNumber}</TableCell>
@@ -380,6 +400,15 @@ const StockMovementsPage = () => {
             { id: "action", label: "Actions" },
           ]}
           rowData={reservations.map((r: any) => ({ ...r, id: r._id }))}
+          csvColumns={[
+            { id: "reservationNumber", label: "Reservation #", value: (row: any) => row.reservationNumber },
+            { id: "material", label: "Material", value: (row: any) => row.material?.materialName || "-" },
+            { id: "quantity", label: "Qty", value: (row: any) => row.quantity },
+            { id: "warehouse", label: "Warehouse", value: (row: any) => row.warehouse?.warehouseName || "-" },
+            { id: "reservedFor", label: "Reserved For", value: (row: any) => row.reservedFor || "-" },
+            { id: "status", label: "Status", value: (row: any) => row.status },
+          ]}
+          exportFilename="stock-reservations"
           renderRow={(row: any) => (
             <>
               <TableCell>{row.reservationNumber}</TableCell>
