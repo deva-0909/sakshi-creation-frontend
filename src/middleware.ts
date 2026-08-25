@@ -12,6 +12,15 @@ import { NextResponse, NextRequest } from 'next/server';
 // boundary. What this closes is the previous no-op ("allow everything,
 // client-side handles it"), which let an unauthenticated request load a
 // protected page's full bundle before any client-side check ran.
+//
+// Since this is a presence check only, the cookie's VALUE is a fixed
+// marker ('1'), not the real JWT — the actual token lives only in
+// localStorage. Putting the full JWT in this cookie previously caused a
+// live bug: the JWT embeds the caller's entire role/permissions object,
+// which can exceed the ~4KB per-cookie limit browsers enforce (it did,
+// once a role carried enough permission keys), silently failing to
+// store and making every navigation look logged-out. A 1-byte marker
+// can never hit that limit.
 const PROTECTED_PREFIX = '/admin';
 const LOGIN_PATH = '/login';
 

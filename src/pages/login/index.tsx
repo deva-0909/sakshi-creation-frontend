@@ -115,7 +115,26 @@ const LoginPage: React.FC = () => {
         // page's "already logged in" check and middleware.ts's cookie
         // check permanently disagreed. See the loader effect below for
         // the other half of this fix.
-        Cookies.set('auth_token', token, {
+        //
+        // Live-bug fix #2: this cookie used to hold the actual JWT, not a
+        // marker. The JWT embeds the caller's full roleData (including the
+        // entire permissions object) -- after the Admin role's permissions
+        // grew from 26 to 55 keys (the live DB fix), that pushed the JWT
+        // well past ~8000 characters. A single cookie's browser-enforced
+        // limit is ~4096 bytes, so the browser was silently refusing to
+        // store it at all -- js-cookie doesn't throw on this, so nothing
+        // in the UI signalled it. The next navigation's middleware check
+        // then always failed (`Cookies.get('auth_token')` came back
+        // empty), bouncing straight back to /login and reproducing the
+        // exact same symptom as the loop above, just triggered by login
+        // itself rather than a stale session. middleware.ts only ever
+        // needs to know a token *exists* -- it can't validate the JWT's
+        // signature anyway (no JWT_SECRET on this deployment) -- so the
+        // cookie now holds a fixed, tiny presence marker instead of the
+        // real token; the real JWT continues to live in localStorage,
+        // which has no comparable size limit, and is what every API call
+        // actually sends as the Authorization header.
+        Cookies.set('auth_token', '1', {
           expires: 1,
           secure: isProduction,
           sameSite: 'Lax',
