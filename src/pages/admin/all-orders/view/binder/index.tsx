@@ -55,7 +55,14 @@ const BinderForm = () => {
       rateBook: "",
       totalAmount: "",
       gsm: "",
-      gst: "",
+      // Full Figma slide scan Phase 1 (claude/full-figma-slide-scan.md,
+      // Theme 5): this field was named "gst" here and sent as such in the
+      // update payload, but the backend only ever wrote a "bindergst"
+      // column -- "gst" was never read by updateOrder at all, so every
+      // value entered here was silently discarded. Renamed to match the
+      // real field, and see the rendered input added below (previously
+      // there wasn't one either).
+      bindergst: "",
       ratePerUnit: "",
       // rowPaperSize: "",
       // rowPaperUser: "",
@@ -133,7 +140,7 @@ const BinderForm = () => {
           rateBook: values.rateBook,
           totalAmount: values.totalAmount,
           gsm: values.gsm,
-          gst: values.gst,
+          bindergst: values.bindergst,
           ratePerUnit: values.ratePerUnit,
           // rowPaperSize: values.rowPaperSize,
           // rowPaperUser: values.rowPaperUser,
@@ -187,7 +194,7 @@ const BinderForm = () => {
         rateBook: singleOrder.rateBook || "",
         totalAmount: singleOrder.totalAmount || "",
         gsm: singleOrder.gsm || "",
-        gst: singleOrder.gst || "",
+        bindergst: singleOrder.bindergst || "",
         ratePerUnit: singleOrder.ratePerUnit || "",
         // rowPaperSize: singleOrder.rowPaperSize || "",
         // rowPaperUser: singleOrder.rowPaperUser || "",
@@ -529,6 +536,16 @@ const BinderForm = () => {
               error={formik.touched.gsm && Boolean(formik.errors.gsm)}
               helperText={formik.touched.gsm && (formik.errors.gsm as string)}
               InputProps={{ readOnly: areFieldsReadOnly || !!singleOrder.gsm }}
+            />
+            <ThemeInput
+              labelName="GST"
+              name="bindergst"
+              value={formik.values.bindergst}
+              onChange={formik.handleChange}
+              sx={{ flex: 1 }}
+              error={formik.touched.bindergst && Boolean(formik.errors.bindergst)}
+              helperText={formik.touched.bindergst && (formik.errors.bindergst as string)}
+              InputProps={{ readOnly: areFieldsReadOnly || !!singleOrder.bindergst }}
             />
             {/* <ThemeInput
               labelName="Raw Paper Size"

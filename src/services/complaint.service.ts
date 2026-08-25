@@ -13,6 +13,7 @@ export interface Complaint {
   priority: string;
   status: string;
   resolutionNotes?: string;
+  resolvedAt?: string | null;
   party?: { _id: string; partyName: string } | null;
   order?: { _id: string; orderNumber: string } | null;
   assignedTo?: { _id: string; firstName: string; lastName: string } | null;

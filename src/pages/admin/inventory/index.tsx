@@ -9,6 +9,7 @@ import { getInventoryByCategoryThunk, getInventorySummaryThunk } from '@/store/s
 import { getAllMaterialsThunk } from '@/store/slices/materialSlice';
 import { getAllVendorsThunk } from '@/store/slices/vendorSlice';
 import { toast } from 'react-toastify';
+import DyePunchPage from '@/pages/admin/setup/dye-punch';
 
 enum InventoryCategory {
   PRINTER = 'printer',
@@ -25,6 +26,12 @@ enum InventoryCategory {
   DESIGNER = 'designer',
   QC = 'qc',
   DELIVERY = 'delivery',
+  // Full Figma slide scan Phase 1 (claude/full-figma-slide-scan.md, Theme
+  // 7): not a real inventory category server-side -- this tab renders the
+  // Dye/Punch page's own component rather than fetching from
+  // getInventoryByCategoryThunk, so this value is only ever compared
+  // against, never sent to the backend.
+  DYE_PUNCH = 'dye_punch',
 }
 
 enum WardTab {
@@ -41,6 +48,7 @@ const mainTabs: TabItem[] = [
   { label: 'Designer', value: InventoryCategory.DESIGNER, icon: <MdPeople /> },
   { label: 'QC', value: InventoryCategory.QC, icon: <MdPeople /> },
   { label: 'Delivery', value: InventoryCategory.DELIVERY, icon: <MdPeople /> },
+  { label: 'Dye / Punch', value: InventoryCategory.DYE_PUNCH, icon: <MdPeople /> },
 ];
 
 const wardTabs: TabItem[] = [
@@ -100,8 +108,13 @@ const InventoryPage = () => {
   useEffect(() => {
     dispatch(getAllMaterialsThunk());
     dispatch(getAllVendorsThunk());
-    dispatch(getInventoryByCategoryThunk(activeMainTab));
-    dispatch(getInventorySummaryThunk(activeMainTab));
+    // Dye/Punch isn't a real backend inventory category (see the
+    // InventoryCategory.DYE_PUNCH comment above) -- it renders its own
+    // page component instead, so skip fetching inventory rows for it.
+    if (activeMainTab !== InventoryCategory.DYE_PUNCH) {
+      dispatch(getInventoryByCategoryThunk(activeMainTab));
+      dispatch(getInventorySummaryThunk(activeMainTab));
+    }
   }, [dispatch, activeMainTab]);
 
   useEffect(() => {
@@ -280,6 +293,16 @@ const aggregateInventory = (): AggregatedInventory[] => {
             exportFilename="inventory-factory"
           />
         </>
+      ) : activeMainTab === InventoryCategory.DYE_PUNCH ? (
+        // Full Figma slide scan Phase 1 (claude/full-figma-slide-scan.md,
+        // Theme 7): the Dye/Punch die-cutting tooling register (Phase 2
+        // Part A of the two-company build) was fully built but only ever
+        // reachable from Setup, never as the 6th Inventory tab Figma shows
+        // it as. Reusing the existing page component directly rather than
+        // duplicating its list/CRUD logic here -- it renders its own inner
+        // content only (no page-level layout of its own), so it's safe to
+        // mount inside another page's tab body.
+        <DyePunchPage />
       ) : (
         <>
           <Box py={2}>
@@ -430,7 +453,14 @@ const aggregateInventory = (): AggregatedInventory[] => {
                   { id: 'gsm', label: 'GSM' },
                   { id: 'size', label: 'SIZE' },
                   { id: 'qty', label: 'QTY' },
-                  { id: 'date', label: 'DATE IN WARD' },
+                  {
+                    id: 'date',
+                    // Full Figma slide scan Phase 1 (claude/full-figma-
+                    // slide-scan.md, Theme 7): this header used to always
+                    // read "DATE IN WARD", even while viewing Outward
+                    // records via the ward toggle above.
+                    label: activeWardTab === WardTab.OUTWARD ? 'DATE OUT WARD' : 'DATE IN WARD',
+                  },
                   { id: 'vendor', label: 'VENDOR' },
                 ]}
                 rowData={filteredInventory.filter(item =>
@@ -460,7 +490,11 @@ const aggregateInventory = (): AggregatedInventory[] => {
                   { id: 'gsm', label: 'GSM', value: (row: any) => row.material?.materialGSM || 'N/A' },
                   { id: 'size', label: 'SIZE', value: (row: any) => row.material?.materialSize || 'N/A' },
                   { id: 'qty', label: 'QTY', value: (row: any) => row.quantity },
-                  { id: 'date', label: 'DATE IN WARD', value: (row: any) => new Date(row.date).toLocaleDateString() },
+                  {
+                    id: 'date',
+                    label: activeWardTab === WardTab.OUTWARD ? 'DATE OUT WARD' : 'DATE IN WARD',
+                    value: (row: any) => new Date(row.date).toLocaleDateString(),
+                  },
                   { id: 'vendor', label: 'VENDOR', value: (row: any) => row.vendor?.name || 'N/A' },
                 ]}
                 exportFilename="inventory-printer-detail"

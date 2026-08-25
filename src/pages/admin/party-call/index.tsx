@@ -105,6 +105,11 @@ const columns = [
   { id: "createdBy", label: "Created By" },
   { id: "statusofparty", label: "Status of Party" },
   { id: "status", label: "Status" },
+  // Full Figma slide scan Phase 1 (claude/full-figma-slide-scan.md, Theme
+  // 10): callFeedback was already returned by getAllLeads/LEAD_SELECT --
+  // it was only ever rendered on the per-lead detail page, never as a
+  // list column.
+  { id: "remark", label: "Remark" },
   { id: "assignedTo", label: "Assigned To" },
   { id: "actions", label: "Actions" },
 ];
@@ -513,6 +518,9 @@ const LeadManagementPage: React.FC = () => {
         />
       </TableCell>
 
+      <TableCell sx={{ fontSize: 14 }}>
+        {row.callFeedback ? truncateText(row.callFeedback, 40) : "N/A"}
+      </TableCell>
 
       <TableCell>
         {row.assignedTo
@@ -746,6 +754,7 @@ const LeadManagementPage: React.FC = () => {
                   { id: "createdBy", label: "Created By", value: (row: Lead) => (row.partyName?.createdBy ? `${row.partyName.createdBy.firstName} ${row.partyName.createdBy.lastName}`.trim() : "N/A") },
                   { id: "statusofparty", label: "Status of Party", value: (row: Lead) => row.partyName?.partyTag || "N/A" },
                   { id: "status", label: "Status", value: (row: Lead) => (row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : "N/A") },
+                  { id: "remark", label: "Remark", value: (row: Lead) => row.callFeedback || "N/A" },
                   { id: "assignedTo", label: "Assigned To", value: (row: Lead) => (row.assignedTo ? `${row.assignedTo.firstName} ${row.assignedTo.lastName}`.trim() : "N/A") },
                 ]}
                 exportFilename="party-calls"
