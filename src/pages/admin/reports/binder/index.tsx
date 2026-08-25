@@ -1,140 +1,133 @@
-import React from 'react';
-import Dashboard from '@/component/Dashboard';
+import React, { useEffect } from 'react';
 import BasicTable from '@/component/common_component/Table/themetable';
 import { Box, TableCell } from '@mui/material';
 import { FaChevronRight } from 'react-icons/fa6';
 import { useRouter } from 'next/router';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { getAllOrdersThunk, Order } from '@/store/slices/orderSlice';
+
+// Full Figma slide scan Phase 3 (claude/full-figma-slide-scan.md, Theme 6):
+// this page previously rendered 3 hardcoded mock rows with a different
+// column set entirely. Rebuilt from real order data -- there's no
+// dedicated "binder report" backend endpoint, so this reuses the same
+// getAllOrdersThunk every other list page calls (limit raised well past
+// the All Orders page's own 100, since a report should aim to cover
+// everything rather than the most recent page; there's no unpaginated
+// escape hatch on this endpoint, see order.controller.js).
+//
+// Column mapping decisions (no 1:1 backend field for a couple of these):
+// - "Received" = issuedDate, "Binding Done" = receivedDate once
+//   binderStatus is Done -- these are the same two fields the Binder
+//   assignment screen itself already collects (view/binder/index.tsx).
+// - "TAT Days" = receivedDate - issuedDate, per the user's decision
+//   (stage-assigned -> stage-marked-Done), only shown once Done.
+// - "Paper Type" has no dedicated field on the order for the Binder
+//   stage (only Printer/Booklet Binder have one) -- "Sub Paper" is the
+//   closest available field and is used here; noted so it isn't
+//   mistaken for a real 1:1 match.
+// - "Job Amount" = totalAmount, the figure already captured on this
+//   same order at the Binder stage.
 
 const columns = [
-  { id: 'received', label: 'Received' },
-  { id: 'party', label: 'Party Name' },
-  { id: 'binder', label: 'Binder' },
   { id: 'orderNo', label: 'Order No' },
+  { id: 'party', label: 'Party Name' },
   { id: 'item', label: 'Item Name' },
-  { id: 'sentForApproval', label: 'Sent for approval' },
-  { id: 'approvalReceived', label: 'Approval Received' },
-  { id: 'finalPrintFile', label: 'Final Print file' },
+  { id: 'binder', label: 'Binder' },
+  { id: 'received', label: 'Received' },
+  { id: 'bindingDone', label: 'Binding Done' },
+  { id: 'tatDays', label: 'TAT Days' },
+  { id: 'sheetUsed', label: 'Sheet Used' },
+  { id: 'paperType', label: 'Paper Type' },
+  { id: 'gsm', label: 'GSM' },
+  { id: 'size', label: 'Size' },
+  { id: 'jobAmount', label: 'Job Amount' },
 ];
 
-const rows = [
-  {
-    id: '1',
-    received: '01/04/25 , 10:10',
-    party: 'Mr . Shah',
-    binder: 'Raj',
-    orderNo: '123',
-    item: 'Item 1',
-    sentForApproval: '01/04/25 , 10:10',
-    approvalReceived: '01/04/25 , 10:10',
-    finalPrintFile: '01/04/25 , 10:10',
-  },
-  {
-    id: '2',
-    received: '01/04/25 , 10:10',
-    party: 'Mr. Roy',
-    binder: 'Dhruv',
-    orderNo: '432',
-    item: 'Item 2',
-    sentForApproval: '01/04/25 , 10:10',
-    approvalReceived: '01/04/25 , 10:10',
-    finalPrintFile: '01/04/25 , 10:10',
-  },
-  {
-    id: '3',
-    received: '01/04/25 , 10:10',
-    party: 'Mr. Akash',
-    binder: 'Sagar',
-    orderNo: '324',
-    item: 'Item 3',
-    sentForApproval: '01/04/25 , 10:10',
-    approvalReceived: '01/04/25 , 10:10',
-    finalPrintFile: '01/04/25 , 10:10',
-  },
-];
+const formatDate = (value?: string) => (value ? new Date(value).toLocaleDateString() : '-');
 
-const csvColumns = [
-  { id: 'received', label: 'Received', value: (row: (typeof rows)[number]) => row.received },
-  { id: 'party', label: 'Party Name', value: (row: (typeof rows)[number]) => row.party },
-  { id: 'binder', label: 'Binder', value: (row: (typeof rows)[number]) => row.binder },
-  { id: 'orderNo', label: 'Order No', value: (row: (typeof rows)[number]) => row.orderNo },
-  { id: 'item', label: 'Item Name', value: (row: (typeof rows)[number]) => row.item },
-  { id: 'sentForApproval', label: 'Sent for approval', value: (row: (typeof rows)[number]) => row.sentForApproval },
-  { id: 'approvalReceived', label: 'Approval Received', value: (row: (typeof rows)[number]) => row.approvalReceived },
-  { id: 'finalPrintFile', label: 'Final Print file', value: (row: (typeof rows)[number]) => row.finalPrintFile },
-];
+const tatDays = (issuedDate?: string, receivedDate?: string, status?: string) => {
+  if (status !== 'Done' || !issuedDate || !receivedDate) return '-';
+  const diffMs = new Date(receivedDate).getTime() - new Date(issuedDate).getTime();
+  if (Number.isNaN(diffMs)) return '-';
+  return String(Math.max(0, Math.round(diffMs / 86400000)));
+};
 
-const BinderPage = () => {
+const toRow = (order: Order) => ({
+  id: order._id,
+  orderNo: order.orderNumber,
+  party: order.party?.partyName || 'N/A',
+  item: order.productItem?.itemName || 'N/A',
+  binder: order.binder ? `${order.binder.firstName || ''} ${order.binder.lastName || ''}`.trim() || 'N/A' : 'N/A',
+  received: formatDate(order.issuedDate),
+  bindingDone: order.binderStatus === 'Done' ? formatDate(order.receivedDate) : '-',
+  tatDays: tatDays(order.issuedDate, order.receivedDate, order.binderStatus),
+  sheetUsed: order.usedPaper || '-',
+  paperType: order.subPaper || '-',
+  gsm: order.gsm || '-',
+  size: order.size || '-',
+  jobAmount: order.totalAmount ? `₹${order.totalAmount}` : '-',
+});
+
+const csvColumns = columns.map((c) => ({
+  id: c.id,
+  label: c.label,
+  value: (row: ReturnType<typeof toRow>) => (row as any)[c.id],
+}));
+
+const BinderReportPage = () => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { orders, loading } = useAppSelector((state) => state.orders);
 
-  type OrderRow = {
-    orderNo: string;
-    party: string;
+  useEffect(() => {
+    dispatch(getAllOrdersThunk({ limit: 1000 }));
+  }, [dispatch]);
 
+  // Only orders that have actually reached the Binder stage -- an order
+  // with no binderStatus was never assigned to a binder at all.
+  const rows = orders.filter((o) => o.binderStatus).map(toRow);
+
+  const handleRowClick = (row: ReturnType<typeof toRow>) => {
+    router.push({
+      pathname: '/admin/all-orders/view/binder',
+      query: { id: row.id },
+    });
   };
-  
-  const handleRowClick = (row: OrderRow) => {
-    if (row?.orderNo && row?.party) {
-      router.push({
-        pathname: '/admin/all-orders/view/binder',
-        query: {
-          orderNo: row.orderNo,
-          party: row.party, 
-        },
-      });
-    } else {
-      console.warn("Missing orderNo or party in row:", row);
-    }
-  };
-  
-
 
   return (
-    
-      <BasicTable
-        tableHeader={columns}
-        rowData={rows}
-        csvColumns={csvColumns}
-        exportFilename="binder"
-        renderRow={(row) => (
-          <>
-           <TableCell>{row.received}</TableCell>
-            <TableCell>
-              <Box
-                sx={{ cursor: 'pointer' }}
-                onClick={() => handleRowClick(row)}
-              >
-                {row.party}
-              </Box>
-            </TableCell>
-
-
-            <TableCell>
-              <Box sx={{ cursor: 'pointer' }}
-              onClick={() => handleRowClick(row)} >
-              {row.binder}
-              </Box>
-              </TableCell>
-            <TableCell>{row.orderNo}</TableCell>
-            <TableCell>{row.item}</TableCell>
-           
-            <TableCell>{row.sentForApproval}</TableCell>
-            <TableCell>{row.approvalReceived}</TableCell>
-            <TableCell>
-                 <Box
-                   display="flex"
-                   alignItems="center"
-                   justifyContent="space-between"
-                   sx={{ cursor: 'pointer' }}
-                   onClick={() => handleRowClick(row)}
-                 >
-                   <Box>{row.finalPrintFile}</Box>
-                   <FaChevronRight style={{ fontSize: 16, color: '#98A2B3', marginLeft: 8 }} />
-                 </Box>
-               </TableCell>
-          </>
-        )}
-      />
+    <BasicTable
+      tableHeader={columns}
+      rowData={rows}
+      csvColumns={csvColumns}
+      exportFilename="binder-report"
+      showFillter
+      renderRow={(row) => (
+        <>
+          <TableCell>{row.orderNo}</TableCell>
+          <TableCell>
+            <Box sx={{ cursor: 'pointer' }} onClick={() => handleRowClick(row)}>
+              {row.party}
+            </Box>
+          </TableCell>
+          <TableCell>{row.item}</TableCell>
+          <TableCell>{row.binder}</TableCell>
+          <TableCell>{row.received}</TableCell>
+          <TableCell>{row.bindingDone}</TableCell>
+          <TableCell>{row.tatDays}</TableCell>
+          <TableCell>{row.sheetUsed}</TableCell>
+          <TableCell>{row.paperType}</TableCell>
+          <TableCell>{row.gsm}</TableCell>
+          <TableCell>{row.size}</TableCell>
+          <TableCell>
+            <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ cursor: 'pointer' }} onClick={() => handleRowClick(row)}>
+              <Box>{row.jobAmount}</Box>
+              <FaChevronRight style={{ fontSize: 16, color: '#98A2B3', marginLeft: 8 }} />
+            </Box>
+          </TableCell>
+        </>
+      )}
+    />
   );
 };
 
-export default BinderPage;
+export default BinderReportPage;
