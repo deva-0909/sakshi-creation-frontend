@@ -4,6 +4,7 @@ import BasicTable from "@/component/common_component/Table/themetable";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { getPrinterOrdersThunk } from "@/store/slices/orderSlice";
 import { useRouter } from "next/router";
+import { displayTaskStatus } from "@/utils/taskStatusDisplay";
 
 interface Column {
   id: string;
@@ -21,12 +22,14 @@ const tableHeader: Column[] = [
   { id: "status", label: "Status", align: "center" as const },
   { id: "action", label: "Action", align: "center" as const },
 ];
-// Status color mapping for printer status (only 3 statuses now)
+// Status color mapping for printer status (only 3 statuses now). Keyed on
+// the display label (Seen/Working/Done) since `status` below is now the
+// display value -- see displayTaskStatus.
 const getPrinterStatusColor = (status: string) => {
   switch (status) {
-    case "Pending":
+    case "Seen":
       return { bg: "#E9D7FE", color: "#6941C6" }; // Purple
-    case "In Progress":
+    case "Working":
       return { bg: "#FEF0C7", color: "#B54708" }; // Orange
     case "Done":
       return { bg: "#D1FADF", color: "#027A48" }; // Green
@@ -138,6 +141,7 @@ const PrinterTask: React.FC<PrinterTaskProps> = ({ tasks }) => {
     number: order.number || "N/A",
     printerRemarks: order.printerRemarks || "N/A",
     status: order.printerStatus || "Pending",
+    displayStatus: displayTaskStatus(order.printerStatus || "Pending"),
   }));
 
   const renderRow = (row: (typeof rowData)[number], index: number) => (
@@ -159,7 +163,7 @@ const PrinterTask: React.FC<PrinterTaskProps> = ({ tasks }) => {
       <TableCell>{row.number}</TableCell>
       <TableCell>{row.printerRemarks}</TableCell>
       <TableCell align="center">
-        <StatusBadge status={row.status} />
+        <StatusBadge status={row.displayStatus} />
       </TableCell>
       <TableCell align="center">
         {row.status === "Pending" && (
@@ -180,7 +184,7 @@ const PrinterTask: React.FC<PrinterTaskProps> = ({ tasks }) => {
       renderRow={renderRow}
       showDatePicker={false}
       showSearch={false}
-      showFillter={false}
+      showFillter={true}
       csvColumns={[
         { id: "party", label: "Party", value: (row: (typeof rowData)[number]) => row.party },
         { id: "date", label: "Date", value: (row: (typeof rowData)[number]) => row.date },
@@ -188,7 +192,7 @@ const PrinterTask: React.FC<PrinterTaskProps> = ({ tasks }) => {
         { id: "itemName", label: "Item Name", value: (row: (typeof rowData)[number]) => row.itemName },
         { id: "number", label: "Number", value: (row: (typeof rowData)[number]) => row.number },
         { id: "printerRemarks", label: "Remarks", value: (row: (typeof rowData)[number]) => row.printerRemarks },
-        { id: "status", label: "Status", value: (row: (typeof rowData)[number]) => row.status },
+        { id: "status", label: "Status", value: (row: (typeof rowData)[number]) => row.displayStatus },
       ]}
       exportFilename="printer-tasks"
     />

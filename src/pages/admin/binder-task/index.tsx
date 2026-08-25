@@ -5,6 +5,7 @@ import BasicTable from "@/component/common_component/Table/themetable";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { getBinderOrdersThunk } from "@/store/slices/orderSlice";
 import { useRouter } from "next/router";
+import { displayTaskStatus } from "@/utils/taskStatusDisplay";
 
 interface Column {
   id: string;
@@ -22,12 +23,14 @@ const tableHeader: Column[] = [
   { id: "action", label: "Action", align: "center" as const },
 ];
 
-// Status color mapping for binder status
+// Status color mapping for binder status. Keyed on the display label
+// (Seen/Working/Done) since `status` below is now the display value -- see
+// displayTaskStatus.
 const getBinderStatusColor = (status: string) => {
   switch (status) {
-    case "Pending":
+    case "Seen":
       return { bg: "#E9D7FE", color: "#6941C6" }; // Purple
-    case "In Progress":
+    case "Working":
       return { bg: "#FEF0C7", color: "#B54708" }; // Orange
     case "Done":
       return { bg: "#D1FADF", color: "#027A48" }; // Green
@@ -116,6 +119,7 @@ const BinderTask: React.FC<BinderTaskProps> = ({ tasks }) => {
     itemName: order.productItem?.itemName || "N/A",
     remarks: order.binderRemarks || "N/A",
     status: order.binderStatus || "Pending",
+    displayStatus: displayTaskStatus(order.binderStatus || "Pending"),
   }));
 
   const renderRow = (row: (typeof rowData)[number], index: number) => (
@@ -136,7 +140,7 @@ const BinderTask: React.FC<BinderTaskProps> = ({ tasks }) => {
       <TableCell>{row.itemName}</TableCell>
       <TableCell>{row.remarks}</TableCell>
       <TableCell align="center">
-        <StatusBadge status={row.status} />
+        <StatusBadge status={row.displayStatus} />
       </TableCell>
       <TableCell align="center">
         {row.status === "Pending" && (
@@ -168,7 +172,7 @@ const BinderTask: React.FC<BinderTaskProps> = ({ tasks }) => {
     { id: "size", label: "Size", value: (row: (typeof rowData)[number]) => row.size },
     { id: "itemName", label: "Item Name", value: (row: (typeof rowData)[number]) => row.itemName },
     { id: "remarks", label: "Remarks", value: (row: (typeof rowData)[number]) => row.remarks },
-    { id: "status", label: "Status", value: (row: (typeof rowData)[number]) => row.status },
+    { id: "status", label: "Status", value: (row: (typeof rowData)[number]) => row.displayStatus },
   ];
 
   return (
@@ -178,7 +182,7 @@ const BinderTask: React.FC<BinderTaskProps> = ({ tasks }) => {
       renderRow={renderRow}
       showDatePicker={false}
       showSearch={false}
-      showFillter={false}
+      showFillter={true}
       csvColumns={csvColumns}
       exportFilename="binder-task"
     />
