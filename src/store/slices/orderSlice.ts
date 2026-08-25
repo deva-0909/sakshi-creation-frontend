@@ -143,6 +143,8 @@ export interface Order {
   // Module 12: Sales Order commercial fields.
   customerPoNumber?: string;
   priority?: "Low" | "Normal" | "High" | "Urgent" | (string & {});
+  // Module 14: powers the Delayed Jobs report.
+  expectedDeliveryDate?: string;
 }
 export interface PaperField {
   paperName?: string;
@@ -163,6 +165,7 @@ interface CreateOrderData {
   createdBy?: string;
   customerPoNumber?: string;
   priority?: string;
+  expectedDeliveryDate?: string;
 }
 
 interface OrderState {

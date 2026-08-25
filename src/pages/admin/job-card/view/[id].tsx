@@ -144,10 +144,17 @@ const JobCardDetailPage = () => {
   const [rejectDialogFor, setRejectDialogFor] = useState<string | null>(null);
   const [rejectRemarks, setRejectRemarks] = useState("");
 
-  // Labor/overhead entry form -- no wage/rate data exists anywhere in the
-  // system, so this is recorded by hand per job card (see the design plan).
+  // Cost-bucket entry form -- no wage/rate data exists anywhere in the
+  // system, so this is recorded by hand per job card (see the design
+  // plan). Module 14 extended this from 2 buckets (labor/overhead) to
+  // all 8 the scope doc asks for.
   const [laborCostInput, setLaborCostInput] = useState("");
   const [overheadCostInput, setOverheadCostInput] = useState("");
+  const [printingCostInput, setPrintingCostInput] = useState("");
+  const [bindingCostInput, setBindingCostInput] = useState("");
+  const [finishingCostInput, setFinishingCostInput] = useState("");
+  const [outsourcingCostInput, setOutsourcingCostInput] = useState("");
+  const [deliveryCostInput, setDeliveryCostInput] = useState("");
   const [costingNotes, setCostingNotes] = useState("");
 
   useEffect(() => {
@@ -185,6 +192,11 @@ const JobCardDetailPage = () => {
     if (costing) {
       setLaborCostInput(String(costing.laborCost ?? ""));
       setOverheadCostInput(String(costing.overheadCost ?? ""));
+      setPrintingCostInput(String(costing.printingCost ?? ""));
+      setBindingCostInput(String(costing.bindingCost ?? ""));
+      setFinishingCostInput(String(costing.finishingCost ?? ""));
+      setOutsourcingCostInput(String(costing.outsourcingCost ?? ""));
+      setDeliveryCostInput(String(costing.deliveryCost ?? ""));
       setCostingNotes(costing.notes || "");
     }
   }, [costing]);
@@ -365,6 +377,11 @@ const JobCardDetailPage = () => {
         data: {
           laborCost: laborCostInput !== "" ? Number(laborCostInput) : undefined,
           overheadCost: overheadCostInput !== "" ? Number(overheadCostInput) : undefined,
+          printingCost: printingCostInput !== "" ? Number(printingCostInput) : undefined,
+          bindingCost: bindingCostInput !== "" ? Number(bindingCostInput) : undefined,
+          finishingCost: finishingCostInput !== "" ? Number(finishingCostInput) : undefined,
+          outsourcingCost: outsourcingCostInput !== "" ? Number(outsourcingCostInput) : undefined,
+          deliveryCost: deliveryCostInput !== "" ? Number(deliveryCostInput) : undefined,
           notes: costingNotes || undefined,
         },
       })
@@ -854,7 +871,23 @@ const JobCardDetailPage = () => {
               />
               <DetailRow label="Labor Cost" value={costing.laborCost} />
               <DetailRow label="Overhead Cost" value={costing.overheadCost} />
+              <DetailRow label="Printing Cost" value={costing.printingCost} />
+              <DetailRow label="Binding Cost" value={costing.bindingCost} />
+              <DetailRow label="Finishing Cost" value={costing.finishingCost} />
+              <DetailRow label="Outsourcing Cost" value={costing.outsourcingCost} />
+              <DetailRow label="Delivery Cost" value={costing.deliveryCost} />
               <DetailRow label="Total Cost" value={costing.totalCost} />
+              <DetailRow label="Estimated Cost (Quotation)" value={costing.estimatedCost !== null ? costing.estimatedCost : "No linked quotation"} />
+              {costing.costVariance !== null && (
+                <DetailRow
+                  label="Cost Variance"
+                  value={
+                    <Typography component="span" fontSize={14} fontWeight={600} color={costing.costVariance <= 0 ? "#027A48" : "#B42318"}>
+                      {costing.costVariance > 0 ? `+${costing.costVariance} over` : `${Math.abs(costing.costVariance)} under`}
+                    </Typography>
+                  }
+                />
+              )}
               <DetailRow label="Revenue" value={costing.revenue} />
               <DetailRow
                 label="Profit"
@@ -875,10 +908,10 @@ const JobCardDetailPage = () => {
             </Box>
             <Box flex={1}>
               <Typography fontSize={13} fontWeight={600} mb={1}>
-                Labor / Overhead
+                Cost Buckets
               </Typography>
               <Typography fontSize={12} color="text.secondary" mb={1}>
-                No wage/rate data exists in the system, so labor and overhead are entered manually per job card.
+                No wage/rate data exists in the system, so every bucket below is entered manually per job card.
               </Typography>
               <Stack spacing={2}>
                 <ThemeInput
@@ -898,6 +931,46 @@ const JobCardDetailPage = () => {
                   disabled={!costingPermissions?.edit}
                 />
                 <ThemeInput
+                  labelName="Printing Cost"
+                  type="number"
+                  fullWidth
+                  value={printingCostInput}
+                  onChange={(e) => setPrintingCostInput(e.target.value)}
+                  disabled={!costingPermissions?.edit}
+                />
+                <ThemeInput
+                  labelName="Binding Cost"
+                  type="number"
+                  fullWidth
+                  value={bindingCostInput}
+                  onChange={(e) => setBindingCostInput(e.target.value)}
+                  disabled={!costingPermissions?.edit}
+                />
+                <ThemeInput
+                  labelName="Finishing Cost"
+                  type="number"
+                  fullWidth
+                  value={finishingCostInput}
+                  onChange={(e) => setFinishingCostInput(e.target.value)}
+                  disabled={!costingPermissions?.edit}
+                />
+                <ThemeInput
+                  labelName="Outsourcing Cost"
+                  type="number"
+                  fullWidth
+                  value={outsourcingCostInput}
+                  onChange={(e) => setOutsourcingCostInput(e.target.value)}
+                  disabled={!costingPermissions?.edit}
+                />
+                <ThemeInput
+                  labelName="Delivery Cost"
+                  type="number"
+                  fullWidth
+                  value={deliveryCostInput}
+                  onChange={(e) => setDeliveryCostInput(e.target.value)}
+                  disabled={!costingPermissions?.edit}
+                />
+                <ThemeInput
                   labelName="Notes"
                   fullWidth
                   multiline
@@ -908,7 +981,7 @@ const JobCardDetailPage = () => {
                 />
                 {costingPermissions?.edit && (
                   <ThemeButton onClick={handleSaveLaborCost} disabled={costingLoading} sx={{ background: "#175CD3" }}>
-                    Save Labor / Overhead
+                    Save Cost Buckets
                   </ThemeButton>
                 )}
               </Stack>

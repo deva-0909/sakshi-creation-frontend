@@ -18,6 +18,7 @@ interface CreateOrderData {
   createdBy?: string;
   customerPoNumber?: string;
   priority?: string;
+  expectedDeliveryDate?: string;
 }
 
 interface ApiResponse<T> {

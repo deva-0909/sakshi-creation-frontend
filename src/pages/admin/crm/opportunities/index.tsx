@@ -28,8 +28,12 @@ const stageColor = (stage: string): { bg: string; color: string } => {
       return { bg: "#D1E9FF", color: "#175CD3" };
     case "Qualified":
       return { bg: "#FEF0C7", color: "#B54708" };
+    case "Requirement Gathering":
+      return { bg: "#FEDF89", color: "#93370D" };
     case "Proposal Sent":
       return { bg: "#E9D7FE", color: "#6941C6" };
+    case "Negotiation":
+      return { bg: "#FDE7C6", color: "#B93815" };
     case "Won":
       return { bg: "#D1FADF", color: "#027A48" };
     case "Lost":

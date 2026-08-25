@@ -352,6 +352,11 @@ const Endpoint = {
   GET_OPPORTUNITY_HISTORY: `${BaseURL}/api/opportunities`,
   GET_OPPORTUNITY_ACTIVITIES: `${BaseURL}/api/opportunities`,
   ADD_OPPORTUNITY_ACTIVITY: `${BaseURL}/api/opportunities`,
+  // Module 15: expanded funnel + Opportunity -> Quotation conversion.
+  OPPORTUNITY_GATHER_REQUIREMENTS: `${BaseURL}/api/opportunities`,
+  OPPORTUNITY_NEGOTIATE: `${BaseURL}/api/opportunities`,
+  OPPORTUNITY_CONVERT_TO_QUOTATION: `${BaseURL}/api/opportunities`,
+  GET_PARTY_360: `${BaseURL}/api/account-master/getbyid`,
 
   // Module 10: Configuration Masters
   CREATE_UOM: `${BaseURL}/api/uom`,
@@ -392,5 +397,11 @@ const Endpoint = {
   GET_SUGGESTED_ROUTING_TEMPLATE: `${BaseURL}/api/routing/templates/suggested`,
 
   GET_LOGIN_HISTORY: `${BaseURL}/api/login-history`,
+
+  // Module 14: Reporting Depth (computed reports, not a CRUD resource).
+  GET_DELAYED_JOBS: `${BaseURL}/api/reports/delayed-jobs`,
+  GET_CUSTOMER_PERFORMANCE: `${BaseURL}/api/reports/customer-performance`,
+  GET_SALESPERSON_PERFORMANCE: `${BaseURL}/api/reports/salesperson-performance`,
+  GET_PURCHASE_RATE_TREND: `${BaseURL}/api/reports/purchase-rate-trend`,
 };
 export default Endpoint;

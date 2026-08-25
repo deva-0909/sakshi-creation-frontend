@@ -33,6 +33,22 @@ interface CreateOpportunityData {
   source?: string;
   assignedTo?: string;
   notes?: string;
+  followUpDate?: string;
+}
+
+interface ConvertToQuotationData {
+  productItem: string;
+  qty: number;
+  size?: string;
+  specs?: Record<string, any>;
+  rateType?: string;
+  rate?: number;
+  printingrate?: number;
+  isGst?: boolean;
+  gstPercentage?: number;
+  totalAmount?: number;
+  validUntil?: string;
+  remarks?: string;
 }
 
 export const createOpportunityThunk = createAsyncThunk(
@@ -128,6 +144,19 @@ export const markQualifiedThunk = createAsyncThunk(
   }
 );
 
+export const markRequirementGatheringThunk = createAsyncThunk(
+  "opportunity/markRequirementGathering",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await opportunityService.markRequirementGathering(id);
+      if (response.success && response.data) return response.data;
+      return rejectWithValue(response.message || "Failed to mark opportunity Requirement Gathering");
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to mark opportunity Requirement Gathering");
+    }
+  }
+);
+
 export const markProposalSentThunk = createAsyncThunk(
   "opportunity/markProposalSent",
   async (id: string, { rejectWithValue }) => {
@@ -137,6 +166,19 @@ export const markProposalSentThunk = createAsyncThunk(
       return rejectWithValue(response.message || "Failed to mark opportunity Proposal Sent");
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to mark opportunity Proposal Sent");
+    }
+  }
+);
+
+export const markNegotiationThunk = createAsyncThunk(
+  "opportunity/markNegotiation",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await opportunityService.markNegotiation(id);
+      if (response.success && response.data) return response.data;
+      return rejectWithValue(response.message || "Failed to mark opportunity Negotiation");
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to mark opportunity Negotiation");
     }
   }
 );
@@ -163,6 +205,19 @@ export const markLostThunk = createAsyncThunk(
       return rejectWithValue(response.message || "Failed to mark opportunity Lost");
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to mark opportunity Lost");
+    }
+  }
+);
+
+export const convertToQuotationThunk = createAsyncThunk(
+  "opportunity/convertToQuotation",
+  async ({ id, data }: { id: string; data: ConvertToQuotationData }, { rejectWithValue }) => {
+    try {
+      const response = await opportunityService.convertToQuotation(id, data);
+      if (response.success && response.data) return response.data;
+      return rejectWithValue(response.message || "Failed to convert opportunity to quotation");
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to convert opportunity to quotation");
     }
   }
 );
@@ -283,17 +338,22 @@ const opportunitySlice = createSlice({
       .addCase(addOpportunityActivityThunk.rejected, (state, action) => {
         state.error = action.payload as string;
       })
-      // The 5 stage-transition thunks (contact/qualify/send-proposal/win/lose)
-      // and updateOpportunityThunk all share the same shape: pending -> loading,
-      // fulfilled -> replace singleOpportunity + toast, rejected -> error.
+      // The stage-transition thunks (contact/qualify/gather-requirements/
+      // send-proposal/negotiate/win/lose), convertToQuotationThunk, and
+      // updateOpportunityThunk all share the same shape: pending ->
+      // loading, fulfilled -> replace singleOpportunity + toast, rejected
+      // -> error.
       .addMatcher(
         isAnyOf(
           updateOpportunityThunk.pending,
           markContactedThunk.pending,
           markQualifiedThunk.pending,
+          markRequirementGatheringThunk.pending,
           markProposalSentThunk.pending,
+          markNegotiationThunk.pending,
           markWonThunk.pending,
-          markLostThunk.pending
+          markLostThunk.pending,
+          convertToQuotationThunk.pending
         ),
         (state) => {
           state.loading = true;
@@ -305,9 +365,12 @@ const opportunitySlice = createSlice({
           updateOpportunityThunk.fulfilled,
           markContactedThunk.fulfilled,
           markQualifiedThunk.fulfilled,
+          markRequirementGatheringThunk.fulfilled,
           markProposalSentThunk.fulfilled,
+          markNegotiationThunk.fulfilled,
           markWonThunk.fulfilled,
-          markLostThunk.fulfilled
+          markLostThunk.fulfilled,
+          convertToQuotationThunk.fulfilled
         ),
         (state, action: PayloadAction<Opportunity>) => {
           state.loading = false;
@@ -322,9 +385,12 @@ const opportunitySlice = createSlice({
           updateOpportunityThunk.rejected,
           markContactedThunk.rejected,
           markQualifiedThunk.rejected,
+          markRequirementGatheringThunk.rejected,
           markProposalSentThunk.rejected,
+          markNegotiationThunk.rejected,
           markWonThunk.rejected,
-          markLostThunk.rejected
+          markLostThunk.rejected,
+          convertToQuotationThunk.rejected
         ),
         (state, action) => {
           state.loading = false;

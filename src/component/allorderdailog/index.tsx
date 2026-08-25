@@ -50,6 +50,8 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
     // Module 12: Sales Order commercial fields.
     customerPoNumber: "",
     priority: "Normal",
+    // Module 14: powers the Delayed Jobs report.
+    expectedDeliveryDate: "",
   })
 
   const [gstNotApplicable, setGstNotApplicable] = useState(false)
@@ -197,6 +199,7 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
         rateType: formData.rate ? formData.rateType : undefined, // Include rateType only if rate is provided
         customerPoNumber: formData.customerPoNumber || undefined,
         priority: formData.priority || undefined,
+        expectedDeliveryDate: formData.expectedDeliveryDate || undefined,
       }
 
       await dispatch(createOrderThunk(orderData)).unwrap()
@@ -227,6 +230,7 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
       rateType: "new",
       customerPoNumber: "",
       priority: "Normal",
+      expectedDeliveryDate: "",
     })
     setGstNotApplicable(false)
     setSelectedFiles([])
@@ -375,6 +379,17 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
               { label: "Urgent", value: "Urgent" },
             ]}
             onChange={(_, v) => handleChange("priority", v ? v.value : "Normal")}
+          />
+        </Stack>
+
+        <Stack direction="row" spacing={2} mb={2}>
+          <ThemeInput
+            labelName="Expected Delivery Date"
+            type="date"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={formData.expectedDeliveryDate}
+            onChange={(e) => handleChange("expectedDeliveryDate", e.target.value)}
           />
         </Stack>
 

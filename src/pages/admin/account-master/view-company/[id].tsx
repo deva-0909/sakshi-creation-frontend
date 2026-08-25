@@ -27,6 +27,7 @@ import { getAllStaffThunk } from '@/store/slices/staffSlice';
 import { getAllOpportunitiesThunk } from '@/store/slices/opportunitySlice';
 import { format } from 'date-fns';
 import Loader from '@/component/common_component/loader';
+import PartyThreeSixtyPanel from '@/component/partythreesixtypanel';
 
 interface Task {
   _id: string;
@@ -767,6 +768,8 @@ const ViewCompanyPage: React.FC = () => {
             </Box>
           )}
       </Box>
+
+      {typeof id === 'string' && <PartyThreeSixtyPanel accountMasterId={id} />}
 
       <AssignTaskDialog
         open={openAssignTaskDialog}

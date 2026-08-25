@@ -48,6 +48,7 @@ const AddOpportunityDialog: React.FC<AddOpportunityDialogProps> = ({ open, onClo
   const [source, setSource] = useState<OptionType | null>(null)
   const [assignedTo, setAssignedTo] = useState<OptionType | null>(null)
   const [notes, setNotes] = useState("")
+  const [followUpDate, setFollowUpDate] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
@@ -91,6 +92,7 @@ const AddOpportunityDialog: React.FC<AddOpportunityDialogProps> = ({ open, onClo
     setSource(null)
     setAssignedTo(null)
     setNotes("")
+    setFollowUpDate("")
   }
 
   const handleClose = () => {
@@ -125,6 +127,7 @@ const AddOpportunityDialog: React.FC<AddOpportunityDialogProps> = ({ open, onClo
           source: source?.value,
           assignedTo: assignedTo?.value,
           notes: notes || undefined,
+          followUpDate: followUpDate || undefined,
         })
       ).unwrap()
 
@@ -207,6 +210,16 @@ const AddOpportunityDialog: React.FC<AddOpportunityDialogProps> = ({ open, onClo
             </Typography>
           )}
         </Box>
+
+        <ThemeInput
+          labelName="Follow-Up Date"
+          type="date"
+          fullWidth
+          InputLabelProps={{ shrink: true }}
+          value={followUpDate}
+          onChange={(e) => setFollowUpDate(e.target.value)}
+          sx={{ mb: 2 }}
+        />
 
         <ThemeInput
           labelName="Notes"

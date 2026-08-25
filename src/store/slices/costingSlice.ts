@@ -49,7 +49,16 @@ export const getCostingByJobCardThunk = createAsyncThunk(
 
 export const upsertLaborCostThunk = createAsyncThunk(
   "costing/upsertLabor",
-  async ({ jobCardId, data }: { jobCardId: string; data: { laborCost?: number; overheadCost?: number; notes?: string } }, { rejectWithValue }) => {
+  async (
+    {
+      jobCardId,
+      data,
+    }: {
+      jobCardId: string;
+      data: { laborCost?: number; overheadCost?: number; printingCost?: number; bindingCost?: number; finishingCost?: number; outsourcingCost?: number; deliveryCost?: number; notes?: string };
+    },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await costingService.upsertLaborCost(jobCardId, data);
       if (response.success) return jobCardId;

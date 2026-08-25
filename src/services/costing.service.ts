@@ -21,7 +21,14 @@ export interface Costing {
   hasFullMaterialRateData: boolean;
   laborCost: number;
   overheadCost: number;
+  printingCost: number;
+  bindingCost: number;
+  finishingCost: number;
+  outsourcingCost: number;
+  deliveryCost: number;
   totalCost: number;
+  estimatedCost: number | null;
+  costVariance: number | null;
   revenue: number;
   profit: number;
   marginPct: number | null;
@@ -32,6 +39,11 @@ export interface Costing {
 interface UpsertLaborCostData {
   laborCost?: number;
   overheadCost?: number;
+  printingCost?: number;
+  bindingCost?: number;
+  finishingCost?: number;
+  outsourcingCost?: number;
+  deliveryCost?: number;
   notes?: string;
 }
 

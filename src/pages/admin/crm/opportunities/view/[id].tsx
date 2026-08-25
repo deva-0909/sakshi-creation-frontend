@@ -14,13 +14,18 @@ import {
   addOpportunityActivityThunk,
   markContactedThunk,
   markQualifiedThunk,
+  markRequirementGatheringThunk,
   markProposalSentThunk,
+  markNegotiationThunk,
   markWonThunk,
   markLostThunk,
+  updateOpportunityThunk,
+  convertToQuotationThunk,
   clearSingleOpportunity,
   clearOpportunityError,
   clearOpportunitySuccessMessage,
 } from "@/store/slices/opportunitySlice";
+import { getAllProductItemsThunk } from "@/store/slices/productItemSlice";
 import { toast } from "react-toastify";
 
 const stageColor = (stage: string): { bg: string; color: string } => {
@@ -31,8 +36,12 @@ const stageColor = (stage: string): { bg: string; color: string } => {
       return { bg: "#D1E9FF", color: "#175CD3" };
     case "Qualified":
       return { bg: "#FEF0C7", color: "#B54708" };
+    case "Requirement Gathering":
+      return { bg: "#FEDF89", color: "#93370D" };
     case "Proposal Sent":
       return { bg: "#E9D7FE", color: "#6941C6" };
+    case "Negotiation":
+      return { bg: "#FDE7C6", color: "#B93815" };
     case "Won":
       return { bg: "#D1FADF", color: "#027A48" };
     case "Lost":
@@ -68,12 +77,26 @@ const OpportunityDetailPage = () => {
     (state) => state.opportunities
   );
   const { user } = useAppSelector((state) => state.auth);
+  const { productItems } = useAppSelector((state) => state.productItems);
 
   const [loseOpen, setLoseOpen] = useState(false);
   const [lostReason, setLostReason] = useState("");
   const [activityType, setActivityType] = useState<{ label: string; value: string }>(ACTIVITY_TYPE_OPTIONS[3]);
   const [activityNotes, setActivityNotes] = useState("");
   const [loggingActivity, setLoggingActivity] = useState(false);
+  const [followUpDate, setFollowUpDate] = useState("");
+  const [savingFollowUp, setSavingFollowUp] = useState(false);
+
+  // Module 15: Opportunity -> Quotation conversion, offered once Won.
+  const [convertOpen, setConvertOpen] = useState(false);
+  const [convertProductItem, setConvertProductItem] = useState<{ label: string; value: string } | null>(null);
+  const [convertQty, setConvertQty] = useState("");
+  const [convertSize, setConvertSize] = useState("");
+  const [convertRate, setConvertRate] = useState("");
+  const [convertPrintingRate, setConvertPrintingRate] = useState("");
+  const [convertValidUntil, setConvertValidUntil] = useState("");
+  const [convertRemarks, setConvertRemarks] = useState("");
+  const [converting, setConverting] = useState(false);
 
   const permissions = user?.role?.permissions?.opportunity;
 
@@ -83,10 +106,15 @@ const OpportunityDetailPage = () => {
       dispatch(getOpportunityHistoryThunk(id));
       dispatch(getOpportunityActivitiesThunk(id));
     }
+    dispatch(getAllProductItemsThunk());
     return () => {
       dispatch(clearSingleOpportunity());
     };
   }, [id, dispatch]);
+
+  useEffect(() => {
+    if (o) setFollowUpDate(o.followUpDate ? o.followUpDate.slice(0, 10) : "");
+  }, [o]);
 
   useEffect(() => {
     if (successMessage) {
@@ -137,7 +165,56 @@ const OpportunityDetailPage = () => {
   };
 
   const { bg, color } = stageColor(o.stage);
-  const isOpenStage = ["New", "Contacted", "Qualified", "Proposal Sent"].includes(o.stage);
+  const isOpenStage = ["New", "Contacted", "Qualified", "Requirement Gathering", "Proposal Sent", "Negotiation"].includes(o.stage);
+
+  const handleSaveFollowUp = async () => {
+    setSavingFollowUp(true);
+    try {
+      await dispatch(updateOpportunityThunk({ id: o._id, data: { followUpDate: followUpDate || undefined } })).unwrap();
+    } catch (err: any) {
+      // error toast handled by the effect above
+    } finally {
+      setSavingFollowUp(false);
+    }
+  };
+
+  const handleConvertToQuotation = async () => {
+    if (!convertProductItem || !convertQty || Number(convertQty) <= 0) {
+      toast.error("Product item and a positive quantity are required");
+      return;
+    }
+    setConverting(true);
+    try {
+      await dispatch(
+        convertToQuotationThunk({
+          id: o._id,
+          data: {
+            productItem: convertProductItem.value,
+            qty: Number(convertQty),
+            size: convertSize || undefined,
+            rate: convertRate ? Number(convertRate) : undefined,
+            printingrate: convertPrintingRate ? Number(convertPrintingRate) : undefined,
+            validUntil: convertValidUntil || undefined,
+            remarks: convertRemarks || undefined,
+          },
+        })
+      ).unwrap();
+      setConvertOpen(false);
+      setConvertProductItem(null);
+      setConvertQty("");
+      setConvertSize("");
+      setConvertRate("");
+      setConvertPrintingRate("");
+      setConvertValidUntil("");
+      setConvertRemarks("");
+    } catch (err: any) {
+      // error toast handled by the effect above
+    } finally {
+      setConverting(false);
+    }
+  };
+
+  const productItemOptions = (productItems || []).map((p: any) => ({ label: p.itemName, value: p._id }));
 
   return (
     <Box p={3}>
@@ -179,6 +256,29 @@ const OpportunityDetailPage = () => {
           {o.stage === "Won" && o.wonAt && <DetailRow label="Won At" value={new Date(o.wonAt).toLocaleString()} />}
           {o.stage === "Lost" && o.lostAt && <DetailRow label="Lost At" value={new Date(o.lostAt).toLocaleString()} />}
           {o.stage === "Lost" && o.lostReason && <DetailRow label="Lost Reason" value={o.lostReason} />}
+          {o.quotation && <DetailRow label="Converted Quotation" value={`${o.quotation.quotationNumber} (${o.quotation.status})`} />}
+
+          <Divider sx={{ my: 2 }} />
+
+          <Typography fontWeight={600} mb={1}>
+            Follow-Up
+          </Typography>
+          {isOpenStage && permissions?.edit ? (
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} mb={2} alignItems="flex-start">
+              <ThemeInput
+                type="date"
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                value={followUpDate}
+                onChange={(e) => setFollowUpDate(e.target.value)}
+              />
+              <ThemeButton onClick={handleSaveFollowUp} disabled={savingFollowUp} sx={{ background: "#175CD3", whiteSpace: "nowrap" }}>
+                {savingFollowUp ? "Saving..." : "Save Follow-Up Date"}
+              </ThemeButton>
+            </Stack>
+          ) : (
+            <DetailRow label="Follow-Up Date" value={o.followUpDate ? new Date(o.followUpDate).toLocaleDateString() : "-"} />
+          )}
 
           <Divider sx={{ my: 2 }} />
 
@@ -246,11 +346,21 @@ const OpportunityDetailPage = () => {
               </ThemeButton>
             )}
             {o.stage === "Qualified" && permissions?.edit && (
+              <ThemeButton onClick={() => doAction(() => markRequirementGatheringThunk(o._id))} sx={{ background: "#B54708" }}>
+                Mark Requirement Gathering
+              </ThemeButton>
+            )}
+            {o.stage === "Requirement Gathering" && permissions?.edit && (
               <ThemeButton onClick={() => doAction(() => markProposalSentThunk(o._id))} sx={{ background: "#6941C6" }}>
                 Mark Proposal Sent
               </ThemeButton>
             )}
             {o.stage === "Proposal Sent" && permissions?.edit && (
+              <ThemeButton onClick={() => doAction(() => markNegotiationThunk(o._id))} sx={{ background: "#B93815" }}>
+                Mark Negotiation
+              </ThemeButton>
+            )}
+            {o.stage === "Negotiation" && permissions?.edit && (
               <ThemeButton onClick={() => doAction(() => markWonThunk(o._id))} sx={{ background: "#12B76A" }}>
                 Mark Won
               </ThemeButton>
@@ -264,7 +374,12 @@ const OpportunityDetailPage = () => {
                 Mark Lost
               </ThemeButton>
             )}
-            {!isOpenStage && (
+            {o.stage === "Won" && !o.quotationId && permissions?.edit && (
+              <ThemeButton onClick={() => setConvertOpen(true)} sx={{ background: "#175CD3" }}>
+                Convert to Quotation
+              </ThemeButton>
+            )}
+            {!isOpenStage && o.stage !== "Won" && (
               <Typography fontSize={13} color="text.secondary">
                 No further actions available for a {o.stage.toLowerCase()} opportunity.
               </Typography>
@@ -330,6 +445,42 @@ const OpportunityDetailPage = () => {
             }}
           >
             Confirm Lost
+          </ThemeButton>
+        </Box>
+      </CustomDialog>
+
+      <CustomDialog open={convertOpen} onClose={() => setConvertOpen(false)} title="Convert to Quotation" maxWidth="sm">
+        <Stack spacing={2} mt={1}>
+          <ThemeSelect
+            label="Product Item"
+            options={productItemOptions}
+            value={convertProductItem}
+            onChange={(_, v) => setConvertProductItem(v as { label: string; value: string } | null)}
+          />
+          <Stack direction="row" spacing={2}>
+            <ThemeInput labelName="Quantity" type="number" fullWidth required value={convertQty} onChange={(e) => setConvertQty(e.target.value)} />
+            <ThemeInput labelName="Size" fullWidth value={convertSize} onChange={(e) => setConvertSize(e.target.value)} />
+          </Stack>
+          <Stack direction="row" spacing={2}>
+            <ThemeInput labelName="Rate" type="number" fullWidth value={convertRate} onChange={(e) => setConvertRate(e.target.value)} />
+            <ThemeInput labelName="Printing Rate" type="number" fullWidth value={convertPrintingRate} onChange={(e) => setConvertPrintingRate(e.target.value)} />
+          </Stack>
+          <ThemeInput
+            labelName="Valid Until"
+            type="date"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={convertValidUntil}
+            onChange={(e) => setConvertValidUntil(e.target.value)}
+          />
+          <ThemeInput labelName="Remarks" fullWidth multiline minRows={2} value={convertRemarks} onChange={(e) => setConvertRemarks(e.target.value)} />
+        </Stack>
+        <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
+          <ThemeButton variant="outlined" onClick={() => setConvertOpen(false)}>
+            Cancel
+          </ThemeButton>
+          <ThemeButton sx={{ background: "#175CD3" }} onClick={handleConvertToQuotation} disabled={converting}>
+            {converting ? "Converting..." : "Create Quotation"}
           </ThemeButton>
         </Box>
       </CustomDialog>

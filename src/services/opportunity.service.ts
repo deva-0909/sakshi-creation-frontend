@@ -17,9 +17,12 @@ export interface Opportunity {
   lostAt?: string;
   lostReason?: string;
   partyId?: string;
+  followUpDate?: string;
+  quotationId?: string;
   companyName?: { _id: string; companyName: string };
   assignedTo?: { _id: string; firstName: string; lastName: string };
   party?: { _id: string; partyName: string };
+  quotation?: { _id: string; quotationNumber: string; status: string };
   createdBy?: { _id: string; firstName: string; lastName: string };
   createdAt?: string;
   updatedAt?: string;
@@ -53,6 +56,22 @@ interface CreateOpportunityData {
   source?: string;
   assignedTo?: string;
   notes?: string;
+  followUpDate?: string;
+}
+
+interface ConvertToQuotationData {
+  productItem: string;
+  qty: number;
+  size?: string;
+  specs?: Record<string, any>;
+  rateType?: string;
+  rate?: number;
+  printingrate?: number;
+  isGst?: boolean;
+  gstPercentage?: number;
+  totalAmount?: number;
+  validUntil?: string;
+  remarks?: string;
 }
 
 interface ApiResponse<T> {
@@ -149,12 +168,34 @@ export const opportunityService = {
     }
   },
 
+  async markRequirementGathering(id: string): Promise<ApiResponse<Opportunity>> {
+    try {
+      const response: AxiosResponse<ApiResponse<Opportunity>> = await axios.patch(
+        `${Endpoint.OPPORTUNITY_GATHER_REQUIREMENTS}/${id}/gather-requirements`,
+        {},
+        { headers: authHeaders(), withCredentials: true }
+      );
+      return { success: response.data.success, data: response.data.data, message: response.data.message };
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Failed to mark opportunity Requirement Gathering");
+    }
+  },
+
   async markProposalSent(id: string): Promise<ApiResponse<Opportunity>> {
     try {
       const response: AxiosResponse<ApiResponse<Opportunity>> = await axios.patch(`${Endpoint.OPPORTUNITY_SEND_PROPOSAL}/${id}/send-proposal`, {}, { headers: authHeaders(), withCredentials: true });
       return { success: response.data.success, data: response.data.data, message: response.data.message };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Failed to mark opportunity Proposal Sent");
+    }
+  },
+
+  async markNegotiation(id: string): Promise<ApiResponse<Opportunity>> {
+    try {
+      const response: AxiosResponse<ApiResponse<Opportunity>> = await axios.patch(`${Endpoint.OPPORTUNITY_NEGOTIATE}/${id}/negotiate`, {}, { headers: authHeaders(), withCredentials: true });
+      return { success: response.data.success, data: response.data.data, message: response.data.message };
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Failed to mark opportunity Negotiation");
     }
   },
 
@@ -209,6 +250,19 @@ export const opportunityService = {
       return { success: response.data.success, data: response.data.data, message: response.data.message };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Failed to log activity");
+    }
+  },
+
+  // Module 15: gated on Won (party_id set) on the backend.
+  async convertToQuotation(id: string, data: ConvertToQuotationData): Promise<ApiResponse<Opportunity>> {
+    try {
+      const response: AxiosResponse<ApiResponse<Opportunity>> = await axios.post(`${Endpoint.OPPORTUNITY_CONVERT_TO_QUOTATION}/${id}/convert-to-quotation`, data, {
+        headers: authHeaders(),
+        withCredentials: true,
+      });
+      return { success: response.data.success, data: response.data.data, message: response.data.message };
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Failed to convert opportunity to quotation");
     }
   },
 };

@@ -54,6 +54,7 @@ import stockMovementReducer from '@/store/slices/stockMovementSlice';
 import purchaseReturnReducer from '@/store/slices/purchaseReturnSlice';
 import purchaseRequisitionReducer from '@/store/slices/purchaseRequisitionSlice';
 import deliveryChallanReducer from '@/store/slices/deliveryChallanSlice';
+import reportsReducer from '@/store/slices/reportsSlice';
 // Persist configuration
 export const persistConfig = {
   key: 'auth',
@@ -120,6 +121,7 @@ export const store = configureStore({
     purchaseReturns: purchaseReturnReducer,
     purchaseRequisitions: purchaseRequisitionReducer,
     deliveryChallans: deliveryChallanReducer,
+    reports: reportsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
