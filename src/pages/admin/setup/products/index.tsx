@@ -22,6 +22,7 @@ import {
   clearProductItemError,
   clearProductItemSuccessMessage,
 } from "@/store/slices/productItemSlice";
+import { getAllCompanyNamesThunk } from "@/store/slices/companyNameSlice";
 import { RootState, useAppDispatch } from "@/store";
 import { toast } from "react-toastify";
 
@@ -37,6 +38,9 @@ interface ProductItem {
   status?: string;
   createdAt?: string;
   updatedAt?: string;
+  // Two-company Phase 1 (claude/two-company-gap-analysis.md): absent/null
+  // means visible to every company (default/legacy behavior).
+  companyName?: { _id: string; companyName: string } | null;
 }
 
 interface ProductItemRow extends ProductItem {
@@ -46,12 +50,14 @@ interface ProductItemRow extends ProductItem {
 const columns = [
   { id: "id", label: "ID" },
   { id: "itemName", label: "Name" },
+  { id: "company", label: "Company" },
   { id: "status", label: "Status" },
   { id: "options", label: "Options" },
 ];
 
 const csvColumns = [
   { id: "itemName", label: "Name", value: (row: ProductItemRow) => row.itemName },
+  { id: "company", label: "Company", value: (row: ProductItemRow) => row.companyName?.companyName || "All companies" },
   { id: "status", label: "Status", value: (row: ProductItemRow) => row.status || "Active" },
 ];
 
@@ -60,14 +66,19 @@ const ProductsPage = () => {
   const { productItems, loading, error, successMessage } = useSelector(
     (state: RootState) => state.productItems
   );
+  // Two-company Phase 1 (claude/two-company-gap-analysis.md): lets a
+  // product item optionally be scoped to one company's catalog (e.g.
+  // Quality Packaging's "BOX") instead of visible to every company.
+  const { companyNames } = useSelector((state: RootState) => state.companyNames);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState({ itemName: "", status: "Active" });
+  const [form, setForm] = useState({ itemName: "", status: "Active", companyName: "" });
 
   // Fetch all products on component mount
   useEffect(() => {
     dispatch(getAllProductItemsThunk());
+    dispatch(getAllCompanyNamesThunk());
   }, [dispatch]);
 
   // Handle success and error messages
@@ -86,10 +97,10 @@ const ProductsPage = () => {
   const handleOpenDialog = (product?: ProductItem) => {
     if (product) {
       setEditId(product._id);
-      setForm({ itemName: product.itemName, status: product.status || "Active" });
+      setForm({ itemName: product.itemName, status: product.status || "Active", companyName: product.companyName?._id || "" });
     } else {
       setEditId(null);
-      setForm({ itemName: "", status: "Active" });
+      setForm({ itemName: "", status: "Active", companyName: "" });
     }
     setDialogOpen(true);
   };
@@ -109,6 +120,13 @@ const ProductsPage = () => {
     const productData = {
       itemName: form.itemName,
       status: form.status,
+      // Two-company Phase 1: always sent, even as "" ("All companies") --
+      // the backend treats a present-but-empty value as an explicit
+      // un-scope on update, and as "not scoped" on create. Omitting the
+      // field entirely (undefined) is what "leave unchanged" means to the
+      // update endpoint, which isn't what re-selecting "All companies" in
+      // this dropdown is meant to do.
+      companyName: form.companyName,
     };
 
     if (editId) {
@@ -118,7 +136,7 @@ const ProductsPage = () => {
     }
 
     setDialogOpen(false);
-    setForm({ itemName: "", status: "Active" });
+    setForm({ itemName: "", status: "Active", companyName: "" });
     setEditId(null);
   };
 
@@ -163,6 +181,7 @@ const ProductsPage = () => {
             <>
               <TableCell>{idx + 1}</TableCell>
               <TableCell>{row.itemName}</TableCell>
+              <TableCell>{row.companyName?.companyName || "All companies"}</TableCell>
               <TableCell>
                 <ThemeChip label={row.status || "Active"} sx={{ background: statusColor[row.status || "Active"]?.bg, color: statusColor[row.status || "Active"]?.color, fontWeight: 600 }} />
               </TableCell>
@@ -209,6 +228,18 @@ const ProductsPage = () => {
               options={STATUSES.map((s) => ({ label: s, value: s }))}
               value={form.status ? { label: form.status, value: form.status } : null}
               onChange={(_, v) => setForm((f) => ({ ...f, status: v ? String(v.value) : "Active" }))}
+            />
+          </Box>
+          <Box sx={{ mb: 2 }}>
+            {/* Two-company Phase 1 (claude/two-company-gap-analysis.md):
+                optional -- left blank ("All companies"), an item stays
+                visible to every company, matching every item that existed
+                before this field was added. */}
+            <Select
+              label="Company (optional — leave blank for all companies)"
+              options={companyNames.map((c: any) => ({ label: c.companyName, value: c._id }))}
+              value={form.companyName ? { label: companyNames.find((c: any) => c._id === form.companyName)?.companyName || "", value: form.companyName } : null}
+              onChange={(_, v) => setForm((f) => ({ ...f, companyName: v ? String(v.value) : "" }))}
             />
           </Box>
           <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>

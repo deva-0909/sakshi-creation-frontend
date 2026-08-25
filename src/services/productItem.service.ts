@@ -8,11 +8,16 @@ interface ProductItem {
   status?: string;
   createdAt?: string;
   updatedAt?: string;
+  // Two-company Phase 1 (claude/two-company-gap-analysis.md): absent/null
+  // means the item is visible to every company (today's default/legacy
+  // behavior); set means it's scoped to one company's catalog.
+  companyName?: { _id: string; companyName: string } | null;
 }
 
 interface CreateProductItemData {
   itemName?: string;
   status?: string;
+  companyName?: string;
 }
 
 interface ApiResponse<T> {
@@ -83,6 +88,7 @@ export const productItemService = {
     page?: number;
     limit?: number;
     search?: string;
+    companyName?: string;
   }): Promise<ApiResponse<ProductItem[]>> {
     try {
       const token = authService.getToken();
@@ -95,6 +101,7 @@ export const productItemService = {
       if (params?.page) queryParams.page = params.page;
       if (params?.limit) queryParams.limit = params.limit;
       if (params?.search) queryParams.search = params.search;
+      if (params?.companyName) queryParams.companyName = params.companyName;
 
       const response: AxiosResponse<ApiResponse<ProductItem[]>> = await axios.get(
         Endpoint.GET_ALL_PRODUCT_ITEM,

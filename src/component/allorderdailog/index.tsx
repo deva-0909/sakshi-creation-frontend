@@ -34,6 +34,10 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
   const { productItems, loading: productLoading } = useAppSelector((state) => state.productItems)
   const { singleAccountMaster, loading: accountLoading } = useAppSelector((state) => state.accountMasters)
   const { loading: orderLoading, error: orderError, successMessage } = useAppSelector((state) => state.orders)
+  // Two-company Phase 1 (claude/two-company-gap-analysis.md): CompanySelect
+  // (below) already fetches this list into state.company -- reused here
+  // just to resolve the selected company's name for the Qty/PCS label.
+  const { companies } = useAppSelector((state) => state.company)
 
   const [formData, setFormData] = useState({
     companyName: "",
@@ -84,12 +88,14 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
     }
   }, [orderError, dispatch])
 
-  // Fetch product items when dialog opens
+  // Fetch product items when dialog opens, or when the selected company
+  // changes (two-company Phase 1: scopes the picker to that company's own
+  // items plus every unscoped/shared item -- see productItem.controller.js).
   useEffect(() => {
     if (open) {
-      dispatch(getAllProductItemsThunk())
+      dispatch(getAllProductItemsThunk(formData.companyName ? { companyName: formData.companyName } : undefined))
     }
-  }, [open, dispatch])
+  }, [open, formData.companyName, dispatch])
 
   // Set item options when product items are loaded
   useEffect(() => {
@@ -134,6 +140,11 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
     handleChange("whatsapp", "")
     handleChange("gst", "")
     setGstNotApplicable(false)
+    // Two-company Phase 1 (claude/two-company-gap-analysis.md): the item
+    // picker is refetched scoped to the new company below, so a previously
+    // selected item may no longer be in that list -- clear it rather than
+    // silently submitting an item from the wrong company's catalog.
+    handleChange("itemName", "")
   }
 
   const handlePartyChange = async (event: any, newValue: any) => {
@@ -248,6 +259,14 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
     return options.find((option) => option.value === value) || null
   }
 
+  // Two-company Phase 1 (claude/two-company-gap-analysis.md): the Figma
+  // reference labels this field "Qty" for Sakshi Creation (printed items)
+  // and "PCS" for Quality Packaging (boxes, piece-counted). Matched by
+  // name rather than a fixed id since company_names has no "type" column
+  // to key off instead -- falls back to "Qty" for any other/future company.
+  const selectedCompany = companies.find((c: any) => c._id === formData.companyName)
+  const quantityLabel = selectedCompany?.companyName?.trim().toLowerCase() === "quality packaging" ? "PCS" : "Qty"
+
   return (
     <CustomDialog open={open} onClose={handleClose} maxWidth="md" title="Place New Order">
       <Box sx={{ p: 2, background: "#fff", borderRadius: 2 }}>
@@ -303,7 +322,7 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
             required
           />
           <ThemeInput
-            labelName="Qty"
+            labelName={quantityLabel}
             placeholder="200"
             fullWidth
             type="number"

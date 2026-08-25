@@ -50,7 +50,7 @@ export const createProductItemThunk = createAsyncThunk(
 
 export const getAllProductItemsThunk = createAsyncThunk(
   "productItem/getAll",
-  async (params: { page?: number; limit?: number; search?: string } | undefined, { rejectWithValue }) => {
+  async (params: { page?: number; limit?: number; search?: string; companyName?: string } | undefined, { rejectWithValue }) => {
     try {
       const response = await productItemService.getAllProductItems(params);
 
