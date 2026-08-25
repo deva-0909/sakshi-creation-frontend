@@ -45,6 +45,18 @@ export interface JobCardStage {
   defectReason?: string;
   wastageReason?: string;
   wastageMaterial?: { _id: string; materialName: string };
+  // QP box-manufacturing Figma audit (2026-08-25): the Order-In screen's
+  // expandable Factory checklist -- only meaningful when stage === "Factory".
+  // No formula backs kantan/kantanDeckal anywhere in the Figma file itself
+  // (see claude/qp-box-manufacturing-kantan-figma-audit.md), so these are
+  // plain manual fields, matching what the design shows.
+  unitNumber?: number;
+  pasteingStatus?: string;
+  piningStatus?: string;
+  rsFor?: string;
+  kantan?: string;
+  kantanDeckal?: string;
+  factoryDeliveryDate?: string;
 }
 
 export interface JobCardRework {
@@ -189,6 +201,15 @@ export const jobCardService = {
       wastageMaterial?: string;
       wastageForRole?: string;
       wastageForCompany?: string;
+      // QP box-manufacturing Figma audit (2026-08-25): only meaningful when
+      // stage === "Factory".
+      unitNumber?: number;
+      pasteingStatus?: string;
+      piningStatus?: string;
+      rsFor?: string;
+      kantan?: string;
+      kantanDeckal?: string;
+      factoryDeliveryDate?: string;
     }
   ): Promise<ApiResponse<{ jobCard: JobCard; stage: JobCardStage }>> {
     try {

@@ -109,6 +109,15 @@ interface AdvanceStageData {
   wastageMaterial?: string;
   wastageForRole?: string;
   wastageForCompany?: string;
+  // QP box-manufacturing Figma audit (2026-08-25): only meaningful when
+  // stage === "Factory".
+  unitNumber?: number;
+  pasteingStatus?: string;
+  piningStatus?: string;
+  rsFor?: string;
+  kantan?: string;
+  kantanDeckal?: string;
+  factoryDeliveryDate?: string;
 }
 
 export const advanceJobCardStageThunk = createAsyncThunk(

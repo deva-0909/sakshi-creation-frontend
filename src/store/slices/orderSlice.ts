@@ -65,6 +65,11 @@ export interface Order {
   // Order detail / job-tracking fields (backend: orders table columns)
   number?: string;
   size?: string;
+  // QP box-manufacturing Figma audit (2026-08-25): shown on every Quality
+  // Packaging order screen in the design alongside Size, previously absent
+  // from the schema entirely.
+  ply?: number;
+  deckal?: number;
   startNumber?: string;
   endNumber?: string;
   color?: string;

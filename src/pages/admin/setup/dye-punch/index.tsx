@@ -34,6 +34,11 @@ interface DyePunchForm {
   ply: string;
   sheetSize: string;
   boxSize: string;
+  // QP box-manufacturing Figma audit (2026-08-25): the Dye/Punch master
+  // screen also shows Kantan + Kantan type alongside Ply/Sheet Size/Box
+  // Size, which already existed here.
+  kantan: string;
+  kantanType: string;
   remarks: string;
 }
 
@@ -45,6 +50,8 @@ const emptyForm: DyePunchForm = {
   ply: "",
   sheetSize: "",
   boxSize: "",
+  kantan: "",
+  kantanType: "",
   remarks: "",
 };
 
@@ -56,6 +63,8 @@ const columns = [
   { id: "ply", label: "Ply" },
   { id: "sheetSize", label: "Sheet Size" },
   { id: "boxSize", label: "Box Size" },
+  { id: "kantan", label: "Kantan" },
+  { id: "kantanType", label: "Kantan Type" },
   { id: "companyName", label: "Company" },
   { id: "action", label: "Actions" },
 ];
@@ -67,6 +76,8 @@ const csvColumns = [
   { id: "ply", label: "Ply", value: (row: any) => row.ply || "-" },
   { id: "sheetSize", label: "Sheet Size", value: (row: any) => row.sheetSize || "-" },
   { id: "boxSize", label: "Box Size", value: (row: any) => row.boxSize || "-" },
+  { id: "kantan", label: "Kantan", value: (row: any) => row.kantan || "-" },
+  { id: "kantanType", label: "Kantan Type", value: (row: any) => row.kantanType || "-" },
   { id: "companyName", label: "Company", value: (row: any) => row.companyName?.companyName || "-" },
 ];
 
@@ -106,6 +117,8 @@ const DyePunchPage = () => {
         ply: dyePunch.ply || "",
         sheetSize: dyePunch.sheetSize || "",
         boxSize: dyePunch.boxSize || "",
+        kantan: dyePunch.kantan || "",
+        kantanType: dyePunch.kantanType || "",
         remarks: dyePunch.remarks || "",
       });
     } else {
@@ -129,6 +142,8 @@ const DyePunchPage = () => {
       ply: form.ply || undefined,
       sheetSize: form.sheetSize || undefined,
       boxSize: form.boxSize || undefined,
+      kantan: form.kantan || undefined,
+      kantanType: form.kantanType || undefined,
       remarks: form.remarks || undefined,
     };
 
@@ -203,6 +218,8 @@ const DyePunchPage = () => {
             <TableCell>{row.ply || "-"}</TableCell>
             <TableCell>{row.sheetSize || "-"}</TableCell>
             <TableCell>{row.boxSize || "-"}</TableCell>
+            <TableCell>{row.kantan || "-"}</TableCell>
+            <TableCell>{row.kantanType || "-"}</TableCell>
             <TableCell>{row.companyName?.companyName || "-"}</TableCell>
             <TableCell>
               {permissions?.edit && (
@@ -270,6 +287,20 @@ const DyePunchPage = () => {
           labelName="Box Size (optional)"
           value={form.boxSize}
           onChange={(e: any) => setForm((f) => ({ ...f, boxSize: e.target.value }))}
+          fullWidth
+          sx={{ mb: 2 }}
+        />
+        <Input
+          labelName="Kantan (optional)"
+          value={form.kantan}
+          onChange={(e: any) => setForm((f) => ({ ...f, kantan: e.target.value }))}
+          fullWidth
+          sx={{ mb: 2 }}
+        />
+        <Input
+          labelName="Kantan Type (optional)"
+          value={form.kantanType}
+          onChange={(e: any) => setForm((f) => ({ ...f, kantanType: e.target.value }))}
           fullWidth
           sx={{ mb: 2 }}
         />

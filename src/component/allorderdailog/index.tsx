@@ -51,6 +51,11 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
     size: "", // New field
     rate: "", // New field
     rateType: "new", // New field: default to "new"
+    // QP box-manufacturing Figma audit (2026-08-25): Ply/Deckal, shown on
+    // every Quality Packaging order screen in the design alongside Size,
+    // but only meaningful for QP box orders -- shown conditionally below.
+    ply: "",
+    deckal: "",
     // Module 12: Sales Order commercial fields.
     customerPoNumber: "",
     priority: "Normal",
@@ -174,6 +179,11 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
     toast.error(error)
   }
 
+  // QP box-manufacturing Figma audit (2026-08-25): same lookup pattern as
+  // quantityLabel below, hoisted above handleSubmit so both the submit
+  // payload and the conditional Ply/Deckal fields can use it.
+  const isQP = companies.find((c: any) => c._id === formData.companyName)?.companyName?.trim().toLowerCase() === "quality packaging"
+
   const handleSubmit = async () => {
     if (!formData.companyName || !formData.partyName || !formData.itemName || !formData.qty) {
       toast.error("Please fill all required fields")
@@ -211,6 +221,8 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
         customerPoNumber: formData.customerPoNumber || undefined,
         priority: formData.priority || undefined,
         expectedDeliveryDate: formData.expectedDeliveryDate || undefined,
+        ply: isQP && formData.ply ? Number.parseFloat(formData.ply) : undefined,
+        deckal: isQP && formData.deckal ? Number.parseFloat(formData.deckal) : undefined,
       }
 
       await dispatch(createOrderThunk(orderData)).unwrap()
@@ -242,6 +254,8 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
       customerPoNumber: "",
       priority: "Normal",
       expectedDeliveryDate: "",
+      ply: "",
+      deckal: "",
     })
     setGstNotApplicable(false)
     setSelectedFiles([])
@@ -264,8 +278,7 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
   // and "PCS" for Quality Packaging (boxes, piece-counted). Matched by
   // name rather than a fixed id since company_names has no "type" column
   // to key off instead -- falls back to "Qty" for any other/future company.
-  const selectedCompany = companies.find((c: any) => c._id === formData.companyName)
-  const quantityLabel = selectedCompany?.companyName?.trim().toLowerCase() === "quality packaging" ? "PCS" : "Qty"
+  const quantityLabel = isQP ? "PCS" : "Qty"
 
   return (
     <CustomDialog open={open} onClose={handleClose} maxWidth="md" title="Place New Order">
@@ -338,6 +351,27 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
             onChange={(e) => handleChange("size", e.target.value)}
           />
         </Stack>
+
+        {isQP && (
+          <Stack direction="row" spacing={2} mb={2}>
+            <ThemeInput
+              labelName="Ply"
+              placeholder="Enter ply"
+              fullWidth
+              type="number"
+              value={formData.ply}
+              onChange={(e) => handleChange("ply", e.target.value)}
+            />
+            <ThemeInput
+              labelName="Deckal"
+              placeholder="Enter deckal"
+              fullWidth
+              type="number"
+              value={formData.deckal}
+              onChange={(e) => handleChange("deckal", e.target.value)}
+            />
+          </Stack>
+        )}
 
         <Stack direction="row" spacing={2} mb={2}>
           <Box sx={{ width: "100%" }}>

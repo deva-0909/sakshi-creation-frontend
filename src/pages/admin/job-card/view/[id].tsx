@@ -133,6 +133,18 @@ const JobCardDetailPage = () => {
   const [qcResult, setQcResult] = useState<any>(null);
   const [defectCategory, setDefectCategory] = useState<any>(null);
   const [defectReason, setDefectReason] = useState("");
+  // QP box-manufacturing Figma audit (2026-08-25): the Order-In screen's
+  // expandable Factory checklist -- only shown/sent when stage === "Factory".
+  // No formula backs Kantan/Kantan Deckal anywhere in the Figma file itself
+  // (see claude/qp-box-manufacturing-kantan-figma-audit.md), so these are
+  // plain manual fields, matching what the design shows.
+  const [factoryUnitNumber, setFactoryUnitNumber] = useState("");
+  const [pasteingStatus, setPasteingStatus] = useState("");
+  const [piningStatus, setPiningStatus] = useState("");
+  const [rsFor, setRsFor] = useState("");
+  const [kantan, setKantan] = useState("");
+  const [kantanDeckal, setKantanDeckal] = useState("");
+  const [factoryDeliveryDate, setFactoryDeliveryDate] = useState("");
   // Module 8: wastage now needs a material + Role/Staff, same as Record
   // Material Usage, so it can write a real stock movement.
   const [wastedSheet, setWastedSheet] = useState("");
@@ -272,6 +284,13 @@ const JobCardDetailPage = () => {
     setQcResult(null);
     setDefectCategory(null);
     setDefectReason("");
+    setFactoryUnitNumber("");
+    setPasteingStatus("");
+    setPiningStatus("");
+    setRsFor("");
+    setKantan("");
+    setKantanDeckal("");
+    setFactoryDeliveryDate("");
   };
 
   const handleAdvanceStage = () => {
@@ -299,6 +318,13 @@ const JobCardDetailPage = () => {
           qcResult: stage === "QC" && qcResult ? (qcResult.value as "Passed" | "Failed") : undefined,
           defectCategory: stage === "QC" && defectCategory ? defectCategory.value : undefined,
           defectReason: stage === "QC" && defectReason ? defectReason : undefined,
+          unitNumber: stage === "Factory" && factoryUnitNumber ? Number(factoryUnitNumber) : undefined,
+          pasteingStatus: stage === "Factory" && pasteingStatus ? pasteingStatus : undefined,
+          piningStatus: stage === "Factory" && piningStatus ? piningStatus : undefined,
+          rsFor: stage === "Factory" && rsFor ? rsFor : undefined,
+          kantan: stage === "Factory" && kantan ? kantan : undefined,
+          kantanDeckal: stage === "Factory" && kantanDeckal ? kantanDeckal : undefined,
+          factoryDeliveryDate: stage === "Factory" && factoryDeliveryDate ? factoryDeliveryDate : undefined,
           wastedSheet: wastedSheet ? Number(wastedSheet) : undefined,
           wastageReason: wastageReason || undefined,
           wastageMaterial: wastageMaterial ? String(wastageMaterial.value) : undefined,
@@ -316,6 +342,13 @@ const JobCardDetailPage = () => {
     setQcResult(null);
     setDefectCategory(null);
     setDefectReason("");
+    setFactoryUnitNumber("");
+    setPasteingStatus("");
+    setPiningStatus("");
+    setRsFor("");
+    setKantan("");
+    setKantanDeckal("");
+    setFactoryDeliveryDate("");
     setWastedSheet("");
     setWastageReason("");
     setWastageMaterial(null);
@@ -489,6 +522,17 @@ const JobCardDetailPage = () => {
                     {h.defectReason ? ` (${h.defectReason})` : ""}
                   </Typography>
                 )}
+                {h.stage === "Factory" && (h.kantan || h.kantanDeckal || h.pasteingStatus || h.piningStatus || h.rsFor || h.unitNumber != null) && (
+                  <Typography fontSize={12} color="text.secondary">
+                    {h.unitNumber != null ? `Unit ${h.unitNumber} · ` : ""}
+                    {h.pasteingStatus ? `Pasteing: ${h.pasteingStatus} · ` : ""}
+                    {h.piningStatus ? `Pining: ${h.piningStatus} · ` : ""}
+                    {h.rsFor ? `Rs For: ${h.rsFor} · ` : ""}
+                    {h.kantan ? `Kantan: ${h.kantan}` : ""}
+                    {h.kantanDeckal ? ` (Deckal: ${h.kantanDeckal})` : ""}
+                    {h.factoryDeliveryDate ? ` · Delivery: ${new Date(h.factoryDeliveryDate).toLocaleDateString()}` : ""}
+                  </Typography>
+                )}
                 {h.wastedSheet != null && (
                   <Typography fontSize={12} color="text.secondary">
                     Wasted sheets: {h.wastedSheet}
@@ -638,6 +682,75 @@ const JobCardDetailPage = () => {
                     />
                   </>
                 )}
+              </>
+            )}
+
+            {stage === "Factory" && (
+              <>
+                <Typography fontSize={12} color="text.secondary" mt={-1}>
+                  QP box-manufacturing Figma audit (2026-08-25): this is the Order-In screen's Factory checklist
+                  (Unit / Pasteing / Pining / Rs For / Kantan / Kantan Deckal / Delivery Date). No formula backs
+                  Kantan anywhere in the design either -- these are plain manual fields, recorded the same way
+                  staff already write them down.
+                </Typography>
+                <Stack direction="row" spacing={2}>
+                  <ThemeInput
+                    labelName="Unit"
+                    type="number"
+                    fullWidth
+                    value={factoryUnitNumber}
+                    onChange={(e) => setFactoryUnitNumber(e.target.value)}
+                    disabled={!permissions?.edit}
+                  />
+                  <ThemeInput
+                    labelName="Delivery Date"
+                    type="date"
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    value={factoryDeliveryDate}
+                    onChange={(e) => setFactoryDeliveryDate(e.target.value)}
+                    disabled={!permissions?.edit}
+                  />
+                </Stack>
+                <Stack direction="row" spacing={2}>
+                  <ThemeInput
+                    labelName="Pasteing"
+                    fullWidth
+                    value={pasteingStatus}
+                    onChange={(e) => setPasteingStatus(e.target.value)}
+                    disabled={!permissions?.edit}
+                  />
+                  <ThemeInput
+                    labelName="Pining"
+                    fullWidth
+                    value={piningStatus}
+                    onChange={(e) => setPiningStatus(e.target.value)}
+                    disabled={!permissions?.edit}
+                  />
+                </Stack>
+                <ThemeInput
+                  labelName="Rs For"
+                  fullWidth
+                  value={rsFor}
+                  onChange={(e) => setRsFor(e.target.value)}
+                  disabled={!permissions?.edit}
+                />
+                <Stack direction="row" spacing={2}>
+                  <ThemeInput
+                    labelName="Kantan"
+                    fullWidth
+                    value={kantan}
+                    onChange={(e) => setKantan(e.target.value)}
+                    disabled={!permissions?.edit}
+                  />
+                  <ThemeInput
+                    labelName="Kantan Deckal"
+                    fullWidth
+                    value={kantanDeckal}
+                    onChange={(e) => setKantanDeckal(e.target.value)}
+                    disabled={!permissions?.edit}
+                  />
+                </Stack>
               </>
             )}
 
