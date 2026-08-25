@@ -12,6 +12,7 @@ import RoleStaffSelect from "@/component/reusablecomponents/RoleStaffSelect"
 import { useFormik } from "formik"
 import * as Yup from "yup"
 import DeliveryChallanPanel from "@/component/deliverychallanpanel"
+import { getAllDeliveryChallansThunk } from "@/store/slices/deliveryChallanSlice"
 
 type OptionType = {
   label: string
@@ -23,9 +24,17 @@ const DeliveryForm = () => {
   const { id: orderId } = router.query
   const dispatch = useAppDispatch()
   const { singleOrder } = useAppSelector((state) => state.orders)
+  // SC order-flow trace follow-up (2026-08-25): orders.status never had a
+  // path to "Completed" for Sakshi Creation -- "Delivery" was the
+  // permanent final status, even after a challan was actually delivered
+  // (see claude/sc-order-received-to-delivery-flow.md). Same slice
+  // DeliveryChallanPanel below already reads from, so this re-fetch just
+  // keeps this page's own gating in sync with it.
+  const { deliveryChallans } = useAppSelector((state) => state.deliveryChallans)
 
   const [pageLoading, setPageLoading] = useState(true)
   const [loading, setLoading] = useState(false)
+  const [completing, setCompleting] = useState(false)
   const [selectedDeliveryStaff, setSelectedDeliveryStaff] = useState<any>(null)
 
   const formik = useFormik({
@@ -111,6 +120,32 @@ const DeliveryForm = () => {
 
   const handleDeliveryStaffChange = (event: any, newValue: any) => {
     setSelectedDeliveryStaff(newValue)
+  }
+
+  // Fetch this order's own delivery challans once it's actually in the
+  // Delivery stage, so "Mark Order Completed" below can gate on real
+  // evidence (a Delivered challan) rather than just the staff assignment.
+  useEffect(() => {
+    if (orderId && typeof orderId === "string" && singleOrder?.deliveryStaff) {
+      dispatch(getAllDeliveryChallansThunk({ orderId }))
+    }
+  }, [dispatch, orderId, singleOrder?.deliveryStaff])
+
+  const hasDeliveredChallan = deliveryChallans.some((c) => c.status === "Delivered")
+  const isCompleted = singleOrder?.status === "Completed"
+
+  const handleMarkCompleted = async () => {
+    if (!orderId || typeof orderId !== "string") return
+    setCompleting(true)
+    try {
+      await dispatch(updateOrderThunk({ id: orderId, data: { status: "Completed" } })).unwrap()
+      toast.success("Order marked as Completed")
+      await dispatch(getOrderByIdThunk(orderId)).unwrap()
+    } catch (error: any) {
+      toast.error(error?.message || error || "Failed to mark order as Completed")
+    } finally {
+      setCompleting(false)
+    }
   }
 
   if (pageLoading) {
@@ -248,6 +283,51 @@ const DeliveryForm = () => {
         {/* Delivery Challans (Module 12): available once the order has entered the Delivery stage */}
         {singleOrder.deliveryStaff && typeof orderId === "string" && (
           <DeliveryChallanPanel orderId={orderId} orderQty={Number(singleOrder.qty) || 0} />
+        )}
+
+        {/* SC order-flow trace follow-up (2026-08-25): the only way a Sakshi
+            Creation order ever reached a terminal state -- previously
+            "Delivery" stayed final forever, with no code path setting
+            orders.status to "Completed" even after a challan was actually
+            delivered (see claude/sc-order-received-to-delivery-flow.md).
+            Gated on a real Delivered challan, not just staff assignment, so
+            this can't be clicked before something was actually delivered. */}
+        {singleOrder.deliveryStaff && !isCompleted && (
+          <Box mt={2} border="2px solid #12B76A" borderRadius={2} p={2} bgcolor="#fff">
+            <Typography fontWeight={600} fontSize={16} mb={1}>
+              Complete Order
+            </Typography>
+            <Typography fontSize={13} color="text.secondary" mb={2}>
+              {hasDeliveredChallan
+                ? "A delivery challan for this order has been marked Delivered. You can now close this order out."
+                : "Mark at least one delivery challan above as Delivered before this order can be completed."}
+            </Typography>
+            <ThemeButton
+              sx={{
+                background: "#12B76A",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: 16,
+                borderRadius: 2,
+                py: 1.2,
+                width: "100%",
+                "&:hover": { background: "#079455" },
+                "&:disabled": { background: "#D0D5DD", color: "#667085" },
+              }}
+              onClick={handleMarkCompleted}
+              disabled={!hasDeliveredChallan || completing}
+            >
+              {completing ? "Marking Completed..." : "Mark Order Completed"}
+            </ThemeButton>
+          </Box>
+        )}
+
+        {isCompleted && (
+          <Box mt={2} border="2px solid #12B76A" borderRadius={2} p={2} bgcolor="#ECFDF3">
+            <Typography fontWeight={600} fontSize={16} color="#027A48">
+              This order is Completed.
+            </Typography>
+          </Box>
         )}
       </Box>
     </>
