@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 import Endpoint from '@/API/apiConfig';
 import { useRouter } from 'next/router';
 import { useAppDispatch } from '@/store';
-import { setAuth } from '@/store/slices/authSlice';
+import { setAuth, clearAuth } from '@/store/slices/authSlice';
 import { authService } from '@/services/auth.service';
 import { Box, TextField, Button, Typography, CircularProgress, InputAdornment, IconButton } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
@@ -35,14 +35,35 @@ const LoginPage: React.FC = () => {
   useEffect(() => {
     if (!router.isReady) return;
 
-    const authToken = authService.getToken();
-    if (authToken) {
+    // Deep-audit / live-bug fix: this page previously decided "already
+    // logged in" purely from localStorage (authService.getToken()), while
+    // src/middleware.ts -- which actually gates /admin/** -- trusts only
+    // the separate `auth_token` cookie. The two stores can fall out of
+    // sync (e.g. the cookie's 1-day expiry lapses, or gets cleared by
+    // browser privacy settings, while localStorage's token has no expiry
+    // at all) without ever going through logout. When that happened, this
+    // effect would push to the redirect target, middleware would see no
+    // cookie and bounce straight back to /login?redirect=..., and this
+    // effect would fire again on remount -- an infinite router.push loop
+    // that manifested live as every screen "buffering" (Chrome's own
+    // navigation-throttling warning was the only visible symptom).
+    // Checking both stores, and clearing the stale one instead of
+    // pushing when they disagree, breaks the loop and is the honest
+    // "you're not really logged in" case rather than a cosmetic guard.
+    const localToken = authService.getToken();
+    const cookieToken = Cookies.get('auth_token');
+
+    if (localToken && cookieToken) {
       const redirectPath = (router.query.redirect as string) || '/';
       router.push(redirectPath);
+    } else if (localToken && !cookieToken) {
+      authService.clearAuth();
+      dispatch(clearAuth());
+      setLoader(false);
     } else {
       setLoader(false);
     }
-  }, [router.isReady, router]);
+  }, [router.isReady, router, dispatch]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,16 +98,32 @@ const LoginPage: React.FC = () => {
 
         const isProduction = process.env.NODE_ENV === 'production';
 
-        // Store in cookies
+        // Store in cookies. sameSite is always 'Lax' (not 'None'): this
+        // cookie is read only by this app's own middleware.ts on the same
+        // origin -- it's never sent cross-site (the backend, a separate
+        // deployment, authenticates via the Authorization header only,
+        // never cookies -- confirmed via `grep req.cookies` across its
+        // middleware returning no matches). 'None' is for cookies that
+        // must ride along on cross-site requests; using it here bought
+        // nothing and made the cookie a target for the stricter rejection/
+        // partitioning rules browsers apply to SameSite=None cookies
+        // (Safari ITP, Brave, some privacy extensions) -- while
+        // localStorage (used elsewhere as the token source of truth) is
+        // immune to all of that. That divergence is what caused the live
+        // infinite-redirect-loop bug: the cookie could silently vanish
+        // while localStorage's copy of the token persisted, so this
+        // page's "already logged in" check and middleware.ts's cookie
+        // check permanently disagreed. See the loader effect below for
+        // the other half of this fix.
         Cookies.set('auth_token', token, {
           expires: 1,
           secure: isProduction,
-          sameSite: isProduction ? 'None' : 'Lax',
+          sameSite: 'Lax',
         });
         Cookies.set('user', JSON.stringify(user), {
           expires: 1,
           secure: isProduction,
-          sameSite: isProduction ? 'None' : 'Lax',
+          sameSite: 'Lax',
         });
 
         // Store in authService and Redux
