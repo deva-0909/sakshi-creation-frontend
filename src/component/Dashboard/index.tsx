@@ -59,6 +59,9 @@ const permissionMapping: { [key: string]: string } = {
   "Party call": "party_call",
   "All Orders": "all_orders",
   "Quality Packaging": "quality_packaging",
+  // Two-company Phase 3 Part A: "All Complains" top-level nav item, per the
+  // Figma reference's confirmed-differences table (two-company-gap-analysis.md).
+  "All Complains": "complaint",
   "Performance invoice": "proforma_invoice",
   Reports: "reports",
   Inventory: "inventory",
@@ -116,6 +119,7 @@ const menuItems = [
   { label: "Job Card", icon: <MdWork size={18} />, path: "/admin/job-card" },
   { label: "Wastage Report", icon: <MdAssignment size={18} />, path: "/admin/job-card/wastage-report" },
   { label: "Quality Packaging", icon: <MdSettings size={18} />, path: "/admin/quality-packageing" },
+  { label: "All Complains", icon: <MdFactCheck size={18} />, path: "/admin/complaints" },
   { label: "Performance invoice", icon: <MdSettings size={18} />, path: "/admin/performance-invoice" },
   {
     label: "Reports",

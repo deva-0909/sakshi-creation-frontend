@@ -57,6 +57,7 @@ import deliveryChallanReducer from '@/store/slices/deliveryChallanSlice';
 import reportsReducer from '@/store/slices/reportsSlice';
 import activeCompanyReducer from '@/store/slices/activeCompanySlice';
 import dyePunchReducer from '@/store/slices/dyePunchSlice';
+import complaintReducer from '@/store/slices/complaintSlice';
 // Persist configuration
 export const persistConfig = {
   key: 'auth',
@@ -95,6 +96,7 @@ export const store = configureStore({
     jobCards: jobCardReducer,
     machines: machineReducer,
     dyePunches: dyePunchReducer,
+    complaints: complaintReducer,
     stockLedger: stockLedgerReducer,
     rfqs: rfqReducer,
     purchaseOrders: purchaseOrderReducer,

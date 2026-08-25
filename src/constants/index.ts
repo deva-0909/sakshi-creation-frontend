@@ -171,6 +171,16 @@ export const permissionsArray = {
     edit: false,
     delete: false,
   },
+  // Two-company Phase 3 Part A: Complaints module ("All Complains" nav item
+  // from the Figma reference's Quality Packaging dashboard). Backend already
+  // grants this key to Admin directly in Supabase; other roles get it here.
+  complaint: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
   rfq: {
     view_global: false,
     view_own: false,

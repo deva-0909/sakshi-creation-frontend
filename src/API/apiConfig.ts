@@ -214,6 +214,14 @@ const Endpoint = {
   UPDATE_DYE_PUNCH: `${BaseURL}/api/dye-punches`,
   DELETE_DYE_PUNCH: `${BaseURL}/api/dye-punches`,
 
+  // Complaint endpoints (two-company Phase 3 Part A -- "All Complains" nav
+  // item from the Quality Packaging dashboard, see two-company-gap-analysis.md)
+  CREATE_COMPLAINT: `${BaseURL}/api/complaints`,
+  GET_ALL_COMPLAINTS: `${BaseURL}/api/complaints`,
+  GET_COMPLAINT_BY_ID: `${BaseURL}/api/complaints`,
+  UPDATE_COMPLAINT: `${BaseURL}/api/complaints`,
+  DELETE_COMPLAINT: `${BaseURL}/api/complaints`,
+
   // Stock Ledger endpoints
   GET_MATERIAL_LEDGER: `${BaseURL}/api/stock-ledger/material`,
   GET_STOCK_SUMMARY: `${BaseURL}/api/stock-ledger/summary`,
