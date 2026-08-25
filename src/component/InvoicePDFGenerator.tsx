@@ -81,17 +81,35 @@ const InvoicePDFGenerator: React.FC<InvoicePDFGeneratorProps> = ({
       return lines;
     };
 
-    // Add Logos to PDF
-    try {
-      // First logo (left side)
-      doc.addImage(logoImage1.src, "PNG", LOGO_X_LEFT, LOGO_Y, LOGO_WIDTH, LOGO_HEIGHT);
+    // Two-company (QP order-process audit, 2026-08-25): this whole header
+    // block -- both logo images and the address/phone/email lines -- was
+    // Sakshi Creation's real, hardcoded contact details, embedded on every
+    // Performance Invoice regardless of which company the form's own
+    // companyName field said the document was for. There's no equivalent
+    // logo asset or verified address on file for Quality Packaging, so
+    // rather than fabricate one, a non-Sakshi-Creation company gets a
+    // plain text letterhead (its real name, from the form) instead of
+    // Sakshi's logos/address -- accurate, if plainer, until QP's own
+    // letterhead assets/address are supplied.
+    const isSakshiCreation = (formData.companyName || "").trim().toLowerCase() === "sakshi creation";
 
-      // Second logo (centered)
-      const LOGO_X_CENTER = (PAGE_WIDTH - LOGO_WIDTH) / 2; // Center the second logo
-      doc.addImage(logoImage2.src, "PNG", LOGO_X_CENTER, LOGO_Y, LOGO_WIDTH1, LOGO_HEIGHT1);
+    if (isSakshiCreation) {
+      // Add Logos to PDF
+      try {
+        // First logo (left side)
+        doc.addImage(logoImage1.src, "PNG", LOGO_X_LEFT, LOGO_Y, LOGO_WIDTH, LOGO_HEIGHT);
+
+        // Second logo (centered)
+        const LOGO_X_CENTER = (PAGE_WIDTH - LOGO_WIDTH) / 2; // Center the second logo
+        doc.addImage(logoImage2.src, "PNG", LOGO_X_CENTER, LOGO_Y, LOGO_WIDTH1, LOGO_HEIGHT1);
       } catch (error) {
-      console.error("Error loading logos:", error);
-      // Continue PDF generation even if logos fail to load
+        console.error("Error loading logos:", error);
+        // Continue PDF generation even if logos fail to load
+      }
+    } else {
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text(formData.companyName || "N/A", LOGO_X_LEFT, LOGO_Y + LOGO_HEIGHT / 2);
     }
 
       // Header Section
@@ -102,24 +120,26 @@ const InvoicePDFGenerator: React.FC<InvoicePDFGeneratorProps> = ({
       doc.line(10, HEADER_Y + 2, 200, HEADER_Y + 2);
 
       // Add company details on the right side
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      doc.text("M : 93750 47330", 200, 10, { align: "right" });
+      if (isSakshiCreation) {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text("M : 93750 47330", 200, 10, { align: "right" });
 
-      doc.setFont("helvetica", "normal");
-      const companyAddress = [
-        "109-110, Shree Krishna Market,",
-        "Nr. Rajhans Imperia, Ring Road,",
-        "Surat - 395 002.",
-        "Ph.: 0261-4017971",
-      "sakshicreation3600@gmail.com",
-      ];
-    
-      let companyAddressY = 20;
-      companyAddress.forEach((line) => {
-        doc.text(line, 200, companyAddressY, { align: "right" });
-        companyAddressY += 5;
-      });
+        doc.setFont("helvetica", "normal");
+        const companyAddress = [
+          "109-110, Shree Krishna Market,",
+          "Nr. Rajhans Imperia, Ring Road,",
+          "Surat - 395 002.",
+          "Ph.: 0261-4017971",
+        "sakshicreation3600@gmail.com",
+        ];
+
+        let companyAddressY = 20;
+        companyAddress.forEach((line) => {
+          doc.text(line, 200, companyAddressY, { align: "right" });
+          companyAddressY += 5;
+        });
+      }
 
       // Invoice Details (Left)
       doc.setFontSize(10);

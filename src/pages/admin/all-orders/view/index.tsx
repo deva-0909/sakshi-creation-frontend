@@ -16,6 +16,28 @@
 
   const activeStep = 0
 
+  // QP order-process audit (2026-08-25): this page is the landing view for
+  // every Quality Packaging order (see all-orders/index.tsx's getRouteByStatus,
+  // which now always routes QP orders here rather than into any of Sakshi
+  // Creation's legacy per-stage sub-pages). StepperProgress's default 6
+  // steps and clickable Sakshi-only sub-page paths don't apply to QP, so it
+  // gets its own read-only step list mirroring QUALITY_PACKAGING_STAGE_ORDER
+  // (jobCard.controller.js) plus the Order Received/Completed bookends that
+  // orders.status can also hold for QP (see the widened orders_status_check).
+  const QP_STEPS = [
+    { label: "Order Received", path: "" },
+    { label: "Printer", path: "" },
+    { label: "Binder", path: "" },
+    { label: "Booklet Binder", path: "" },
+    { label: "Factory", path: "" },
+    { label: "Godown", path: "" },
+    { label: "Completed", path: "" },
+  ]
+  const qpActiveStep = (status?: string) => {
+    const index = QP_STEPS.findIndex((s) => s.label === status)
+    return index === -1 ? 0 : index
+  }
+
   interface FormValues {
     companyName: string
     partyName: string
@@ -253,10 +275,19 @@
               </ThemeButton>
             </Box>
           )}
-          <StepperProgress
-  activeStep={0}
-  orderStatus={singleOrder?.status}
-/>
+          {singleOrder?.companyName?.companyName === "Quality Packaging" ? (
+            <StepperProgress
+              activeStep={qpActiveStep(singleOrder?.status)}
+              orderStatus={singleOrder?.status}
+              steps={QP_STEPS}
+              clickable={false}
+            />
+          ) : (
+            <StepperProgress
+              activeStep={0}
+              orderStatus={singleOrder?.status}
+            />
+          )}
           <Paper
             variant="outlined"
             sx={{

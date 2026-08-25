@@ -44,7 +44,7 @@ export const createInvoiceThunk = createAsyncThunk("invoice/create", async (data
 
 export const getAllInvoicesThunk = createAsyncThunk(
   "invoice/getAll",
-  async (params: { status?: string; partyId?: string; search?: string; page?: number; limit?: number } | undefined, { rejectWithValue }) => {
+  async (params: { status?: string; partyId?: string; companyName?: string; search?: string; page?: number; limit?: number } | undefined, { rejectWithValue }) => {
     try {
       const response = await invoiceService.getAllInvoices(params);
       if (response.success && Array.isArray(response.data)) {

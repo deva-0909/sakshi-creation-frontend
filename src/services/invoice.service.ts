@@ -84,7 +84,7 @@ export const invoiceService = {
     }
   },
 
-  async getAllInvoices(params?: { status?: string; partyId?: string; search?: string; page?: number; limit?: number }): Promise<ApiResponse<Invoice[]>> {
+  async getAllInvoices(params?: { status?: string; partyId?: string; companyName?: string; search?: string; page?: number; limit?: number }): Promise<ApiResponse<Invoice[]>> {
     try {
       const response: AxiosResponse<ApiResponse<Invoice[]>> = await axios.get(Endpoint.GET_ALL_INVOICES, {
         headers: authHeaders(),

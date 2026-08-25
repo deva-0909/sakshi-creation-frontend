@@ -191,6 +191,18 @@ const filteredOrders = useMemo(() => {
   const getRouteByStatus = (row: Order): string => {
     const { designer, printer, binder, bookletBinder } = row;
     const status = row.status as string;
+    // QP order-process audit (2026-08-25): Quality Packaging's status
+    // vocabulary now overlaps with Sakshi Creation's on purpose ("Printer"/
+    // "Binder" are shared stage names -- see orders_status_check), but a QP
+    // order must NEVER fall into the switch below, since every one of those
+    // routes is the legacy printer-task/binder-task-style flow reading
+    // designerStatus/printerStatus/etc. fields that QP orders never
+    // populate (QP's real progress lives in job_cards/job_card_stages
+    // instead). Every QP order goes to the base order-view page, regardless
+    // of its status string.
+    if (row.companyName?.companyName === "Quality Packaging") {
+      return `/admin/all-orders/view?id=${row._id}`;
+    }
     switch (status) {
       case "Received":
         return `/admin/all-orders/view?id=${row._id}`;
@@ -221,6 +233,21 @@ const filteredOrders = useMemo(() => {
     }
   };
 
+// QP order-process audit (2026-08-25): Quality Packaging's own job-card-
+// driven status values, in the same order as QUALITY_PACKAGING_STAGE_ORDER
+// (jobCard.controller.js) -- kept in one place here rather than duplicated
+// inline below.
+const QP_STATUS_LABELS: Record<string, string> = {
+  Received: "Order Received",
+  Printer: "Printing",
+  Binder: "Binding",
+  "Booklet Binder": "Booklet Binding",
+  Factory: "At Factory",
+  Godown: "At Godown",
+  Completed: "Completed",
+  Hold: "On Hold",
+};
+
 const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
   const { designerStatus, printerStatus, binderStatus, bookletBinderStatus, designer, binder, bookletBinder } = row;
   const status = row.status as string;
@@ -229,6 +256,16 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
     binder: binder,
     bookletBinder: bookletBinder,
   };
+
+  // QP order-process audit (2026-08-25): must be checked before the Hold
+  // branch and the Sakshi-only switch below -- QP's status vocabulary
+  // shares string values with Sakshi's ("Printer"/"Binder"/"Hold") but has
+  // no designerStatus/printerStatus/etc. sub-status or staff data to show,
+  // so it needs its own display mapping entirely rather than falling
+  // through into logic built for the legacy per-stage fields.
+  if (row.companyName?.companyName === "Quality Packaging") {
+    return { text: QP_STATUS_LABELS[status] || status || "Order Received", isHold: status === "Hold" };
+  }
 
   if (status === "Hold") {
     const { designer, printer, binder, bookletBinder } = row;

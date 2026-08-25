@@ -13,7 +13,7 @@ import { Box } from '@mui/system';
 import { FaCheck } from "react-icons/fa6";
 import { useRouter } from 'next/router';
 
-const steps = [
+const DEFAULT_STEPS = [
   { label: 'Order Received', path: '' },
   { label: 'Designer', path: 'designer' },
   { label: 'Printer', path: 'printers' },
@@ -72,19 +72,31 @@ type StepperProgressProps = {
   orderStatus: string;
   designerStatus?: string;
   printerStatus?: string;
+  // QP order-process audit (2026-08-25): Quality Packaging's pipeline
+  // (Printer/Binder/Booklet Binder/Factory/Godown, no Designer/Delivery)
+  // has no equivalent per-stage view sub-pages the way Sakshi Creation's
+  // legacy printer-task/binder-task-style pages do, so a QP caller passes
+  // its own `steps` list and `clickable={false}` -- every other caller
+  // (Sakshi Creation's legacy view/* pages) is unaffected, since both
+  // props default to the original hardcoded 6-step Sakshi behavior.
+  steps?: { label: string; path: string }[];
+  clickable?: boolean;
 };
 
-const StepperProgress: React.FC<StepperProgressProps> = ({ 
-  activeStep, 
+const StepperProgress: React.FC<StepperProgressProps> = ({
+  activeStep,
   orderStatus,
   designerStatus,
-  printerStatus 
+  printerStatus,
+  steps = DEFAULT_STEPS,
+  clickable = true,
 }) => {
   const router = useRouter();
   const { id } = router.query;
 
   // Determine if a step is clickable based on workflow progression
 const isStepClickable = (index: number) => {
+  if (!clickable) return false;
   // Always allow clicking on the current step
   if (index === activeStep) return true;
   

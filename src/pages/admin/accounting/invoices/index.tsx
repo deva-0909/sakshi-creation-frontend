@@ -67,15 +67,20 @@ const InvoicePage = () => {
   const dispatch = useAppDispatch();
   const { invoices, loading, totalCount } = useAppSelector((state) => state.invoices);
   const { user } = useAppSelector((state) => state.auth);
+  // QP order-process audit (2026-08-25): this list already showed a Company
+  // column but never actually scoped to the active company -- getAllInvoices
+  // had no companyName filter at all (unlike orders/job cards/purchases/
+  // complaints/dye-punches, which all already followed this pattern).
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const [open, setOpen] = useState(false);
 
   const canCreate = user?.role?.permissions?.invoice?.create;
 
   useEffect(() => {
-    dispatch(getAllInvoicesThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllInvoicesThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
-  const refreshData = () => dispatch(getAllInvoicesThunk(undefined));
+  const refreshData = () => dispatch(getAllInvoicesThunk({ companyName: activeCompanyId || undefined }));
 
   return (
     <Box p={3}>
