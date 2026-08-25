@@ -129,7 +129,16 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
     label: company.companyName,
   }));
 
-  const allowedRoleNames = ['Booklet & Folder Binder', 'Printer', 'Binder'];
+  // Phase 4 (two-company polish): same fix as add-purchase/index.tsx -- this
+  // whitelist was hardcoded to Sakshi Creation's roles regardless of the
+  // selected company, so the bulk-import dialog could never route a Quality
+  // Packaging purchase to Factory/Godown either. See that file's comment for
+  // the full rationale.
+  const selectedCompanyName = companies.find((company) => company._id === formik.values.companyName)?.companyName;
+  const allowedRoleNames =
+    selectedCompanyName === 'Quality Packaging'
+      ? ['Printer', 'Binder', 'Booklet Binder', 'Factory', 'Godown']
+      : ['Booklet & Folder Binder', 'Printer', 'Binder'];
   const roleOptions: Option[] = roles
     .filter((role) => allowedRoleNames.includes(role.roleName))
     .map((role) => ({

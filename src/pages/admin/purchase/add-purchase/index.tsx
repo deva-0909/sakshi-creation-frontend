@@ -75,7 +75,25 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
     label: company.companyName
   }));
 
-  const allowedRoleNames = ['Booklet & Folder Binder', 'Printer', 'Binder'];
+  // Phase 4 (two-company polish, claude/two-company-gap-analysis.md): this
+  // "DELIVER TO" dropdown is really a Role picker (see forCompany, the Staff
+  // picker below it) -- it was hardcoded to Sakshi Creation's three roles
+  // regardless of which company was selected, so Quality Packaging purchases
+  // could never be routed to Factory/Godown. Mirrors the backend's
+  // stageOrderForCompany() (jobCard.controller.js): Quality Packaging's list
+  // uses the exact same stage-name strings as its job-card pipeline
+  // (QUALITY_PACKAGING_STAGE_ORDER) so a role created for job-card staff
+  // assignment (RoleStaffSelect roleFilter={stage}) also works here.
+  // Sakshi Creation's list is left untouched, including its pre-existing
+  // "Booklet & Folder Binder" naming (used elsewhere across the legacy order
+  // flow -- all-orders, role setup) which differs from the job-card system's
+  // "Booklet Binder"; that inconsistency predates this fix and is out of
+  // scope for it.
+  const selectedCompanyName = companies.find(company => company._id === formData.companyName)?.companyName;
+  const allowedRoleNames =
+    selectedCompanyName === 'Quality Packaging'
+      ? ['Printer', 'Binder', 'Booklet Binder', 'Factory', 'Godown']
+      : ['Booklet & Folder Binder', 'Printer', 'Binder'];
   const roleOptions = roles
     .filter(role => allowedRoleNames.includes(role.roleName))
     .map(role => ({
