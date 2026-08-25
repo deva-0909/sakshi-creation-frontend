@@ -1,442 +1,227 @@
-import React, { useState } from 'react';
-import BasicTable from '@/component/common_component/Table/themetable';
-import ThemeChip from '@/component/common_component/themechip';
-import ThemeTabs from '@/component/common_component/themetabs';
-import { TableCell, IconButton, Box, Stack, Tooltip } from '@mui/material';
-import { MdEdit, MdDelete } from 'react-icons/md';
-import CustomDialog from '@/component/customdialog';
-import ThemeInput from '@/component/common_component/themeinput';
-import ThemeSelect from '@/component/common_component/themeselect';
-import ThemeButton from '@/component/common_component/themebutton';
+import React, { useEffect, useState } from "react";
+import { Box, Typography, Grid, Paper, TableCell, Chip, Stack } from "@mui/material";
+import { useRouter } from "next/router";
+import BasicTable from "@/component/common_component/Table/themetable";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { getAllJobCardsThunk } from "@/store/slices/jobCardSlice";
+import { getAllComplaintsThunk } from "@/store/slices/complaintSlice";
+import { getAllOrdersThunk } from "@/store/slices/orderSlice";
 
-const columns = [
-  { id: 'party', label: 'Party' },
-  { id: 'person', label: 'Person' },
-  { id: 'partyTag', label: 'Party Tag' },
-  { id: 'mobile', label: 'Mobile No.' },
-  { id: 'reason', label: 'Reason to visit' },
-  { id: 'market', label: 'Market' },
-  { id: 'area', label: 'Area' },
-  { id: 'remarks', label: 'Remarks' },
-  { id: 'orderNo', label: 'Order No.' },
-  { id: 'status', label: 'Status' },
-  { id: 'createdBy', label: 'Created By' },
-  { id: 'assignedTo', label: 'Assigned to' },
-  { id: 'action', label: 'Action' },
+// Two-company Phase 3 Part B (claude/two-company-gap-analysis.md): the real
+// Quality Manager Dashboard, replacing this page's previous entirely-mock
+// content (hardcoded rows, no Redux, no API calls -- confirmed during Phase
+// 3 Part A's scoping). Deliberately built with NO new backend endpoint or
+// table: it's a read-only rollup of data that already exists (job cards,
+// complaints, orders), scoped to whichever company is active in the global
+// CompanyToggle, the same way every other company-scoped screen works.
+// getAllJobCards/getAllComplaints are called unpaginated (no page/limit) so
+// their full matching set comes back in one call and stage/priority counts
+// can be computed client-side -- fine at this app's data volume, and it
+// avoids inventing a dedicated stats endpoint for numbers this cheap to
+// derive from data already being fetched for the tables below.
+const STAGE_COLORS: Record<string, "default" | "info" | "warning" | "success"> = {
+  Printer: "info",
+  Binder: "info",
+  "Booklet Binder": "info",
+  Factory: "warning",
+  Godown: "success",
+  Done: "success",
+};
+
+const COMPLAINT_STATUS_COLORS: Record<string, "default" | "warning" | "info" | "success"> = {
+  Open: "warning",
+  "In Progress": "info",
+  Resolved: "success",
+  Closed: "default",
+};
+
+const jobCardColumns = [
+  { id: "id", label: "#" },
+  { id: "jobCardNumber", label: "Job Card No." },
+  { id: "orderNumber", label: "Order No." },
+  { id: "item", label: "Item" },
+  { id: "stage", label: "Stage" },
+  { id: "status", label: "Status" },
+  { id: "assignedTo", label: "Assigned To" },
 ];
-
-type OptionType = {
-  label: string;
-  value: string | number;
-};
-
-type RowData = {
-  id: string;
-  party: string;
-  person: string;
-  partyTag: string;
-  mobile: string;
-  reason: string;
-  market: string;
-  area: string;
-  remarks: string;
-  orderNo: number;
-  status: string;
-  createdBy: string;
-  assignedTo: string;
-};
-
-const rows: RowData[] = [
-  {
-    id: '1',
-    party: 'Raj & Sons',
-    person: 'Sagar',
-    partyTag: 'New',
-    mobile: '9879281231',
-    reason: 'Get Payment',
-    market: 'Shanti Bazar',
-    area: 'Vesu',
-    remarks: 'Sample remarks',
-    orderNo: 1,
-    status: 'Done',
-    createdBy: 'Sagar',
-    assignedTo: 'Dhruv',
-  },
-  {
-    id: '2',
-    party: 'Patel Traders',
-    person: 'Rahul',
-    partyTag: 'Customer',
-    mobile: '9876543210',
-    reason: 'Order Placement',
-    market: 'Ghod Dod Road',
-    area: 'Surat',
-    remarks: 'Urgent delivery',
-    orderNo: 2,
-    status: 'Cancelled',
-    createdBy: 'Admin',
-    assignedTo: 'Jay',
-  },
-];
-
-const getStatusChip = (status: string) => {
-  if (status === 'Done') {
-    return <ThemeChip label="✔ Done" color="success" sx={{ fontWeight: 500, fontSize: 14, px: 1.5 }} />;
-  }
-  if (status === 'Cancelled') {
-    return <ThemeChip label="✖ Cancelled" color="error" sx={{ fontWeight: 500, fontSize: 14, px: 1.5 }} />;
-  }
-  if (status === 'Re-Schedule') {
-    return <ThemeChip label="↩ Re-Schedule" color="default" sx={{ fontWeight: 500, fontSize: 14, px: 1.5, bgcolor: '#F2F4F7', color: '#667085' }} />;
-  }
-  return null;
-};
-
-const getPartyTagChip = (tag: string) => {
-  if (tag === 'New') {
-    return <ThemeChip label="New" color="primary" sx={{ fontWeight: 500, fontSize: 13, px: 1.5 }} />;
-  }
-  if (tag === 'Customer') {
-    return <ThemeChip label="Customer" color="default" sx={{ fontWeight: 500, fontSize: 13, px: 1.5, bgcolor: '#F2F4F7', color: '#667085' }} />;
-  }
-  return null;
-};
-
-const companyOptions: OptionType[] = [{ label: 'Sakshi Creation', value: 'sakshi' }];
-const partyOptions: OptionType[] = [{ label: 'Party1', value: 'party1' }];
-const reasonOptions: OptionType[] = [{ label: 'Get Payment', value: 'get_payment' }];
-const staffOptions: OptionType[] = [{ label: 'Staff Name', value: 'staff1' }];
-
-type EditDialogProps = {
-  open: boolean;
-  onClose: () => void;
-  row: RowData | null;
-};
-
-const EditDialog: React.FC<EditDialogProps> = ({ open, onClose, row }) => {
-  const [owner, setOwner] = useState('Owner Name');
-  const [person, setPerson] = useState(row?.person || '');
-  const [mobile, setMobile] = useState('98312-13221');
-  const [mobileCode, setMobileCode] = useState('91');
-  const [whatsapp, setWhatsapp] = useState('98312-13221');
-  const [whatsappCode, setWhatsappCode] = useState('91');
-  const [date, setDate] = useState('12/02/25');
-  const [address1, setAddress1] = useState('34');
-  const [address2, setAddress2] = useState('Raj tower');
-  const [address3, setAddress3] = useState('Main Road');
-  const [address4, setAddress4] = useState('Nr HDFC Bank');
-  const [address5, setAddress5] = useState('Navi Mumbai');
-  const [address6, setAddress6] = useState('324234');
-  const [reason, setReason] = useState<OptionType | null>(null);
-  const [assign, setAssign] = useState<OptionType | null>(null);
-
-  return (
-    <CustomDialog open={open} onClose={onClose} title="Edit">
-      <Box sx={{ p: 2, background: '#fff', borderRadius: 2 }}>
-        <Stack direction="row" spacing={2} mb={2}>
-          <ThemeInput labelName="Company Name" value={companyOptions[0].label} fullWidth />
-          <ThemeInput labelName="Party Name" value={partyOptions[0].label} fullWidth />
-        </Stack>
-        <Stack direction="row" spacing={2} mb={2}>
-          <ThemeInput labelName="Owner Name" value={owner} onChange={e => setOwner(e.target.value)} fullWidth />
-          <ThemeInput labelName="Person Name" value={person} onChange={e => setPerson(e.target.value)} fullWidth />
-        </Stack>
-        <Stack direction="row" spacing={2} mb={2}>
-          <ThemeInput
-            labelName="Mobile No."
-            value={mobile}
-            onChange={e => setMobile(e.target.value)}
-            mobile
-            countryCode={mobileCode}
-            onCountryCodeChange={setMobileCode}
-            fullWidth
-          />
-          <ThemeInput
-            labelName="WhatsApp No."
-            value={whatsapp}
-            onChange={e => setWhatsapp(e.target.value)}
-            mobile
-            countryCode={whatsappCode}
-            onCountryCodeChange={setWhatsappCode}
-            fullWidth
-          />
-        </Stack>
-        <ThemeInput
-          labelName="Date"
-          value={date}
-          onChange={e => setDate(e.target.value)}
-          type="date"
-          fullWidth
-          sx={{ mb: 2 }}
-          InputLabelProps={{ shrink: true }}
-        />
-        <Stack direction="row" spacing={2} mb={2}>
-          <ThemeInput labelName="Address" value={address1} onChange={e => setAddress1(e.target.value)} fullWidth />
-          <ThemeInput value={address2} onChange={e => setAddress2(e.target.value)} fullWidth />
-          <ThemeInput value={address3} onChange={e => setAddress3(e.target.value)} fullWidth />
-          <ThemeInput value={address4} onChange={e => setAddress4(e.target.value)} fullWidth />
-        </Stack>
-        <Stack direction="row" spacing={2} mb={2}>
-          <ThemeInput value={address5} onChange={e => setAddress5(e.target.value)} fullWidth />
-          <ThemeInput value={address6} onChange={e => setAddress6(e.target.value)} fullWidth />
-        </Stack>
-        <ThemeSelect
-          label="Reason for visit"
-          value={reason}
-          options={reasonOptions}
-          onChange={(_, v) => setReason(v)}
-          sx={{ mb: 2 }}
-        />
-        <ThemeSelect
-          label="Assign to"
-          value={assign}
-          options={staffOptions}
-          onChange={(_, v) => setAssign(v)}
-          sx={{ mb: 3 }}
-        />
-        <Stack direction="row" spacing={2}>
-          <ThemeButton
-            variant="outlined"
-            sx={{
-              background: '#667085',
-              color: '#fff',
-              fontWeight: 600,
-              fontSize: 16,
-              borderRadius: 2,
-              py: 1.2,
-              width: '100%',
-              '&:hover': { background: '#475467' }
-            }}
-            onClick={onClose}
-          >
-            Discard Changes
-          </ThemeButton>
-          <ThemeButton
-            sx={{
-              background: '#12B76A',
-              color: '#fff',
-              fontWeight: 600,
-              fontSize: 16,
-              borderRadius: 2,
-              py: 1.2,
-              width: '100%',
-              '&:hover': { background: '#079455' }
-            }}
-          >
-            Save Changes
-          </ThemeButton>
-        </Stack>
-      </Box>
-    </CustomDialog>
-  );
-};
 
 const orderColumns = [
-  { id: 'orderFormNo', label: 'ORDER FORM NO.' },
-  { id: 'noOfOrders', label: 'NO. OF ORDERS' },
-  { id: 'date', label: 'DATE' },
-  { id: 'time', label: 'TIME' },
-  { id: 'size', label: 'SIZE' },
-  { id: 'rate', label: 'RATE' },
-  { id: 'amount', label: 'AMOUNT' },
-  { id: 'status', label: 'STATUS' },
-  { id: 'startDate', label: 'START DATE' },
-  { id: 'endDate', label: 'END DATE' },
+  { id: "id", label: "#" },
+  { id: "orderNumber", label: "Order No." },
+  { id: "party", label: "Party" },
+  { id: "item", label: "Item" },
+  { id: "qty", label: "Qty" },
+  { id: "status", label: "Status" },
 ];
 
-type OrderRowData = {
-  id: string;
-  orderFormNo: string;
-  noOfOrders: number;
-  date: string;
-  time: string;
-  size: string;
-  rate: string;
-  amount: string;
-  status: string;
-  startDate: string;
-  endDate: string;
-};
-
-const orderRows: OrderRowData[] = [
-  {
-    id: '1',
-    orderFormNo: 'QP-001',
-    noOfOrders: 4,
-    date: '02/05/25',
-    time: '10:10 AM',
-    size: '20×20×23',
-    rate: '12',
-    amount: '12,000',
-    status: 'HOLD',
-    startDate: '02/05/25',
-    endDate: '02/05/25',
-  },
-  {
-    id: '2',
-    orderFormNo: 'QP-002',
-    noOfOrders: 5,
-    date: '01/05/25',
-    time: '10:50 AM',
-    size: '28×21×31',
-    rate: '4.75',
-    amount: '28,500',
-    status: 'IN-PROGRESS',
-    startDate: '02/05/25',
-    endDate: '02/05/25',
-  },
-  {
-    id: '3',
-    orderFormNo: 'QP-003',
-    noOfOrders: 10,
-    date: '01/05/25',
-    time: '12:20 Am',
-    size: '34×17×32',
-    rate: '86',
-    amount: '17200',
-    status: 'ORDER',
-    startDate: '02/05/25',
-    endDate: '02/05/25',
-  },
+const complaintColumns = [
+  { id: "id", label: "#" },
+  { id: "complaintNumber", label: "Complaint No." },
+  { id: "subject", label: "Subject" },
+  { id: "priority", label: "Priority" },
+  { id: "status", label: "Status" },
 ];
 
-const getOrderStatusChip = (status: string) => {
-  if (status === 'HOLD') {
-    return <ThemeChip label="HOLD" color="error" sx={{ fontWeight: 500, fontSize: 13, px: 2, bgcolor: '#FEE4E2', color: '#D92D20' }} />;
-  }
-  if (status === 'IN-PROGRESS') {
-    return <ThemeChip label="IN-PROGRESS" color="primary" sx={{ fontWeight: 500, fontSize: 13, px: 2, bgcolor: '#F4EBFF', color: '#7F56D9' }} />;
-  }
-  if (status === 'ORDER') {
-    return <ThemeChip label="ORDER" color="success" sx={{ fontWeight: 500, fontSize: 13, px: 2, bgcolor: '#D1FADF', color: '#039855' }} />;
-  }
-  return null;
-};
+function KpiCard({ label, value, accent }: { label: string; value: number; accent: string }) {
+  return (
+    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, height: "100%" }}>
+      <Typography fontSize={13} color="text.secondary" mb={0.5}>
+        {label}
+      </Typography>
+      <Typography fontSize={28} fontWeight={700} sx={{ color: accent }}>
+        {value}
+      </Typography>
+    </Paper>
+  );
+}
 
-const csvColumns = [
-  { id: 'party', label: 'Party', value: (row: RowData) => row.party },
-  { id: 'person', label: 'Person', value: (row: RowData) => row.person },
-  { id: 'partyTag', label: 'Party Tag', value: (row: RowData) => row.partyTag },
-  { id: 'mobile', label: 'Mobile No.', value: (row: RowData) => row.mobile },
-  { id: 'reason', label: 'Reason to visit', value: (row: RowData) => row.reason },
-  { id: 'market', label: 'Market', value: (row: RowData) => row.market },
-  { id: 'area', label: 'Area', value: (row: RowData) => row.area },
-  { id: 'remarks', label: 'Remarks', value: (row: RowData) => row.remarks },
-  { id: 'orderNo', label: 'Order No.', value: (row: RowData) => row.orderNo },
-  { id: 'status', label: 'Status', value: (row: RowData) => row.status },
-  { id: 'createdBy', label: 'Created By', value: (row: RowData) => row.createdBy },
-  { id: 'assignedTo', label: 'Assigned to', value: (row: RowData) => row.assignedTo },
-];
+const QualityManagerDashboard = () => {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
+  const { jobCards } = useAppSelector((state) => state.jobCards);
+  const { complaints } = useAppSelector((state) => state.complaints);
+  const { orders } = useAppSelector((state) => state.orders);
+  const [ordersTotalCount, setOrdersTotalCount] = useState<number | null>(null);
 
-const orderCsvColumns = [
-  { id: 'orderFormNo', label: 'ORDER FORM NO.', value: (row: OrderRowData) => row.orderFormNo },
-  { id: 'noOfOrders', label: 'NO. OF ORDERS', value: (row: OrderRowData) => row.noOfOrders },
-  { id: 'date', label: 'DATE', value: (row: OrderRowData) => row.date },
-  { id: 'time', label: 'TIME', value: (row: OrderRowData) => row.time },
-  { id: 'size', label: 'SIZE', value: (row: OrderRowData) => row.size },
-  { id: 'rate', label: 'RATE', value: (row: OrderRowData) => row.rate },
-  { id: 'amount', label: 'AMOUNT', value: (row: OrderRowData) => row.amount },
-  { id: 'status', label: 'STATUS', value: (row: OrderRowData) => row.status },
-  { id: 'startDate', label: 'START DATE', value: (row: OrderRowData) => row.startDate },
-  { id: 'endDate', label: 'END DATE', value: (row: OrderRowData) => row.endDate },
-];
+  useEffect(() => {
+    const companyName = activeCompanyId || undefined;
+    dispatch(getAllJobCardsThunk({ companyName }));
+    dispatch(getAllComplaintsThunk({ companyName }));
+    // limit: 10 both for the "recent orders" table and to get an exact
+    // pagination.totalCount for the "Active Orders" KPI without pulling
+    // every order row down to the client.
+    dispatch(getAllOrdersThunk({ companyName, limit: 10 }))
+      .unwrap()
+      .then((res: any) => setOrdersTotalCount(res?.pagination?.totalCount ?? null))
+      .catch(() => setOrdersTotalCount(null));
+  }, [dispatch, activeCompanyId]);
 
-const QualityPackagingPage = () => {
-  const [editOpen, setEditOpen] = useState(false);
-  const [editRow, setEditRow] = useState<RowData | null>(null);
-
-  const [tab, setTab] = useState(0);
+  const inProduction = jobCards.filter((jc: any) => jc.status !== "Completed" && jc.status !== "Cancelled").length;
+  const atFactory = jobCards.filter((jc: any) => jc.currentStage === "Factory").length;
+  const atGodown = jobCards.filter((jc: any) => jc.currentStage === "Godown").length;
+  const openComplaints = complaints.filter((c: any) => c.status === "Open" || c.status === "In Progress").length;
 
   return (
-
-    <>
-
+    <Box p={3}>
       <Box mb={3}>
-        <ThemeTabs
-          value={tab}
-          onChange={(_, v) => setTab(v as number)}
-          tabs={[
-            { label: 'Account Master', value: 0 },
-            { label: 'Order', value: 1 },
-          ]}
-        />
+        <Typography variant="h5" fontWeight={600}>
+          Quality Packaging
+        </Typography>
+        <Typography fontSize={14} color="text.secondary">
+          Live production, order, and complaint status for the active company -- switch companies with the toggle above.
+        </Typography>
       </Box>
 
-      {tab === 0 && (
-        <BasicTable
-          tableHeader={columns}
-          rowData={rows}
-          csvColumns={csvColumns}
-          exportFilename="account-master"
-          renderRow={(row) => (
-            <>
-              <TableCell>{row.party}</TableCell>
-              <TableCell>{row.person}</TableCell>
-              <TableCell>{getPartyTagChip(row.partyTag)}</TableCell>
-              <TableCell>{row.mobile}</TableCell>
-              <TableCell>{row.reason}</TableCell>
-              <TableCell>{row.market}</TableCell>
-              <TableCell>{row.area}</TableCell>
-              <TableCell>{row.remarks}</TableCell>
-              <TableCell>{row.orderNo}</TableCell>
-              <TableCell>{getStatusChip(row.status)}</TableCell>
-              <TableCell>{row.createdBy}</TableCell>
-              <TableCell>{row.assignedTo}</TableCell>
-              <TableCell>
-                <Box sx={{ display: "flex" }}>
-                  <Tooltip title="Edit" arrow>
-                    <IconButton
-                      size="small"
-                      color="primary"
-                      onClick={() => {
-                        setEditRow(row);
-                        setEditOpen(true);
-                      }}
-                    >
-                      <MdEdit />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Delete" arrow>
-                    <IconButton size="small" color="error">
-                      <MdDelete />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </TableCell>
-            </>
-          )}
-        />
-      )}
+      <Grid container spacing={2} mb={3}>
+        <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
+          <KpiCard label="Active Orders" value={ordersTotalCount ?? 0} accent="#A409F8" />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
+          <KpiCard label="Job Cards In Production" value={inProduction} accent="#1976d2" />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
+          <KpiCard label="At Factory" value={atFactory} accent="#ed6c02" />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
+          <KpiCard label="At Godown" value={atGodown} accent="#2e7d32" />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
+          <KpiCard label="Open Complaints" value={openComplaints} accent="#d32f2f" />
+        </Grid>
+      </Grid>
 
-      {tab === 1 && (
-        <BasicTable
-          tableHeader={orderColumns}
-          rowData={orderRows}
-          csvColumns={orderCsvColumns}
-          exportFilename="quality-packaging-orders"
-          renderRow={(row) => (
-            <>
-              <TableCell>{row.orderFormNo}</TableCell>
-              <TableCell>{row.noOfOrders}</TableCell>
-              <TableCell>{row.date}</TableCell>
-              <TableCell>{row.time}</TableCell>
-              <TableCell>{row.size}</TableCell>
-              <TableCell>{row.rate}</TableCell>
-              <TableCell>{row.amount}</TableCell>
-              <TableCell>{getOrderStatusChip(row.status)}</TableCell>
-              <TableCell>{row.startDate}</TableCell>
-              <TableCell>{row.endDate}</TableCell>
-            </>
-          )}
-          showDatePicker={false}
-          showSearch={false}
-          showFillter={false}
-        />
-      )}
+      <Stack spacing={3}>
+        <Box>
+          <Typography fontWeight={600} mb={1}>
+            Job Cards
+          </Typography>
+          <BasicTable
+            showFillter={false}
+            showDatePicker={false}
+            showSearch={false}
+            tableHeader={jobCardColumns}
+            rowData={jobCards.map((jc: any) => ({ ...jc, id: jc._id }))}
+            renderRow={(row: any, idx: number) => (
+              <>
+                <TableCell>{idx + 1}</TableCell>
+                <TableCell
+                  sx={{ cursor: "pointer", color: "#A409F8", fontWeight: 600 }}
+                  onClick={() => router.push(`/admin/job-card/view/${row._id}`)}
+                >
+                  {row.jobCardNumber}
+                </TableCell>
+                <TableCell>{row.order?.orderNumber || "-"}</TableCell>
+                <TableCell>{row.productItem?.itemName || "-"}</TableCell>
+                <TableCell>
+                  <Chip size="small" label={row.currentStage} color={STAGE_COLORS[row.currentStage] || "default"} />
+                </TableCell>
+                <TableCell>{row.status}</TableCell>
+                <TableCell>{row.assignedTo ? `${row.assignedTo.firstName} ${row.assignedTo.lastName}` : "-"}</TableCell>
+              </>
+            )}
+          />
+        </Box>
 
-      <EditDialog open={editOpen} onClose={() => setEditOpen(false)} row={editRow} />
-    </>
+        <Box>
+          <Typography fontWeight={600} mb={1}>
+            Recent Orders
+          </Typography>
+          <BasicTable
+            showFillter={false}
+            showDatePicker={false}
+            showSearch={false}
+            tableHeader={orderColumns}
+            rowData={orders.map((o: any) => ({ ...o, id: o._id }))}
+            renderRow={(row: any, idx: number) => (
+              <>
+                <TableCell>{idx + 1}</TableCell>
+                <TableCell
+                  sx={{ cursor: "pointer", color: "#A409F8", fontWeight: 600 }}
+                  onClick={() => router.push(`/admin/all-orders/view?id=${row._id}`)}
+                >
+                  {row.orderNumber}
+                </TableCell>
+                <TableCell>{row.party?.partyName || "-"}</TableCell>
+                <TableCell>{row.productItem?.itemName || "-"}</TableCell>
+                <TableCell>{row.qty}</TableCell>
+                <TableCell>{row.status}</TableCell>
+              </>
+            )}
+          />
+        </Box>
+
+        <Box>
+          <Typography fontWeight={600} mb={1}>
+            Open Complaints
+          </Typography>
+          <BasicTable
+            showFillter={false}
+            showDatePicker={false}
+            showSearch={false}
+            tableHeader={complaintColumns}
+            rowData={complaints.map((c: any) => ({ ...c, id: c._id }))}
+            renderRow={(row: any, idx: number) => (
+              <>
+                <TableCell>{idx + 1}</TableCell>
+                <TableCell
+                  sx={{ cursor: "pointer", color: "#A409F8", fontWeight: 600 }}
+                  onClick={() => router.push("/admin/complaints")}
+                >
+                  {row.complaintNumber}
+                </TableCell>
+                <TableCell>{row.subject}</TableCell>
+                <TableCell>{row.priority}</TableCell>
+                <TableCell>
+                  <Chip size="small" label={row.status} color={COMPLAINT_STATUS_COLORS[row.status] || "default"} />
+                </TableCell>
+              </>
+            )}
+          />
+        </Box>
+      </Stack>
+    </Box>
   );
 };
 
-export default QualityPackagingPage;
+export default QualityManagerDashboard;

@@ -40,7 +40,7 @@ export const createJobCardThunk = createAsyncThunk(
 
 export const getAllJobCardsThunk = createAsyncThunk(
   "jobCard/getAll",
-  async (params: { status?: string; priority?: string; assignedTo?: string; page?: number; limit?: number } | undefined, { rejectWithValue }) => {
+  async (params: { status?: string; priority?: string; assignedTo?: string; companyName?: string; currentStage?: string; page?: number; limit?: number } | undefined, { rejectWithValue }) => {
     try {
       const response = await jobCardService.getAllJobCards(params);
       if (response.success && Array.isArray(response.data)) {

@@ -115,7 +115,10 @@ export const jobCardService = {
     }
   },
 
-  async getAllJobCards(params?: { status?: string; priority?: string; assignedTo?: string; page?: number; limit?: number }): Promise<ApiResponse<JobCard[]>> {
+  // companyName/currentStage added for Phase 3 Part B's Quality Manager
+  // Dashboard, which needs Quality Packaging's job cards broken down by
+  // pipeline stage (Factory/Godown counts, etc.) -- see jobCard.controller.js.
+  async getAllJobCards(params?: { status?: string; priority?: string; assignedTo?: string; companyName?: string; currentStage?: string; page?: number; limit?: number }): Promise<ApiResponse<JobCard[]>> {
     try {
       const response: AxiosResponse<ApiResponse<JobCard[]>> = await axios.get(Endpoint.GET_ALL_JOB_CARDS, {
         headers: authHeaders(),
