@@ -87,6 +87,7 @@ const permissionMapping: { [key: string]: string } = {
   "Job Card": "jobcard",
   "Wastage Report": "jobcard",
   Machines: "machine",
+  "Dye / Punch": "dye_punch",
   "Stock Ledger": "inventory",
   "Stock Movements": "inventory",
   RFQs: "rfq",
@@ -361,6 +362,11 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
     {
       label: "Machines",
       path: "/admin/setup/machines",
+      icon: <MdBuild size={18} />,
+    },
+    {
+      label: "Dye / Punch",
+      path: "/admin/setup/dye-punch",
       icon: <MdBuild size={18} />,
     },
     // {

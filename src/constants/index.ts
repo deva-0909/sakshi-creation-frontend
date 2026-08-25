@@ -161,6 +161,16 @@ export const permissionsArray = {
     edit: false,
     delete: false,
   },
+  // Two-company Phase 2 Part A: Quality Packaging's die-cutting tooling
+  // register (claude/two-company-gap-analysis.md). Backend already grants
+  // this key to Admin directly in Supabase; other roles get it via this UI.
+  dye_punch: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
   rfq: {
     view_global: false,
     view_own: false,

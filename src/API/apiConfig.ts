@@ -206,6 +206,14 @@ const Endpoint = {
   UPDATE_MACHINE: `${BaseURL}/api/machines`,
   DELETE_MACHINE: `${BaseURL}/api/machines`,
 
+  // Dye/Punch endpoints (two-company Phase 2 Part A -- Quality Packaging's
+  // die-cutting tooling register, see claude/two-company-gap-analysis.md)
+  CREATE_DYE_PUNCH: `${BaseURL}/api/dye-punches`,
+  GET_ALL_DYE_PUNCHES: `${BaseURL}/api/dye-punches`,
+  GET_DYE_PUNCH_BY_ID: `${BaseURL}/api/dye-punches`,
+  UPDATE_DYE_PUNCH: `${BaseURL}/api/dye-punches`,
+  DELETE_DYE_PUNCH: `${BaseURL}/api/dye-punches`,
+
   // Stock Ledger endpoints
   GET_MATERIAL_LEDGER: `${BaseURL}/api/stock-ledger/material`,
   GET_STOCK_SUMMARY: `${BaseURL}/api/stock-ledger/summary`,
