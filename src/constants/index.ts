@@ -111,6 +111,49 @@ export const permissionsArray = {
     edit: false,
     delete: false,
   },
+  // Deep-audit fix: authorizePermission() gates several setup sub-screens on
+  // these compound dotted keys (routes/role.routes.js, staff.routes.js,
+  // material.routes.js, productItem.routes.js, companyName.routes.js,
+  // roleDepartment(Company).routes.js) but the role-editor UI only ever
+  // offered the bare `setup` key -- meaning role/staff/material/product/
+  // company-name delete-and-friends could never be granted through the UI
+  // at all, only by direct DB edit. Added with the same shape as `setup`
+  // (no `approve`, matching the actions these routes actually check).
+  "setup.role": {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
+  "setup.staff": {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
+  "setup.company-name": {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
+  "setup.paper-material": {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
+  "setup.products": {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
   machine: {
     view_global: false,
     view_own: false,
