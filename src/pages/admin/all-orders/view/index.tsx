@@ -10,6 +10,7 @@
   import { useAppDispatch, useAppSelector } from "@/store"
   import { getOrderByIdThunk, updateOrderThunk } from "@/store/slices/orderSlice"
   import { createJobCardThunk } from "@/store/slices/jobCardSlice"
+  import DeliveryChallanPanel from "@/component/deliverychallanpanel"
   import { toast } from "react-toastify"
   import { useFormik } from "formik"
   import * as Yup from "yup"
@@ -287,6 +288,22 @@
               activeStep={0}
               orderStatus={singleOrder?.status}
             />
+          )}
+
+          {/* Flow-trace follow-up (2026-08-25): Quality Packaging's pipeline
+              (Printer -> Binder -> Booklet Binder -> Factory -> Godown ->
+              Completed) has no Delivery stage of its own -- unlike Sakshi
+              Creation, whose legacy Delivery sub-page already mounts this
+              exact panel. QP orders never route to that sub-page (see
+              getRouteByStatus in all-orders/index.tsx), so without this a QP
+              order could reach "Completed" with no vehicle/driver/package
+              record and no proof-of-delivery ever entered anywhere. Shown
+              directly on QP's own order-view page instead -- the panel is
+              self-contained (fetches/dispatches its own data) and the
+              backend's createDeliveryChallan has no company or stage gate,
+              so this needed no backend change, only exposing it here. */}
+          {singleOrder?.companyName?.companyName === "Quality Packaging" && typeof orderId === "string" && (
+            <DeliveryChallanPanel orderId={orderId} orderQty={Number(singleOrder?.qty) || 0} />
           )}
           <Paper
             variant="outlined"

@@ -51,11 +51,15 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
     size: "", // New field
     rate: "", // New field
     rateType: "new", // New field: default to "new"
-    // QP box-manufacturing Figma audit (2026-08-25): Ply/Deckal, shown on
-    // every Quality Packaging order screen in the design alongside Size,
-    // but only meaningful for QP box orders -- shown conditionally below.
+    // QP box-manufacturing Figma audit (2026-08-25) + flow-trace follow-up:
+    // Ply/Deckal/GSM, shown on every Quality Packaging order screen in the
+    // design alongside Size, but only meaningful for QP box orders -- shown
+    // conditionally below. GSM already existed as a DB column (set from
+    // SC's per-stage pages) but had no way to be entered on QP's own order
+    // intake form, the only place the design actually shows it.
     ply: "",
     deckal: "",
+    gsm: "",
     // Module 12: Sales Order commercial fields.
     customerPoNumber: "",
     priority: "Normal",
@@ -223,6 +227,7 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
         expectedDeliveryDate: formData.expectedDeliveryDate || undefined,
         ply: isQP && formData.ply ? Number.parseFloat(formData.ply) : undefined,
         deckal: isQP && formData.deckal ? Number.parseFloat(formData.deckal) : undefined,
+        gsm: isQP && formData.gsm ? Number.parseFloat(formData.gsm) : undefined,
       }
 
       await dispatch(createOrderThunk(orderData)).unwrap()
@@ -256,6 +261,7 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
       expectedDeliveryDate: "",
       ply: "",
       deckal: "",
+      gsm: "",
     })
     setGstNotApplicable(false)
     setSelectedFiles([])
@@ -369,6 +375,14 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
               type="number"
               value={formData.deckal}
               onChange={(e) => handleChange("deckal", e.target.value)}
+            />
+            <ThemeInput
+              labelName="GSM"
+              placeholder="Enter GSM"
+              fullWidth
+              type="number"
+              value={formData.gsm}
+              onChange={(e) => handleChange("gsm", e.target.value)}
             />
           </Stack>
         )}
