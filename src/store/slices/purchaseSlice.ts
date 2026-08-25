@@ -61,9 +61,9 @@ export const getStaffByRoleThunk = createAsyncThunk(
 
 export const getAllPurchasesThunk = createAsyncThunk(
   'purchases/getAll',
-  async (_, { rejectWithValue }) => {
+  async (params: { companyName?: string } | undefined, { rejectWithValue }) => {
     try {
-      const response = await purchaseService.getPurchases();
+      const response = await purchaseService.getPurchases(params);
       if (response.success && Array.isArray(response.data)) {
         return response.data;
       } else {

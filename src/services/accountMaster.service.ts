@@ -171,7 +171,11 @@ export interface AccountMasterByCompanyParty {
 }
 
 export const accountMasterService = {
-  async getAccountMasters(): Promise<ApiResponse<AccountMaster[]>> {
+  // Two-company support (see claude/two-company-gap-analysis.md, Phase 0):
+  // companyName filters to one company_name_id when the caller passes the
+  // active company from the global toggle. Omitted entirely for callers
+  // that still want every company's records (e.g. admin-level reports).
+  async getAccountMasters(params?: { companyName?: string }): Promise<ApiResponse<AccountMaster[]>> {
     try {
       const token = authService.getToken();
       if (!token) {
@@ -182,6 +186,7 @@ export const accountMasterService = {
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
+          params: params?.companyName ? { companyName: params.companyName } : undefined,
         }
       );
       return response.data;

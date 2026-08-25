@@ -28,12 +28,17 @@ const PurchasePage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { purchases, loading } = useAppSelector((state) => state.purchase);
+  // Two-company support (claude/two-company-gap-analysis.md, Phase 0):
+  // scopes purchases to the globally-selected company; undefined (no
+  // toggle yet, or only one company exists) keeps the pre-toggle
+  // "all companies" list.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const [openBulkUploadDialog, setOpenBulkUploadDialog] = useState(false);
 
   useEffect(() => {
-    dispatch(getAllPurchasesThunk());
+    dispatch(getAllPurchasesThunk(activeCompanyId ? { companyName: activeCompanyId } : undefined));
     dispatch(getAllVendorsThunk());
-  }, [dispatch]);
+  }, [dispatch, activeCompanyId]);
 
   const handleEdit = (id: string) => {
     router.push(`/admin/purchase/edit-purchase/${id}`);
@@ -135,7 +140,7 @@ const PurchasePage = () => {
         <AddNewPurchaseBulkDialog
         open={openBulkUploadDialog}
         onClose={handleBulkUploadClose}
-        refreshData={() => dispatch(getAllPurchasesThunk())}
+        refreshData={() => dispatch(getAllPurchasesThunk(activeCompanyId ? { companyName: activeCompanyId } : undefined))}
       />
     </>
   );

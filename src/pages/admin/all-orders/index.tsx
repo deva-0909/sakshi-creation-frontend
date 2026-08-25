@@ -34,6 +34,7 @@ const AllOrdersPage = () => {
   const { orders, loading, error,totalCount, pagination } = useAppSelector((state) => state.orders)
 
   const { user } = useAppSelector((state) => state.auth)
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany)
 
   // Filter state
   const [selectedFilterField, setSelectedFilterField] = useState<string | null>(null)
@@ -166,11 +167,17 @@ const filteredOrders = useMemo(() => {
     }
 
     if (canViewGlobal) {
-      dispatch(getAllOrdersThunk({ limit: 100 })); // Increase limit to fetch more orders
+      // Two-company support (claude/two-company-gap-analysis.md, Phase 0):
+      // scope to the globally-selected company so switching the toggle
+      // re-fetches this list for the other company. activeCompanyId is
+      // undefined until CompanyToggle loads the company list (or when
+      // only one company exists), in which case this falls back to the
+      // pre-toggle "all companies" behavior.
+      dispatch(getAllOrdersThunk({ limit: 100, companyName: activeCompanyId || undefined }));
     } else if (canViewOwn && user?.id) {
       dispatch(getOrdersByStaffIdThunk(user.id));
     }
-  }, [dispatch, router, canViewGlobal, canViewOwn, user?.id]);
+  }, [dispatch, router, canViewGlobal, canViewOwn, user?.id, activeCompanyId]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

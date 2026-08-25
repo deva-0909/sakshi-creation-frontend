@@ -165,7 +165,10 @@ export const purchaseService = {
     }
   },
 
-  async getPurchases(): Promise<ApiResponse<Purchase[]>> {
+  // Two-company support (see claude/two-company-gap-analysis.md, Phase 0):
+  // companyName filters to one company_name_id when the caller passes the
+  // active company from the global toggle.
+  async getPurchases(params?: { companyName?: string }): Promise<ApiResponse<Purchase[]>> {
     try {
       const token = authService.getToken();
       if (!token) {
@@ -176,6 +179,7 @@ export const purchaseService = {
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
+          params: params?.companyName ? { companyName: params.companyName } : undefined,
         }
       );
       return response.data;

@@ -51,6 +51,7 @@ import { clearAuth, fetchUserThunk } from "@/store/slices/authSlice";
 import { authService } from "@/services/auth.service";
 import Slide from "@mui/material/Slide";
 import NotificationBell from "@/component/notificationbell";
+import CompanyToggle from "@/component/reusablecomponents/CompanyToggle";
 
 const permissionMapping: { [key: string]: string } = {
   "Account Master": "account_master",
@@ -749,6 +750,14 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
             )}
             <NotificationBell />
           </Box>
+        </Box>
+
+        {/* Two-company toggle (see claude/two-company-gap-analysis.md,
+            Phase 0) -- renders once here so it's on every admin page,
+            matching the reference design's placement. Stays invisible
+            until a second company actually exists. */}
+        <Box display="flex" justifyContent="center" py={1.5}>
+          <CompanyToggle />
         </Box>
 
         {/* Page content */}

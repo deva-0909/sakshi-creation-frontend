@@ -96,6 +96,11 @@ const IndexPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { accountMasters, loading, error, successMessage } = useAppSelector((state) => state.accountMasters);
   const { user } = useAppSelector((state) => state.auth);
+  // Two-company support (claude/two-company-gap-analysis.md, Phase 0):
+  // scopes every getAllAccountMastersThunk() call below to the
+  // globally-selected company; undefined (no toggle yet, or only one
+  // company exists) falls back to the pre-toggle "all companies" list.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const [resetpagination, setResetPagination] = useState(false)
   const [editId, setEditId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -223,7 +228,7 @@ const IndexPage: React.FC = () => {
       try {
         await dispatch(approvePartyThunk(partyId)).unwrap();
         // Refresh data after approval
-        await dispatch(getAllAccountMastersThunk()).unwrap();
+        await dispatch(getAllAccountMastersThunk(activeCompanyId ? { companyName: activeCompanyId } : undefined)).unwrap();
         Swal.fire({
           title: "Approved!",
           text: "Party approved successfully",
@@ -281,7 +286,7 @@ const IndexPage: React.FC = () => {
         icon: "success",
         confirmButtonColor: "#7F56D9",
       });
-      dispatch(getAllAccountMastersThunk());
+      dispatch(getAllAccountMastersThunk(activeCompanyId ? { companyName: activeCompanyId } : undefined));
       handleBulkUploadClose();
     } catch (err: any) {
       Swal.fire({
@@ -375,7 +380,7 @@ const IndexPage: React.FC = () => {
 
     if (canViewGlobal) {
       // User can view all account masters
-      dispatch(getAllAccountMastersThunk());
+      dispatch(getAllAccountMastersThunk(activeCompanyId ? { companyName: activeCompanyId } : undefined));
     } else if (canViewOwn && user?.id) {
       // User can only view their own account masters
       dispatch(getAccountMasterByStaffIdThunk(user.id));
@@ -385,7 +390,7 @@ const IndexPage: React.FC = () => {
       dispatch(clearError());
       dispatch(clearSuccessMessage());
     };
-  }, [dispatch, router, canViewGlobal, canViewOwn, user?.id]);
+  }, [dispatch, router, canViewGlobal, canViewOwn, user?.id, activeCompanyId]);
 
 
 
@@ -807,7 +812,7 @@ const IndexPage: React.FC = () => {
         accountId={editId ?? undefined}
         refreshData={() => {
           if (canViewGlobal) {
-            dispatch(getAllAccountMastersThunk());
+            dispatch(getAllAccountMastersThunk(activeCompanyId ? { companyName: activeCompanyId } : undefined));
           } else if (canViewOwn && user?.id) {
             dispatch(getAccountMasterByStaffIdThunk(user.id));
           }
@@ -826,7 +831,7 @@ const IndexPage: React.FC = () => {
           setOpenAssignLeadDialog(false);
           setSelectedRows([]);
           if (canViewGlobal) {
-            dispatch(getAllAccountMastersThunk());
+            dispatch(getAllAccountMastersThunk(activeCompanyId ? { companyName: activeCompanyId } : undefined));
           } else if (canViewOwn && user?.id) {
             dispatch(getAccountMasterByStaffIdThunk(user.id));
           }
@@ -843,7 +848,7 @@ const IndexPage: React.FC = () => {
           setOpenBulkAssignTask(false);
           setSelectedRows([]);
           if (canViewGlobal) {
-            dispatch(getAllAccountMastersThunk());
+            dispatch(getAllAccountMastersThunk(activeCompanyId ? { companyName: activeCompanyId } : undefined));
           } else if (canViewOwn && user?.id) {
             dispatch(getAccountMasterByStaffIdThunk(user.id));
           }
