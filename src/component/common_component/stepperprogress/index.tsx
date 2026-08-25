@@ -72,6 +72,7 @@ type StepperProgressProps = {
   orderStatus: string;
   designerStatus?: string;
   printerStatus?: string;
+  binderStatus?: string;
   // QP order-process audit (2026-08-25): Quality Packaging's pipeline
   // (Printer/Binder/Booklet Binder/Factory/Godown, no Designer/Delivery)
   // has no equivalent per-stage view sub-pages the way Sakshi Creation's
@@ -88,6 +89,7 @@ const StepperProgress: React.FC<StepperProgressProps> = ({
   orderStatus,
   designerStatus,
   printerStatus,
+  binderStatus,
   steps = DEFAULT_STEPS,
   clickable = true,
 }) => {
@@ -106,10 +108,14 @@ const isStepClickable = (index: number) => {
   // Special cases based on order status
   switch(index) {
     case 1: // Designer step
-      return orderStatus === 'Designer' || 
-             orderStatus === 'Order Received' || 
-             orderStatus === 'Printer' || 
-             orderStatus === 'Binder' || 
+      // Sakshi Creation order-process audit (2026-08-25): this compared
+      // against the literal 'Order Received', but the real stored/displayed
+      // status value is 'Received' (see orders_status_check) -- the
+      // comparison never matched, so this gate silently never fired.
+      return orderStatus === 'Designer' ||
+             orderStatus === 'Received' ||
+             orderStatus === 'Printer' ||
+             orderStatus === 'Binder' ||
              orderStatus === 'Booklet & Folder Binder' ||
              orderStatus === 'Delivery';
              
@@ -127,8 +133,14 @@ const isStepClickable = (index: number) => {
              orderStatus === 'Delivery';
              
     case 4: // Booklet & Folder Binder step
+      // Sakshi Creation order-process audit (2026-08-25): this allowed
+      // clicking through whenever orderStatus === 'Binder', with no check
+      // that Binder had actually finished -- unlike every other step here,
+      // which gates on the previous stage's own status being 'Done', not
+      // just "order is currently sitting at the previous stage". Fixed to
+      // match the same pattern as the Printer/Binder cases above.
       return orderStatus === 'Booklet & Folder Binder' ||
-             orderStatus === 'Binder' ||
+             (binderStatus === 'Done' && orderStatus !== 'Hold') ||
              orderStatus === 'Delivery';
 
     case 5: // Delivery step

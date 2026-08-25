@@ -56,6 +56,14 @@ const STAGE_STATUSES = ["Pending", "In Progress", "Done"];
 // Shared by both companies' pipelines; Factory/Godown have no equipment of
 // their own, same as the existing Factory/Godown inventory categories.
 const MACHINE_STAGES = ["Printer", "Binder", "Booklet Binder"];
+// Sakshi Creation order-process audit (2026-08-25): Designer and Delivery
+// aren't material-consuming production steps any more than Quality
+// Packaging's Factory/Godown are (see the matching QP-audit gap) -- but the
+// Wasted Sheets and Record Material Usage sections below render
+// unconditionally at every stage, with no indication that these two don't
+// really apply. Not blocked (an edge case might still need it), just flagged
+// with the same advisory-copy pattern already used for QC above.
+const NON_MATERIAL_STAGES = ["Designer", "Delivery"];
 
 const reworkStatusColor: Record<string, { bg: string; color: string }> = {
   Pending: { bg: "#F2F4F7", color: "#344054" },
@@ -633,6 +641,12 @@ const JobCardDetailPage = () => {
               </>
             )}
 
+            {NON_MATERIAL_STAGES.includes(stage) && (
+              <Typography fontSize={12} color="text.secondary" mt={-1}>
+                {stage} isn't a material-consuming stage -- leave this at 0 unless something genuinely was used or
+                spoiled here.
+              </Typography>
+            )}
             <ThemeInput
               labelName="Wasted Sheets"
               type="number"
@@ -706,6 +720,7 @@ const JobCardDetailPage = () => {
           </Typography>
           <Typography fontSize={12} color="text.secondary" mb={1}>
             Recording usage writes a real outward inventory entry against this material.
+            {NON_MATERIAL_STAGES.includes(stage) && ` ${stage} isn't a material-consuming stage -- only fill this in if something was genuinely used here.`}
           </Typography>
           <Stack spacing={2}>
             <ThemeSelect

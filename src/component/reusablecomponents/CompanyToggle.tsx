@@ -25,13 +25,27 @@ const CompanyToggle: React.FC = () => {
   }, [companyNames.length, loading, dispatch]);
 
   useEffect(() => {
-    // Default to the first company once the list loads if nothing valid
-    // is selected yet -- first-ever visit, or a stored id that no longer
-    // exists (e.g. it was deleted).
+    // Sakshi Creation order-process audit (2026-08-25): this used to
+    // auto-select companyNames[0] the moment >=2 companies existed, with no
+    // "all companies" option at all -- so activeCompanyId was functionally
+    // never unset once the app loaded, and every company-scoped list page
+    // (Invoices, All Orders, Purchase, Account Master) always showed
+    // exactly one company's data, silently, with no way to see both at
+    // once. Now it defaults to "" (all companies) rather than the first
+    // company on a genuinely first-ever visit (activeCompanyId === null,
+    // i.e. nothing was ever stored) or when a previously-selected id no
+    // longer exists (e.g. it was deleted). "" is a deliberate, stored,
+    // explicit "All" choice -- distinct from null/"never chosen" -- and is
+    // falsy, so `activeCompanyId || undefined` on every list page already
+    // reads it as "no company filter" with no changes needed there.
     if (companyNames.length > 0) {
-      const stillValid = companyNames.some((c) => c._id === activeCompanyId);
-      if (!activeCompanyId || !stillValid) {
-        dispatch(setActiveCompanyId(companyNames[0]._id));
+      if (activeCompanyId === null) {
+        dispatch(setActiveCompanyId(""));
+        return;
+      }
+      const stillValid = activeCompanyId === "" || companyNames.some((c) => c._id === activeCompanyId);
+      if (!stillValid) {
+        dispatch(setActiveCompanyId(""));
       }
     }
   }, [companyNames, activeCompanyId, dispatch]);
@@ -53,6 +67,31 @@ const CompanyToggle: React.FC = () => {
         bgcolor: "#fff",
       }}
     >
+      {(() => {
+        const allActive = !activeCompanyId;
+        return (
+          <Button
+            key="all"
+            size="small"
+            onClick={() => dispatch(setActiveCompanyId(""))}
+            sx={{
+              borderRadius: 999,
+              px: 2,
+              minWidth: 0,
+              textTransform: "uppercase",
+              fontWeight: 700,
+              fontSize: 12,
+              bgcolor: allActive ? "#a259f7" : "transparent",
+              color: allActive ? "#fff" : "#a259f7",
+              "&:hover": {
+                bgcolor: allActive ? "#8e3ce0" : "rgba(162,89,247,0.08)",
+              },
+            }}
+          >
+            All
+          </Button>
+        );
+      })()}
       {companyNames.map((company) => {
         const active = company._id === activeCompanyId;
         return (

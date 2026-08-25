@@ -22,8 +22,20 @@ const columns = [
   { id: "size", label: "Size" },
   { id: "remarks", label: "Remarks" },
   { id: "orderedBy", label: "Ordered By" },
+  // Sakshi Creation order-process audit (2026-08-25): `priority` is a real
+  // order field (used elsewhere, e.g. on delivery challans) that had no
+  // column on this list at all -- reconfirmed as a known gap while auditing
+  // this page, added here.
+  { id: "priority", label: "Priority" },
   { id: "orderStatus", label: "Order Status" },
 ]
+
+const PRIORITY_COLOR: Record<string, { bg: string; color: string }> = {
+  Urgent: { bg: "#FEE4E2", color: "#B42318" },
+  High: { bg: "#FEF0C7", color: "#B54708" },
+  Normal: { bg: "#F2F4F7", color: "#344054" },
+  Low: { bg: "#EFF8FF", color: "#175CD3" },
+}
 
 type OrderRow = Order & { id: string }
 
@@ -95,6 +107,9 @@ const getUniqueValues = useMemo(() => {
       case "orderedBy":
         value = order.createdBy ? `${order.createdBy.firstName} ${order.createdBy.lastName}` : undefined;
         break;
+      case "priority":
+        value = (order as any).priority || "Normal";
+        break;
       case "orderStatus":
         value = getDisplayStatus(order).text;
         break;
@@ -147,6 +162,9 @@ const filteredOrders = useMemo(() => {
           break;
         case "orderedBy":
           value = order.createdBy ? `${order.createdBy.firstName} ${order.createdBy.lastName}` : undefined;
+          break;
+        case "priority":
+          value = (order as any).priority || "Normal";
           break;
         case "orderStatus":
           value = getDisplayStatus(order).text;
@@ -377,6 +395,7 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
     { id: "size", label: "Size", value: (row: OrderRow) => row.size || "N/A" },
     { id: "remarks", label: "Remarks", value: (row: OrderRow) => row.remarks || "None" },
     { id: "orderedBy", label: "Ordered By", value: (row: OrderRow) => `${row.createdBy?.firstName || "N/A"} ${row.createdBy?.lastName || "N/A"}` },
+    { id: "priority", label: "Priority", value: (row: OrderRow) => (row as any).priority || "Normal" },
     { id: "orderStatus", label: "Order Status", value: (row: OrderRow) => getDisplayStatus(row).text },
   ];
 
@@ -550,6 +569,31 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
                 <Typography fontSize="14px" color="#6B7280">
                   {row.createdBy?.firstName || "N/A"} {row.createdBy?.lastName || "N/A"}
                 </Typography>
+              </TableCell>
+
+              {/* Priority */}
+              <TableCell>
+                {(() => {
+                  const priority = (row as any).priority || "Normal"
+                  const { bg, color } = PRIORITY_COLOR[priority] || PRIORITY_COLOR.Normal
+                  return (
+                    <Box
+                      component="span"
+                      sx={{
+                        display: "inline-block",
+                        px: 1.25,
+                        py: 0.375,
+                        borderRadius: 1,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        bgcolor: bg,
+                        color,
+                      }}
+                    >
+                      {priority}
+                    </Box>
+                  )
+                })()}
               </TableCell>
 
               {/* Order Status */}

@@ -453,6 +453,7 @@ const areFieldsReadOnly = isHeld || isBookletBinderStatusInProgress || isBooklet
         orderStatus={singleOrder?.status}
         designerStatus={singleOrder?.designerStatus}
         printerStatus={singleOrder?.printerStatus}
+        binderStatus={singleOrder?.binderStatus}
       />
 
       <Paper

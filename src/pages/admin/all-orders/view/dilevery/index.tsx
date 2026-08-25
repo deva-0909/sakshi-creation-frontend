@@ -138,6 +138,7 @@ const DeliveryForm = () => {
           orderStatus={singleOrder?.status}
           designerStatus={singleOrder?.designerStatus}
           printerStatus={singleOrder?.printerStatus}
+          binderStatus={singleOrder?.binderStatus}
         />
         {/* Section Header */}
         <Box mt={2} border="2px solid #12B76A" borderRadius={2} p={2} bgcolor="#fff">

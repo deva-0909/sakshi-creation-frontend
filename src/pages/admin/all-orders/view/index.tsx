@@ -431,7 +431,11 @@
                   label="Color"
                 >
                   <MenuItem value="">Select</MenuItem>
-                  {[1, 2, 4, 6].map((num) => (
+                  {/* Sakshi Creation order-process audit (2026-08-25): this only
+                      rendered [1, 2, 4, 6], but the Yup schema above validates
+                      the full ["1".."6"] range -- 3 and 5 were accepted by
+                      validation yet unreachable from this dropdown. */}
+                  {[1, 2, 3, 4, 5, 6].map((num) => (
                     <MenuItem key={num} value={num.toString()}>
                       color - {num}
                     </MenuItem>

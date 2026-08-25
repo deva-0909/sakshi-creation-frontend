@@ -16,6 +16,15 @@ enum InventoryCategory {
   BOOKLET = 'booklet',
   FACTORY = 'factory',
   GODOWN = 'godown',
+  // Sakshi Creation order-process audit (2026-08-25): these three categories
+  // already exist on the backend (categoryForStage/categoryForRole, lib/
+  // helpers.js) for SC's own Designer/QC/Delivery job-card stages, but had
+  // no tab here to show entries landing in them -- any material usage or
+  // wastage logged at those stages was invisible in this UI even though it
+  // was being recorded (into the wrong "factory" bucket, until that fix).
+  DESIGNER = 'designer',
+  QC = 'qc',
+  DELIVERY = 'delivery',
 }
 
 enum WardTab {
@@ -29,6 +38,9 @@ const mainTabs: TabItem[] = [
   { label: 'Booklet', value: InventoryCategory.BOOKLET, icon: <MdPeople /> },
   { label: 'Factory', value: InventoryCategory.FACTORY, icon: <MdPeople /> },
   { label: 'Godown', value: InventoryCategory.GODOWN, icon: <MdPeople /> },
+  { label: 'Designer', value: InventoryCategory.DESIGNER, icon: <MdPeople /> },
+  { label: 'QC', value: InventoryCategory.QC, icon: <MdPeople /> },
+  { label: 'Delivery', value: InventoryCategory.DELIVERY, icon: <MdPeople /> },
 ];
 
 const wardTabs: TabItem[] = [
