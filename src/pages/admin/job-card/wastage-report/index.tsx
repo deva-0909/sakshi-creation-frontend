@@ -14,7 +14,11 @@ import { getAllMaterialsThunk } from "@/store/slices/materialSlice";
 import { getWastageReportThunk } from "@/store/slices/jobCardSlice";
 import { WastageReportRow } from "@/services/jobCard.service";
 
-const STAGES = ["Designer", "Printer", "Binder", "Booklet Binder", "QC", "Delivery"];
+// Full stage superset across both companies' pipelines (Phase 2 Part B) --
+// this is just a report filter, so it isn't worth company-conditioning;
+// Factory/Godown are included in case Quality Packaging ever records
+// wastage at those stages too.
+const STAGES = ["Designer", "Printer", "Binder", "Booklet Binder", "QC", "Delivery", "Factory", "Godown"];
 
 const columns = [
   { id: "material", label: "Material" },

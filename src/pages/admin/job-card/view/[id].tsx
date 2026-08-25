@@ -44,10 +44,17 @@ import { toast } from "react-toastify";
 // Module 8: QC slots in as a real stage of its own -- advisory only, so a
 // Failed result is recorded but never blocks the card from moving on to
 // Delivery (see the design plan's Q1 answer).
-const STAGES = ["Designer", "Printer", "Binder", "Booklet Binder", "QC", "Delivery"];
+const SAKSHI_CREATION_STAGES = ["Designer", "Printer", "Binder", "Booklet Binder", "QC", "Delivery"];
+// Phase 2 Part B (two-company): Quality Packaging's pipeline has no
+// Designer/QC/Delivery stages and adds Factory + Godown at the end,
+// matching the backend's stageOrderForCompany (jobCard.controller.js).
+const QUALITY_PACKAGING_STAGES = ["Printer", "Binder", "Booklet Binder", "Factory", "Godown"];
+const stagesForCompany = (companyName?: string) => (companyName === "Quality Packaging" ? QUALITY_PACKAGING_STAGES : SAKSHI_CREATION_STAGES);
 const STAGE_STATUSES = ["Pending", "In Progress", "Done"];
 // Only these 3 stages run on physical equipment -- see machine.validator.js's
 // category enum, which the backend also uses to reject a mismatched machine.
+// Shared by both companies' pipelines; Factory/Godown have no equipment of
+// their own, same as the existing Factory/Godown inventory categories.
 const MACHINE_STAGES = ["Printer", "Binder", "Booklet Binder"];
 
 const reworkStatusColor: Record<string, { bg: string; color: string }> = {
@@ -184,7 +191,8 @@ const JobCardDetailPage = () => {
 
   useEffect(() => {
     if (jc) {
-      setStage(jc.currentStage === "Done" ? STAGES[STAGES.length - 1] : jc.currentStage);
+      const stages = stagesForCompany(jc.order?.companyName?.companyName);
+      setStage(jc.currentStage === "Done" ? stages[stages.length - 1] : jc.currentStage);
     }
   }, [jc]);
 
@@ -398,6 +406,7 @@ const JobCardDetailPage = () => {
 
   if (!jc) return null;
 
+  const STAGES = stagesForCompany(jc.order?.companyName?.companyName);
   const activeStepIndex = jc.currentStage === "Done" ? STAGES.length : STAGES.indexOf(jc.currentStage);
   const sColor = statusColor[jc.status] || statusColor.Pending;
 

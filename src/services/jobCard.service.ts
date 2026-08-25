@@ -10,7 +10,10 @@ export interface JobCard {
   dueDate?: string;
   status: string;
   currentStage: string;
-  order?: { _id: string; orderNumber: string };
+  // Phase 2 Part B (two-company): drives which stage set the detail page
+  // offers -- Quality Packaging's job cards run Printer -> Binder ->
+  // Booklet Binder -> Factory -> Godown, no Designer/QC/Delivery.
+  order?: { _id: string; orderNumber: string; companyName?: { _id: string; companyName: string } | null };
   productItem?: { _id: string; itemName: string };
   assignedTo?: { _id: string; firstName: string; lastName: string };
   createdBy?: { _id: string; firstName: string; lastName: string };
