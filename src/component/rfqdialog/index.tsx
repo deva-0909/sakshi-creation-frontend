@@ -55,6 +55,17 @@ const AddRfqDialog: React.FC<AddRfqDialogProps> = ({ open, onClose, refreshData 
     }
   }, [open, dispatch])
 
+  // Mobile/toggle/seed audit (2026-08-26), Phase E: re-scope the Material
+  // picker and the "Invite Vendors" checklist to the dialog's own selected
+  // company, and drop any already-checked vendors that no longer match.
+  useEffect(() => {
+    if (open && companyName) {
+      dispatch(getAllMaterialsThunk({ companyName: companyName.value }))
+      dispatch(getAllVendorsThunk({ companyName: companyName.value }))
+      setSelectedVendorIds([])
+    }
+  }, [companyName, open, dispatch])
+
   useEffect(() => {
     if (successMessage) {
       toast.success(successMessage)

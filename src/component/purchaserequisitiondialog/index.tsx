@@ -56,6 +56,14 @@ const AddPurchaseRequisitionDialog: React.FC<AddPurchaseRequisitionDialogProps> 
     }
   }, [open, dispatch]);
 
+  // Mobile/toggle/seed audit (2026-08-26), Phase E: re-scope the Material
+  // picker to the dialog's own selected company once it's chosen.
+  useEffect(() => {
+    if (open && companyName) {
+      dispatch(getAllMaterialsThunk({ companyName: companyName.value }));
+    }
+  }, [companyName, open, dispatch]);
+
   useEffect(() => {
     if (successMessage) {
       toast.success(successMessage);

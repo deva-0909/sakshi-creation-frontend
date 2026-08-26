@@ -63,6 +63,18 @@ const AddVendorPaymentDialog: React.FC<AddVendorPaymentDialogProps> = ({ open, o
     }
   }, [open, dispatch])
 
+  // Mobile/toggle/seed audit (2026-08-26), Phase E: re-scope the Vendor and
+  // Purchase Order pickers to the dialog's own selected company, and drop
+  // the vendor/PO selections if they no longer match.
+  useEffect(() => {
+    if (open && companyName) {
+      dispatch(getAllVendorsThunk({ companyName: companyName.value }))
+      dispatch(getAllPurchaseOrdersThunk({ companyName: companyName.value }))
+      setVendorId(null)
+      setPurchaseOrderId(null)
+    }
+  }, [companyName, open, dispatch])
+
   useEffect(() => {
     if (successMessage) {
       toast.success(successMessage)

@@ -79,8 +79,15 @@ const AddQuotationDialog: React.FC<AddQuotationDialogProps> = ({ open, onClose, 
   }
 
   const handleCompanyChange = (event: any, newValue: any) => {
-    handleChange("companyName", newValue ? newValue.value : "")
+    const companyId = newValue ? newValue.value : ""
+    handleChange("companyName", companyId)
     handleChange("partyName", "")
+    // Mobile/toggle/seed audit (2026-08-26), Phase E: re-scope the Item
+    // Name picker to the chosen company (tri-state -- shared/unscoped items
+    // stay visible alongside that company's own), and clear whatever item
+    // was already picked since it might not match anymore.
+    dispatch(getAllProductItemsThunk({ companyName: companyId || undefined }))
+    handleChange("itemName", "")
   }
 
   const handlePartyChange = (event: any, newValue: any) => {

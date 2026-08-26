@@ -105,6 +105,15 @@ const AddInvoiceDialog: React.FC<AddInvoiceDialogProps> = ({ open, onClose, refr
   const handleCompanyChange = (event: any, newValue: any) => {
     setCompanyName(newValue)
     setPartyName(null)
+    // Mobile/toggle/seed audit (2026-08-26), Phase E: the Order/Quotation
+    // pickers never reacted to this dialog's own Company field, so an
+    // invoice could be created linking an order/quotation from the other
+    // company. Re-scope both lists and clear whatever was already picked.
+    const companyId = newValue ? newValue.value : undefined
+    dispatch(getAllOrdersThunk({ companyName: companyId }))
+    dispatch(getAllQuotationsThunk({ companyName: companyId }))
+    setOrderId(null)
+    setQuotationId(null)
   }
 
   const handleSubmit = async () => {

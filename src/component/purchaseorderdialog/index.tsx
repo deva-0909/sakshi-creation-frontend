@@ -57,6 +57,20 @@ const AddPurchaseOrderDialog: React.FC<AddPurchaseOrderDialogProps> = ({ open, o
     }
   }, [open, dispatch])
 
+  // Mobile/toggle/seed audit (2026-08-26), Phase E: this dialog has its own
+  // Company field but the Vendor/Material pickers never reacted to it, so a
+  // vendor or material from the other company could be picked alongside it.
+  // Re-scope both lists to the dialog's own selected company, and drop the
+  // vendor selection if it no longer matches (materials aren't reset since a
+  // shared/unscoped material stays valid regardless of company).
+  useEffect(() => {
+    if (open && companyName) {
+      dispatch(getAllMaterialsThunk({ companyName: companyName.value }))
+      dispatch(getAllVendorsThunk({ companyName: companyName.value }))
+      setVendorId(null)
+    }
+  }, [companyName, open, dispatch])
+
   useEffect(() => {
     if (successMessage) {
       toast.success(successMessage)

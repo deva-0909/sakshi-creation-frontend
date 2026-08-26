@@ -217,6 +217,18 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
     }
   }, [formik.values.for, dispatch]);
 
+  // Mobile/toggle/seed audit (2026-08-26), Phase E: re-scope the Vendor
+  // picker to the dialog's own COMPANY NAME field once it's chosen -- it
+  // never reacted to that field before, matching the Vendor dropdown gap
+  // flagged on add-purchase/index.tsx.
+  useEffect(() => {
+    if (formik.values.companyName) {
+      dispatch(getAllVendorsThunk({ companyName: formik.values.companyName }));
+      formik.setFieldValue('vendorName', '');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formik.values.companyName, dispatch]);
+
   const handleDownloadTemplateClick = async () => {
     try {
       await downloadBulkTemplate(Endpoint.BULK_PURCHASE_TEMPLATE, 'purchase-bulk-import-template.csv');

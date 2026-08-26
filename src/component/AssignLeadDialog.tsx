@@ -305,6 +305,16 @@ const AssignLeadDialog: React.FC<AssignLeadDialogProps> = ({ open, onClose, lead
             area: "",
             ownerWhatsAppNo: "",
         });
+        // Mobile/toggle/seed audit (2026-08-26), Phase E: accountMasters is
+        // fetched unscoped on mount (used for party address/WhatsApp lookup
+        // and the bulk-create path's companyName-by-partyId lookup) -- once
+        // a company is actually chosen, re-scope it so a bulk-create lookup
+        // can't resolve a party record that belongs to the other company.
+        // (The Party Name dropdown itself is already scoped internally by
+        // CompanySelect's own getPartiesByCompanyThunk call.)
+        if (companyId) {
+            dispatch(getAllAccountMastersThunk({ companyName: companyId }));
+        }
     };
 
     const handlePartyChange = (event: any, newValue: any) => {
