@@ -29,6 +29,12 @@ import {
   clearInvoiceSuccessMessage,
 } from "@/store/slices/invoiceSlice";
 import { getAllReceiptsThunk, createReceiptThunk, clearReceiptError, clearReceiptSuccessMessage } from "@/store/slices/receiptSlice";
+// Multi-role audit fix (Finding 8): issuing a credit note applies its amount
+// directly against the invoice's amountPaid, same as a cash receipt does --
+// so without this, a credit note and a real payment were visually
+// indistinguishable here, and Accounts staff had no way to tell why a
+// balance dropped with no receipt on file.
+import { getAllCreditNotesThunk } from "@/store/slices/creditNoteSlice";
 import { toast } from "react-toastify";
 import { invoiceService } from "@/services/invoice.service";
 
@@ -71,6 +77,10 @@ const InvoiceDetailPage = () => {
   const { receipts, loading: receiptLoading, error: receiptError, successMessage: receiptSuccessMessage } = useAppSelector(
     (state) => state.receipts
   );
+  // Finding 8: separate "cash received" (receipts) from "credit applied"
+  // (issued credit notes) instead of only ever showing their combined effect
+  // on inv.amountPaid.
+  const { creditNotes } = useAppSelector((state) => state.creditNotes);
   const { user } = useAppSelector((state) => state.auth);
 
   const permissions = user?.role?.permissions?.invoice;
@@ -90,6 +100,7 @@ const InvoiceDetailPage = () => {
       dispatch(getInvoiceByIdThunk(id));
       dispatch(getInvoiceHistoryThunk(id));
       dispatch(getAllReceiptsThunk({ invoiceId: id }));
+      dispatch(getAllCreditNotesThunk({ invoiceId: id }));
     }
   };
 
@@ -139,6 +150,12 @@ const InvoiceDetailPage = () => {
 
   const { bg, color } = statusColor(inv.status);
   const outstanding = inv.grandTotal - inv.amountPaid;
+  // Finding 8: amountPaid is one blended number that a cash receipt and an
+  // issued credit note both feed into identically -- break it back apart
+  // for display so it's clear how much of it is real cash vs. a write-off.
+  const issuedCreditNotes = creditNotes.filter((c) => c.status === "Issued");
+  const creditApplied = issuedCreditNotes.reduce((sum, c) => sum + (c.amount || 0), 0);
+  const cashReceived = inv.amountPaid - creditApplied;
 
   const handleDownloadPdf = async () => {
     try {
@@ -249,6 +266,12 @@ const InvoiceDetailPage = () => {
             {inv.gstType === "IGST" && <DetailRow label="IGST" value={inv.igstAmount} />}
             <DetailRow label="Grand Total" value={inv.grandTotal} />
             <DetailRow label="Amount Paid" value={inv.amountPaid} />
+            {creditApplied > 0 && (
+              <>
+                <DetailRow label="— Cash Received" value={cashReceived} />
+                <DetailRow label="— Credit Applied" value={creditApplied} />
+              </>
+            )}
             <DetailRow label="Outstanding" value={outstanding} />
           </Box>
         </Paper>
@@ -342,6 +365,40 @@ const InvoiceDetailPage = () => {
             </Box>
           ))}
         </Stack>
+
+        {issuedCreditNotes.length > 0 && (
+          <>
+            <Divider sx={{ mb: 2 }} />
+            <Typography fontWeight={600} mb={1}>
+              Credit Notes Applied
+            </Typography>
+            <Stack spacing={1} mb={2}>
+              {issuedCreditNotes.map((c) => (
+                <Box
+                  key={c._id}
+                  sx={{ border: "1px solid #EAECF0", borderRadius: 2, p: 1.5, display: "flex", justifyContent: "space-between" }}
+                >
+                  <Box>
+                    <Typography fontWeight={600} fontSize={14}>
+                      {c.creditNoteNumber}
+                    </Typography>
+                    <Typography fontSize={12} color="text.secondary">
+                      {c.reason || "No reason given"}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: "right" }}>
+                    <Typography fontWeight={600} fontSize={14}>
+                      {c.amount}
+                    </Typography>
+                    <Typography fontSize={12} color="text.secondary">
+                      {c.issuedAt ? new Date(c.issuedAt).toLocaleDateString() : "-"}
+                    </Typography>
+                  </Box>
+                </Box>
+              ))}
+            </Stack>
+          </>
+        )}
 
         {RECEIVABLE_STATUSES.includes(inv.status) && receiptPermissions?.create && (
           <>
