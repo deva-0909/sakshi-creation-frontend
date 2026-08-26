@@ -174,6 +174,12 @@ const menuItems = [
   // is, since it's a personal view (this staff member's own assignments),
   // not a module with its own permission category.
   { label: "My Orders", icon: <MdAssignment size={18} />, path: "/admin/my-orders" },
+  // Full Figma slide scan Phase 9 (Theme 4, Slide 85): Support/Settings are
+  // personal, self-service pages (same as My Orders above) -- exempted from
+  // the permission-key filter below rather than gated on a module permission,
+  // since every logged-in staff member should be able to reach them.
+  { label: "Support", icon: <MdFactCheck size={18} />, path: "/admin/support" },
+  { label: "Settings", icon: <MdSettings size={18} />, path: "/admin/settings" },
   {
     label: "Setup",
     icon: <MdSettings size={18} />,
@@ -263,7 +269,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
 
       const filteredItems = menuItems
         .map((item) => {
-          if (item.label === "Dashboard" || item.label === "My Orders") return item;
+          if (item.label === "Dashboard" || item.label === "My Orders" || item.label === "Support" || item.label === "Settings") return item;
 
           // Not a view_global/view_own module -- shown only to staff whose
           // role can actually approve something (the same eligibility the
