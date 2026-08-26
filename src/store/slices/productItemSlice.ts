@@ -1,15 +1,34 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import { productItemService, BulkImportResponse } from "@/services/productItem.service";
 
+// Module 16 triage (audit-reconciliation.md's carried-forward "productItemSlice.ts
+// interface drift" item): this slice declares its own local copies of
+// ProductItem/CreateProductItemData instead of importing productItem.service.ts's,
+// the same duplicate-interface pattern already caught and fixed for grnSlice.ts
+// (Module 11) and costingSlice.ts (Module 14+15). Both had silently drifted out
+// of sync with the service's versions -- missing `status` and the two-company
+// Phase 1 `companyName` field entirely -- so createProductItemThunk/
+// updateProductItemThunk's declared payload type didn't reflect what the
+// service (and backend) actually accept, and singleProductItem/productItems
+// were typed without the fields real API responses carry. This didn't break
+// the existing caller (setup/products/index.tsx builds its payload through an
+// intermediate `productData` variable, so structural typing let the extra
+// fields through undetected), but it's the same type-safety hole as the
+// other two, one call-site refactor away from a real bug. Synced to match
+// productItem.service.ts's ProductItem/CreateProductItemData exactly.
 interface ProductItem {
   _id: string;
   itemName: string;
+  status?: string;
   createdAt?: string;
   updatedAt?: string;
+  companyName?: { _id: string; companyName: string } | null;
 }
 
 interface CreateProductItemData {
-  itemName: string;
+  itemName?: string;
+  status?: string;
+  companyName?: string;
 }
 
 interface ProductItemState {
