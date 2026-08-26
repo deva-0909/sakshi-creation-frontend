@@ -26,6 +26,9 @@ import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 
 const STATUSES = ['Active', 'Inactive'];
+// Full Figma slide scan Phase 5 (Theme 9): a property of the paper stock,
+// per the user's decision -- not chosen per-purchase.
+const TYPES = ['Reel', 'Sheet'];
 const statusColor: Record<string, { bg: string; color: string }> = {
   Active: { bg: '#D1FADF', color: '#027A48' },
   Inactive: { bg: '#FEE4E2', color: '#B42318' },
@@ -40,6 +43,7 @@ interface MaterialForm {
   // Full Figma slide scan Phase 4 (Theme 7, Low Stock threshold): optional
   // -- left blank, Inventory shows no stock badge for this material at all.
   reorderLevel: string;
+  type: string;
 }
 
 const columns = [
@@ -47,6 +51,7 @@ const columns = [
   { id: 'materialName', label: 'Material Name' },
   { id: 'materialSize', label: 'Size' },
   { id: 'materialGSM', label: 'GSM' },
+  { id: 'type', label: 'Type' },
   { id: 'uom', label: 'UOM' },
   { id: 'reorderLevel', label: 'Reorder Level' },
   { id: 'status', label: 'Status' },
@@ -57,6 +62,7 @@ const csvColumns = [
   { id: 'materialName', label: 'Material Name', value: (row: any) => row.materialName },
   { id: 'materialSize', label: 'Size', value: (row: any) => row.materialSize },
   { id: 'materialGSM', label: 'GSM', value: (row: any) => row.materialGSM },
+  { id: 'type', label: 'Type', value: (row: any) => row.type || '-' },
   {
     id: 'uom',
     label: 'UOM',
@@ -80,6 +86,7 @@ const MaterialPage = () => {
     uom: '',
     status: 'Active',
     reorderLevel: '',
+    type: '',
   });
 
   useEffect(() => {
@@ -99,10 +106,11 @@ const MaterialPage = () => {
         uom: material.uom?.id || material.uom?._id || '',
         status: material.status || 'Active',
         reorderLevel: material.reorderLevel !== undefined && material.reorderLevel !== null ? material.reorderLevel.toString() : '',
+        type: material.type || '',
       });
     } else {
       setEditId(null);
-      setForm({ materialName: '', materialSize: '', materialGSM: '', uom: '', status: 'Active', reorderLevel: '' });
+      setForm({ materialName: '', materialSize: '', materialGSM: '', uom: '', status: 'Active', reorderLevel: '', type: '' });
     }
     setDialogOpen(true);
   };
@@ -136,6 +144,7 @@ const MaterialPage = () => {
               uom: form.uom || undefined,
               status: form.status,
               reorderLevel: form.reorderLevel.trim() ? Number(form.reorderLevel) : '',
+              type: form.type || '',
             },
           })
         ).unwrap();
@@ -149,12 +158,13 @@ const MaterialPage = () => {
             uom: form.uom || undefined,
             status: form.status,
             reorderLevel: form.reorderLevel.trim() ? Number(form.reorderLevel) : undefined,
+            type: form.type || undefined,
           })
         ).unwrap();
         toast.success('Material created successfully');
       }
       setDialogOpen(false);
-      setForm({ materialName: '', materialSize: '', materialGSM: '', uom: '', status: 'Active', reorderLevel: '' });
+      setForm({ materialName: '', materialSize: '', materialGSM: '', uom: '', status: 'Active', reorderLevel: '', type: '' });
       setEditId(null);
     } catch (err: any) {
       toast.error(err || 'Failed to save material');
@@ -224,6 +234,7 @@ const MaterialPage = () => {
             <TableCell>{row.materialName}</TableCell>
             <TableCell>{row.materialSize}</TableCell>
             <TableCell>{row.materialGSM}</TableCell>
+            <TableCell>{row.type || '-'}</TableCell>
             <TableCell>{row.uom ? `${row.uom.name}${row.uom.symbol ? ` (${row.uom.symbol})` : ''}` : '-'}</TableCell>
             <TableCell>{row.reorderLevel ?? '-'}</TableCell>
             <TableCell>
@@ -281,6 +292,14 @@ const MaterialPage = () => {
           type="number"
           sx={{ mb: 2 }}
         />
+        <Box mb={2}>
+          <Select
+            label="Type (optional)"
+            options={TYPES.map((t) => ({ label: t, value: t }))}
+            value={form.type ? { label: form.type, value: form.type } : null}
+            onChange={(_, v) => setForm((f) => ({ ...f, type: v ? String(v.value) : '' }))}
+          />
+        </Box>
         <Input
           labelName="Reorder Level (optional)"
           value={form.reorderLevel}

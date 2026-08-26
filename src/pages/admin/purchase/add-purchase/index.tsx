@@ -345,8 +345,17 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
             required
             disabled={!formData.materialGSM}
           />
+          <ThemeInput
+            // Full Figma slide scan Phase 5 (Theme 9): read-only -- a
+            // property of the selected material (per the user's decision),
+            // not something entered per-purchase.
+            labelName="TYPE"
+            value={materials.find(m => m._id === formData.material)?.type || 'N/A'}
+            fullWidth
+            disabled
+          />
         </Stack>
-        
+
         <Stack direction="row" spacing={2} mb={2}>
           <ThemeInput
             labelName="QUANTITY"
@@ -398,7 +407,12 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
         />
         
         <ThemeSelect
-          label="PRINTER NAME"
+          // Full Figma slide scan Phase 5 (Theme 9): was hardcoded "PRINTER
+          // NAME" regardless of which role was actually selected above --
+          // wrong label on every Binder/Booklet Binder/Factory/Godown
+          // purchase, not just cosmetically inconsistent with Figma's "For
+          // company".
+          label={roles.find(role => role._id === formData.for)?.roleName ? `${roles.find(role => role._id === formData.for)?.roleName?.toUpperCase()} NAME` : 'STAFF NAME'}
           options={staffOptions}
           value={staffOptions.find(opt => opt.value === formData.forCompany) || null}
           onChange={(e, newValue) => handleSelectChange('forCompany', newValue?.value)}

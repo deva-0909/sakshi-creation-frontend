@@ -11,6 +11,10 @@ export interface Material {
   // Full Figma slide scan Phase 4 (Theme 7): optional -- Inventory only
   // shows a Low Stock/In Stock badge for a material once this is set.
   reorderLevel?: number | null;
+  // Full Figma slide scan Phase 5 (Theme 9): optional -- a property of the
+  // paper stock (Reel/Sheet), shown read-only on the Purchase form once a
+  // material is selected.
+  type?: 'Reel' | 'Sheet' | null;
   uom?: { id: string; name: string; symbol?: string } | null;
   createdAt: string;
   updatedAt: string;
@@ -23,6 +27,7 @@ export interface CreateMaterial {
   status?: string;
   uom?: string;
   reorderLevel?: number | string;
+  type?: string;
 }
 
 export interface UpdateMaterial {
@@ -32,6 +37,7 @@ export interface UpdateMaterial {
   status?: string;
   uom?: string;
   reorderLevel?: number | string;
+  type?: string;
 }
 
 export interface ApiResponse<T> {

@@ -84,6 +84,12 @@ const PurchasePage = () => {
     rate: purchase.ratePerSheet,
     kg: purchase.kg,
     forValue: purchase.forCompany ? `${purchase.forCompany.firstName} ${purchase.forCompany.lastName}` : 'N/A',
+    // Full Figma slide scan Phase 5 (Theme 9): BasicTable's Date Picker was
+    // rendering (its showDatePicker prop defaults to true -- the original
+    // scan's "no date/search/filter controls at all" was wrong) but any
+    // date picked filtered out every row, since it compares against
+    // row.date/row.createdDate, which this list never provided.
+    date: purchase.createdAt,
   }));
 
   const csvColumns = [
