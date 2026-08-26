@@ -36,14 +36,18 @@ const WastageReportPage = () => {
   const dispatch = useAppDispatch();
   const { materials } = useAppSelector((state) => state.materials);
   const { wastageReport, wastageReportLoading } = useAppSelector((state) => state.jobCards);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the thunk already
+  // supported companyName -- this page just never passed it, so the report
+  // always mixed both companies' wastage into one total.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
 
   const [material, setMaterial] = useState<{ label: string; value: string | number } | null>(null);
   const [stage, setStage] = useState<any>(null);
 
   useEffect(() => {
-    dispatch(getAllMaterialsThunk());
-    dispatch(getWastageReportThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllMaterialsThunk({ companyName: activeCompanyId || undefined }));
+    dispatch(getWastageReportThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   const materialOptions = materials.map((m: any) => ({ label: m.materialName, value: m._id }));
 
@@ -52,6 +56,7 @@ const WastageReportPage = () => {
       getWastageReportThunk({
         materialId: material ? String(material.value) : undefined,
         stage: stage ? stage.value : undefined,
+        companyName: activeCompanyId || undefined,
       })
     );
   };
@@ -59,7 +64,7 @@ const WastageReportPage = () => {
   const handleClear = () => {
     setMaterial(null);
     setStage(null);
-    dispatch(getWastageReportThunk(undefined));
+    dispatch(getWastageReportThunk({ companyName: activeCompanyId || undefined }));
   };
 
   const totalWastedOverall = wastageReport.reduce((sum, r) => sum + (r.totalWasted || 0), 0);

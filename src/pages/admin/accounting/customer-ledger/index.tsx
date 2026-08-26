@@ -49,6 +49,9 @@ const CustomerLedgerPage = () => {
   const { customerLedger, loading } = useAppSelector((state) => state.finance);
   const { loading: allocating, successMessage, error } = useAppSelector((state) => state.receipts);
   const { user } = useAppSelector((state) => state.auth);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the Party picker never
+  // read the company toggle -- it always listed both companies' parties.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const receiptPermissions = user?.role?.permissions?.receipt;
 
   const [party, setParty] = useState<any>(null);
@@ -61,8 +64,8 @@ const CustomerLedgerPage = () => {
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
-    dispatch(getAllAccountMastersThunk());
-  }, [dispatch]);
+    dispatch(getAllAccountMastersThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   const partyOptions = useMemo(
     () =>

@@ -134,6 +134,12 @@ const LeadManagementPage: React.FC = () => {
     successMessage = null,
   } = useAppSelector((state) => state.leads || {});
   const { user } = useAppSelector((state) => state.auth || {});
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the view_global branch
+  // below never read the company toggle -- Party Call always mixed both
+  // companies' leads for anyone with global view. (getLeadsByStaffIdThunk,
+  // the view_own branch, is deliberately left alone -- it's already scoped
+  // to "my own" leads by staff id, a different dimension than company.)
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const [tab, setTab] = useState(0);
   const [openAssignDialog, setOpenAssignDialog] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -159,7 +165,7 @@ const LeadManagementPage: React.FC = () => {
     }
 
     if (canViewGlobal) {
-      dispatch(getAllLeadsThunk());
+      dispatch(getAllLeadsThunk({ companyName: activeCompanyId || undefined }));
     } else if (canViewOwn && user?.id) {
       dispatch(getLeadsByStaffIdThunk(user.id));
     }
@@ -168,7 +174,7 @@ const LeadManagementPage: React.FC = () => {
       dispatch(clearError());
       dispatch(clearSuccessMessage());
     };
-  }, [dispatch, router, canViewGlobal, canViewOwn, user?.id]);
+  }, [dispatch, router, canViewGlobal, canViewOwn, user?.id, activeCompanyId]);
 
   useEffect(() => {
     if (error) {
@@ -421,7 +427,7 @@ const LeadManagementPage: React.FC = () => {
     }).then(() => {
       // Refetch leads to reflect changes immediately
       if (canViewGlobal) {
-        dispatch(getAllLeadsThunk());
+        dispatch(getAllLeadsThunk({ companyName: activeCompanyId || undefined }));
       } else if (canViewOwn && user?.id) {
         dispatch(getLeadsByStaffIdThunk(user.id));
       }

@@ -31,10 +31,14 @@ const csvColumns = [
 const DelayedJobsPage = () => {
   const dispatch = useAppDispatch();
   const { delayedJobs, loading } = useAppSelector((state) => state.reports);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the thunk already
+  // supported companyName -- this report just never passed it, so it
+  // always mixed both companies' overdue orders together.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
 
   useEffect(() => {
-    dispatch(getDelayedJobsThunk());
-  }, [dispatch]);
+    dispatch(getDelayedJobsThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   return (
     <Box p={3}>

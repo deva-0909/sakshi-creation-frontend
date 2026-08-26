@@ -142,6 +142,18 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
     }
   }, [formData.companyName, dispatch]);
 
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the initial mount
+  // effect above fetches materials/vendors unscoped (tri-state -- fine for
+  // an initial paint before a company is picked); once the form's own
+  // Company field is set, re-fetch scoped to it so the Material/Vendor
+  // pickers don't offer the other company's items alongside shared ones.
+  useEffect(() => {
+    if (formData.companyName) {
+      dispatch(getAllMaterialsThunk({ companyName: formData.companyName }));
+      dispatch(getAllVendorsThunk({ companyName: formData.companyName }));
+    }
+  }, [formData.companyName, dispatch]);
+
   useEffect(() => {
     if (vendors.length > 0) {
       const options = vendors.map(vendor => ({

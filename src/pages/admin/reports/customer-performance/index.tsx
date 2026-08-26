@@ -26,10 +26,14 @@ const csvColumns = [
 const CustomerPerformancePage = () => {
   const dispatch = useAppDispatch();
   const { customerPerformance, loading } = useAppSelector((state) => state.reports);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the thunk already
+  // supported companyName -- this report just never passed it, so it
+  // always mixed both companies' revenue/order counts together.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
 
   useEffect(() => {
-    dispatch(getCustomerPerformanceThunk());
-  }, [dispatch]);
+    dispatch(getCustomerPerformanceThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   return (
     <Box p={3}>

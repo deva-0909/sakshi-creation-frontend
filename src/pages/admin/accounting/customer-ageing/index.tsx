@@ -36,10 +36,13 @@ const CustomerAgeingPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { customerAgeing, loading } = useAppSelector((state) => state.finance);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the thunk already
+  // supported companyName -- this page just never passed it.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
 
   useEffect(() => {
-    dispatch(getCustomerAgeingThunk(undefined));
-  }, [dispatch]);
+    dispatch(getCustomerAgeingThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   const buckets = customerAgeing?.buckets;
   const rows = customerAgeing?.rows || [];

@@ -59,6 +59,9 @@ const WarehousePage = () => {
   const dispatch = useAppDispatch();
   const { warehouses, loading, error, successMessage } = useAppSelector((state) => state.warehouses);
   const { user } = useAppSelector((state) => state.auth);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the thunk already
+  // supported companyName -- this page just never passed it.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const permissions = user?.role?.permissions?.warehouse;
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -66,8 +69,8 @@ const WarehousePage = () => {
   const [form, setForm] = useState<WarehouseForm>(emptyForm);
 
   useEffect(() => {
-    dispatch(getAllWarehousesThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllWarehousesThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   useEffect(() => {
     if (successMessage) {

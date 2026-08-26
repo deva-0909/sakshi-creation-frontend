@@ -81,6 +81,11 @@ const MaterialPage = () => {
   const dispatch = useAppDispatch();
   const { materials, loading, error } = useAppSelector((state) => state.materials);
   const { uoms } = useAppSelector((state) => state.uoms);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: materials are now
+  // company-scopable (tri-state, Patch 71/72) but this page never passed
+  // activeCompanyId -- always showed every material from both companies
+  // plus shared ones, rather than this company's + shared.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -95,11 +100,11 @@ const MaterialPage = () => {
   });
 
   useEffect(() => {
-    dispatch(getAllMaterialsThunk())
+    dispatch(getAllMaterialsThunk({ companyName: activeCompanyId || undefined }))
       .unwrap()
       .catch((err) => toast.error(err));
     dispatch(getAllUomsThunk(undefined));
-  }, [dispatch]);
+  }, [dispatch, activeCompanyId]);
 
   const handleOpenDialog = (material?: any) => {
     if (material) {
@@ -352,7 +357,7 @@ const MaterialPage = () => {
       <AddNewMaterialBulkDialog
         open={bulkDialogOpen}
         onClose={() => setBulkDialogOpen(false)}
-        refreshData={() => dispatch(getAllMaterialsThunk())}
+        refreshData={() => dispatch(getAllMaterialsThunk({ companyName: activeCompanyId || undefined }))}
       />
     </Box>
   );

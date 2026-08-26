@@ -60,15 +60,19 @@ const OpportunitiesPage = () => {
   const dispatch = useAppDispatch();
   const { opportunities, loading, totalCount } = useAppSelector((state) => state.opportunities);
   const { user } = useAppSelector((state) => state.auth);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: this page never read
+  // the company toggle at all -- the CRM Pipeline always mixed both
+  // companies' opportunities.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const [open, setOpen] = useState(false);
 
   const canCreate = user?.role?.permissions?.opportunity?.create;
 
   useEffect(() => {
-    dispatch(getAllOpportunitiesThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllOpportunitiesThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
-  const refreshData = () => dispatch(getAllOpportunitiesThunk(undefined));
+  const refreshData = () => dispatch(getAllOpportunitiesThunk({ companyName: activeCompanyId || undefined }));
 
   const csvColumns = [
     { id: "opportunityNumber", label: "Opportunity No.", value: (row: OpportunityRow) => row.opportunityNumber },

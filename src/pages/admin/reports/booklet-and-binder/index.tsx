@@ -75,10 +75,14 @@ const BookletAndBinderReportPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { orders, loading } = useAppSelector((state) => state.orders);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the thunk already
+  // supported companyName -- this report just never passed it, so it
+  // always mixed both companies' booklet/binder-stage orders together.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
 
   useEffect(() => {
-    dispatch(getAllOrdersThunk({ limit: 1000 }));
-  }, [dispatch]);
+    dispatch(getAllOrdersThunk({ limit: 1000, companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   const rows = orders.filter((o) => o.bookletBinderStatus).map(toRow);
 

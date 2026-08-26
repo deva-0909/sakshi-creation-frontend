@@ -51,10 +51,14 @@ const JobCardPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { jobCards, loading, totalCount } = useAppSelector((state) => state.jobCards);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the thunk already
+  // supported companyName -- this page just never passed it, so the
+  // primary production worklist always mixed both companies' job cards.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
 
   useEffect(() => {
-    dispatch(getAllJobCardsThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllJobCardsThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   return (
     <Box p={3}>

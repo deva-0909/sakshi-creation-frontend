@@ -89,6 +89,11 @@ const MachinePage = () => {
   const dispatch = useAppDispatch();
   const { machines, loading, error, successMessage } = useAppSelector((state) => state.machines);
   const { user } = useAppSelector((state) => state.auth);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the Machines list never
+  // read the company toggle -- always mixed both companies' machines, and
+  // the Advance Stage machine picker (job-card/view/[id].tsx) could offer a
+  // machine from the wrong company for a job card's stage.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const permissions = user?.role?.permissions?.machine;
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -96,8 +101,8 @@ const MachinePage = () => {
   const [form, setForm] = useState<MachineForm>(emptyForm);
 
   useEffect(() => {
-    dispatch(getAllMachinesThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllMachinesThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   useEffect(() => {
     if (successMessage) {

@@ -40,10 +40,13 @@ const VendorAgeingPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { vendorAgeing, loading } = useAppSelector((state) => state.finance);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the thunk already
+  // supported companyName -- this page just never passed it.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
 
   useEffect(() => {
-    dispatch(getVendorAgeingThunk(undefined));
-  }, [dispatch]);
+    dispatch(getVendorAgeingThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   const buckets = vendorAgeing?.buckets;
   const rows = vendorAgeing?.rows || [];

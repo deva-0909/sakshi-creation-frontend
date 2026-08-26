@@ -50,15 +50,18 @@ const RfqPage = () => {
   const dispatch = useAppDispatch();
   const { rfqs, loading, totalCount } = useAppSelector((state) => state.rfqs);
   const { user } = useAppSelector((state) => state.auth);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: this page never read
+  // the company toggle -- the RFQ list always mixed both companies.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const [open, setOpen] = useState(false);
 
   const canCreate = user?.role?.permissions?.rfq?.create;
 
   useEffect(() => {
-    dispatch(getAllRfqsThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllRfqsThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
-  const refreshData = () => dispatch(getAllRfqsThunk(undefined));
+  const refreshData = () => dispatch(getAllRfqsThunk({ companyName: activeCompanyId || undefined }));
 
   const csvColumns = [
     { id: "rfqNumber", label: "RFQ No.", value: (row: RfqRow) => row.rfqNumber },

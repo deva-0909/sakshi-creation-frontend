@@ -62,15 +62,18 @@ const QuotationPage = () => {
   const dispatch = useAppDispatch();
   const { quotations, loading, totalCount } = useAppSelector((state) => state.quotations);
   const { user } = useAppSelector((state) => state.auth);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: this page never read
+  // the company toggle -- the Quotations list always mixed both companies.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const [open, setOpen] = useState(false);
 
   const canCreate = user?.role?.permissions?.quotation?.create;
 
   useEffect(() => {
-    dispatch(getAllQuotationsThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllQuotationsThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
-  const refreshData = () => dispatch(getAllQuotationsThunk(undefined));
+  const refreshData = () => dispatch(getAllQuotationsThunk({ companyName: activeCompanyId || undefined }));
 
   const csvColumns = [
     { id: "quotationNumber", label: "Quotation No.", value: (row: QuotationRow) => row.quotationNumber },

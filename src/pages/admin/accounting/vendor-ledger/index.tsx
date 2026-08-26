@@ -49,6 +49,9 @@ const VendorLedgerPage = () => {
   const { vendorLedger, loading } = useAppSelector((state) => state.finance);
   const { loading: allocating, successMessage, error } = useAppSelector((state) => state.vendorPayments);
   const { user } = useAppSelector((state) => state.auth);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the Vendor picker never
+  // read the company toggle -- it always listed both companies' vendors.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const vendorPaymentPermissions = user?.role?.permissions?.vendorpayment;
 
   const [vendor, setVendor] = useState<any>(null);
@@ -61,8 +64,8 @@ const VendorLedgerPage = () => {
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
-    dispatch(getAllVendorsThunk());
-  }, [dispatch]);
+    dispatch(getAllVendorsThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   const vendorOptions = useMemo(
     () => (vendors || []).map((v: any) => ({ label: v.name, value: v._id, companyId: v.companyName?._id })),

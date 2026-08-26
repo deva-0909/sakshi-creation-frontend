@@ -60,15 +60,18 @@ const PurchaseOrderPage = () => {
   const dispatch = useAppDispatch();
   const { purchaseOrders, loading, totalCount } = useAppSelector((state) => state.purchaseOrders);
   const { user } = useAppSelector((state) => state.auth);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: this page never read
+  // the company toggle -- the PO list always mixed both companies.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const [open, setOpen] = useState(false);
 
   const canCreate = user?.role?.permissions?.purchaseorder?.create;
 
   useEffect(() => {
-    dispatch(getAllPurchaseOrdersThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllPurchaseOrdersThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
-  const refreshData = () => dispatch(getAllPurchaseOrdersThunk(undefined));
+  const refreshData = () => dispatch(getAllPurchaseOrdersThunk({ companyName: activeCompanyId || undefined }));
 
   return (
     <Box p={3}>

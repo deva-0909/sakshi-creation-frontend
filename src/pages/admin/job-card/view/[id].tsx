@@ -193,7 +193,6 @@ const JobCardDetailPage = () => {
     }
     dispatch(getAllRolesThunk());
     dispatch(getAllMaterialsThunk());
-    dispatch(getAllMachinesThunk(undefined));
     return () => {
       dispatch(clearSingleJobCard());
       dispatch(clearReworks());
@@ -208,6 +207,18 @@ const JobCardDetailPage = () => {
       dispatch(getSuggestedRoutingTemplateThunk(jc.productItem._id));
     }
   }, [jc?.productItem?._id, dispatch]);
+
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: getAllMachinesThunk was
+  // dispatched unscoped before jc even loaded, and the Advance Stage machine
+  // picker only filtered by category -- a staff member could assign a
+  // machine belonging to the *other* company to this job card's stage.
+  // Deferred until the job card's own order (and its company) is loaded, so
+  // the picker only ever offers this order's company's machines.
+  useEffect(() => {
+    if (jc?.order?.companyName?._id) {
+      dispatch(getAllMachinesThunk({ companyName: jc.order.companyName._id }));
+    }
+  }, [jc?.order?.companyName?._id, dispatch]);
 
   useEffect(() => {
     if (jc) {

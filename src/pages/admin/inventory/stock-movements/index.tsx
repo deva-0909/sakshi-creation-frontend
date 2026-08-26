@@ -66,6 +66,10 @@ const StockMovementsPage = () => {
   const { roles } = useAppSelector((state) => state.roles);
   const { user } = useAppSelector((state) => state.auth);
   const { transfers, adjustments, reservations, loading, error, successMessage } = useAppSelector((state) => state.stockMovements);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the thunks/controller
+  // already supported companyName -- these list views just never passed it,
+  // so all three tabs always mixed both companies' movements together.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
 
   const transferPerms = user?.role?.permissions?.stocktransfer;
   const adjustmentPerms = user?.role?.permissions?.stockadjustment;
@@ -100,16 +104,16 @@ const StockMovementsPage = () => {
   const [reservedFor, setReservedFor] = useState("");
 
   useEffect(() => {
-    dispatch(getAllMaterialsThunk());
+    dispatch(getAllMaterialsThunk({ companyName: activeCompanyId || undefined }));
     dispatch(getAllWarehousesThunk(undefined));
     dispatch(getAllRolesThunk());
-  }, [dispatch]);
+  }, [dispatch, activeCompanyId]);
 
   useEffect(() => {
-    if (activeTab === MovementTab.TRANSFER) dispatch(getAllStockTransfersThunk(undefined));
-    if (activeTab === MovementTab.ADJUSTMENT) dispatch(getAllStockAdjustmentsThunk(undefined));
-    if (activeTab === MovementTab.RESERVATION) dispatch(getAllStockReservationsThunk(undefined));
-  }, [activeTab, dispatch]);
+    if (activeTab === MovementTab.TRANSFER) dispatch(getAllStockTransfersThunk({ companyName: activeCompanyId || undefined }));
+    if (activeTab === MovementTab.ADJUSTMENT) dispatch(getAllStockAdjustmentsThunk({ companyName: activeCompanyId || undefined }));
+    if (activeTab === MovementTab.RESERVATION) dispatch(getAllStockReservationsThunk({ companyName: activeCompanyId || undefined }));
+  }, [activeTab, activeCompanyId, dispatch]);
 
   useEffect(() => {
     if (successMessage) {

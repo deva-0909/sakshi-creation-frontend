@@ -58,6 +58,10 @@ const DebitNotesPage = () => {
   const { vendors } = useAppSelector((state) => state.vendors);
   const { purchaseOrders } = useAppSelector((state) => state.purchaseOrders);
   const { user } = useAppSelector((state) => state.auth);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: this page never read
+  // the company toggle -- the list, vendor picker, and PO picker all
+  // always mixed both companies.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const permissions = user?.role?.permissions?.debitnote;
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -67,10 +71,10 @@ const DebitNotesPage = () => {
   const [reason, setReason] = useState("");
 
   useEffect(() => {
-    dispatch(getAllDebitNotesThunk(undefined));
-    dispatch(getAllVendorsThunk());
-    dispatch(getAllPurchaseOrdersThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllDebitNotesThunk({ companyName: activeCompanyId || undefined }));
+    dispatch(getAllVendorsThunk({ companyName: activeCompanyId || undefined }));
+    dispatch(getAllPurchaseOrdersThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   useEffect(() => {
     if (successMessage) {
@@ -81,7 +85,7 @@ const DebitNotesPage = () => {
       setPurchaseOrder(null);
       setAmount("");
       setReason("");
-      dispatch(getAllDebitNotesThunk(undefined));
+      dispatch(getAllDebitNotesThunk({ companyName: activeCompanyId || undefined }));
     }
     if (error) {
       toast.error(error);

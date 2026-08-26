@@ -37,7 +37,11 @@ const PurchasePage = () => {
 
   useEffect(() => {
     dispatch(getAllPurchasesThunk(activeCompanyId ? { companyName: activeCompanyId } : undefined));
-    dispatch(getAllVendorsThunk());
+    // Mobile/toggle/seed audit (2026-08-26), Phase D: this was the one
+    // unscoped call in this file -- used only for vendor-name resolution in
+    // the table, but leaving it unscoped meant it fetched twice as much as
+    // needed and could show a stale name from the other company.
+    dispatch(getAllVendorsThunk({ companyName: activeCompanyId || undefined }));
   }, [dispatch, activeCompanyId]);
 
   const handleEdit = (id: string) => {

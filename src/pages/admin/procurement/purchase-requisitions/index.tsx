@@ -54,15 +54,18 @@ const PurchaseRequisitionPage = () => {
   const dispatch = useAppDispatch();
   const { purchaseRequisitions, loading, totalCount } = useAppSelector((state) => state.purchaseRequisitions);
   const { user } = useAppSelector((state) => state.auth);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: this page never read
+  // the company toggle even though the backend already supported it.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const [open, setOpen] = useState(false);
 
   const canCreate = user?.role?.permissions?.purchaserequisition?.create;
 
   useEffect(() => {
-    dispatch(getAllPurchaseRequisitionsThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllPurchaseRequisitionsThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
-  const refreshData = () => dispatch(getAllPurchaseRequisitionsThunk(undefined));
+  const refreshData = () => dispatch(getAllPurchaseRequisitionsThunk({ companyName: activeCompanyId || undefined }));
 
   return (
     <Box p={3}>

@@ -70,6 +70,11 @@ const ProductsPage = () => {
   // product item optionally be scoped to one company's catalog (e.g.
   // Quality Packaging's "BOX") instead of visible to every company.
   const { companyNames } = useSelector((state: RootState) => state.companyNames);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the thunk already
+  // supported companyName (tri-state) -- this page just never passed it,
+  // so the list always showed every item from both companies plus shared
+  // ones instead of this company's + shared.
+  const { activeCompanyId } = useSelector((state: RootState) => state.activeCompany);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -77,9 +82,9 @@ const ProductsPage = () => {
 
   // Fetch all products on component mount
   useEffect(() => {
-    dispatch(getAllProductItemsThunk());
+    dispatch(getAllProductItemsThunk({ companyName: activeCompanyId || undefined }));
     dispatch(getAllCompanyNamesThunk());
-  }, [dispatch]);
+  }, [dispatch, activeCompanyId]);
 
   // Handle success and error messages
   useEffect(() => {
@@ -263,7 +268,7 @@ const ProductsPage = () => {
         <AddNewProductBulkDialog
           open={bulkDialogOpen}
           onClose={() => setBulkDialogOpen(false)}
-          refreshData={() => dispatch(getAllProductItemsThunk())}
+          refreshData={() => dispatch(getAllProductItemsThunk({ companyName: activeCompanyId || undefined }))}
         />
       </Box>
   );

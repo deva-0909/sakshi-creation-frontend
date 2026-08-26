@@ -54,6 +54,9 @@ const BranchPage = () => {
   const dispatch = useAppDispatch();
   const { branches, loading, error, successMessage } = useAppSelector((state) => state.branches);
   const { user } = useAppSelector((state) => state.auth);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the thunk already
+  // supported companyName -- this page just never passed it.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const permissions = user?.role?.permissions?.branch;
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -61,8 +64,8 @@ const BranchPage = () => {
   const [form, setForm] = useState<BranchForm>(emptyForm);
 
   useEffect(() => {
-    dispatch(getAllBranchesThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllBranchesThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   useEffect(() => {
     if (successMessage) {

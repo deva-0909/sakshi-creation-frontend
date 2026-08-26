@@ -93,6 +93,17 @@ const PurchaseRequisitionDetailPage = () => {
     };
   }, [id, dispatch]);
 
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the PR's own company
+  // isn't known until it loads, so the unconditional fetch above stays
+  // unscoped (fine for an initial paint); once the PR resolves, re-fetch
+  // scoped to its own company so the Convert-to-PO vendor picker doesn't
+  // offer the other company's vendors.
+  useEffect(() => {
+    if (pr?.companyName?._id) {
+      dispatch(getAllVendorsThunk({ companyName: pr.companyName._id }));
+    }
+  }, [pr?.companyName?._id, dispatch]);
+
   useEffect(() => {
     if (successMessage) {
       toast.success(successMessage);

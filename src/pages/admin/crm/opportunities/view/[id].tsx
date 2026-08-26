@@ -112,6 +112,18 @@ const OpportunityDetailPage = () => {
     };
   }, [id, dispatch]);
 
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the opportunity's own
+  // company isn't known until it loads, so the unconditional fetch above
+  // stays unscoped (tri-state -- fine as an initial paint); once the
+  // opportunity resolves, re-fetch scoped to its own company so the
+  // Convert-to-Quotation product picker doesn't offer the other company's
+  // items alongside shared ones.
+  useEffect(() => {
+    if (o?.companyName?._id) {
+      dispatch(getAllProductItemsThunk({ companyName: o.companyName._id }));
+    }
+  }, [o?.companyName?._id, dispatch]);
+
   useEffect(() => {
     if (o) setFollowUpDate(o.followUpDate ? o.followUpDate.slice(0, 10) : "");
   }, [o]);

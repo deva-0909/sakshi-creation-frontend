@@ -104,6 +104,9 @@ const VendorPage = () => {
   const dispatch = useAppDispatch();
   const { vendors, loading, error } = useAppSelector((state) => state.vendors);
   const { rateHistory, performance, rateHistoryLoading } = useAppSelector((state) => state.vendors);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the Vendor master list
+  // never read the company toggle -- always mixed both companies' vendors.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -114,10 +117,10 @@ const VendorPage = () => {
 
   // Fetch vendors on component mount
   useEffect(() => {
-    dispatch(getAllVendorsThunk())
+    dispatch(getAllVendorsThunk({ companyName: activeCompanyId || undefined }))
       .unwrap()
       .catch((err) => toast.error(err));
-  }, [dispatch]);
+  }, [dispatch, activeCompanyId]);
 
   // Open dialog for add or edit
   const handleOpenDialog = (vendor?: any) => {
@@ -528,7 +531,7 @@ const VendorPage = () => {
       <AddNewVendorBulkDialog
         open={bulkDialogOpen}
         onClose={() => setBulkDialogOpen(false)}
-        refreshData={() => dispatch(getAllVendorsThunk())}
+        refreshData={() => dispatch(getAllVendorsThunk({ companyName: activeCompanyId || undefined }))}
       />
 
       {/* Module 11 Part B: live-computed rate history + on-time-delivery

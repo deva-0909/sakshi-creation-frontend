@@ -37,6 +37,10 @@ const StockLedgerPage = () => {
   const dispatch = useAppDispatch();
   const { materials } = useAppSelector((state) => state.materials);
   const { ledger, summary, availability, loading, summaryLoading, error } = useAppSelector((state) => state.stockLedger);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: the thunks/controller
+  // already supported companyName -- this page just never passed it, so
+  // balances/ledger/availability always mixed both companies together.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
 
   const [summaryCategory, setSummaryCategory] = useState<{ label: string; value: string | number } | null>(null);
   const [selectedMaterial, setSelectedMaterial] = useState<{ label: string; value: string | number } | null>(null);
@@ -45,12 +49,17 @@ const StockLedgerPage = () => {
   const [toDate, setToDate] = useState("");
 
   useEffect(() => {
-    dispatch(getAllMaterialsThunk());
-  }, [dispatch]);
+    dispatch(getAllMaterialsThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   useEffect(() => {
-    dispatch(getStockSummaryThunk(summaryCategory ? { category: String(summaryCategory.value) } : undefined));
-  }, [summaryCategory, dispatch]);
+    dispatch(
+      getStockSummaryThunk({
+        category: summaryCategory ? String(summaryCategory.value) : undefined,
+        companyName: activeCompanyId || undefined,
+      })
+    );
+  }, [summaryCategory, activeCompanyId, dispatch]);
 
   useEffect(() => {
     if (selectedMaterial) {
@@ -61,6 +70,7 @@ const StockLedgerPage = () => {
             category: ledgerCategory ? String(ledgerCategory.value) : undefined,
             from: fromDate || undefined,
             to: toDate || undefined,
+            companyName: activeCompanyId || undefined,
           },
         })
       );
@@ -70,13 +80,13 @@ const StockLedgerPage = () => {
       dispatch(
         getStockAvailabilityThunk({
           materialId: String(selectedMaterial.value),
-          params: { category: ledgerCategory ? String(ledgerCategory.value) : undefined },
+          params: { category: ledgerCategory ? String(ledgerCategory.value) : undefined, companyName: activeCompanyId || undefined },
         })
       );
     } else {
       dispatch(clearMaterialLedger());
     }
-  }, [selectedMaterial, ledgerCategory, fromDate, toDate, dispatch]);
+  }, [selectedMaterial, ledgerCategory, fromDate, toDate, activeCompanyId, dispatch]);
 
   useEffect(() => {
     if (error) toast.error(error);

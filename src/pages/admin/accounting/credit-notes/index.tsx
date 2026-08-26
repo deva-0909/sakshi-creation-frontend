@@ -58,6 +58,10 @@ const CreditNotesPage = () => {
   const { creditNotes, loading, error, successMessage } = useAppSelector((state) => state.creditNotes);
   const { invoices } = useAppSelector((state) => state.invoices);
   const { user } = useAppSelector((state) => state.auth);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: this page never read
+  // the company toggle -- both the list and the New Credit Note invoice
+  // picker always mixed both companies.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const permissions = user?.role?.permissions?.creditnote;
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -66,9 +70,9 @@ const CreditNotesPage = () => {
   const [reason, setReason] = useState("");
 
   useEffect(() => {
-    dispatch(getAllCreditNotesThunk(undefined));
-    dispatch(getAllInvoicesThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllCreditNotesThunk({ companyName: activeCompanyId || undefined }));
+    dispatch(getAllInvoicesThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
   useEffect(() => {
     if (successMessage) {
@@ -78,7 +82,7 @@ const CreditNotesPage = () => {
       setInvoice(null);
       setAmount("");
       setReason("");
-      dispatch(getAllCreditNotesThunk(undefined));
+      dispatch(getAllCreditNotesThunk({ companyName: activeCompanyId || undefined }));
     }
     if (error) {
       toast.error(error);

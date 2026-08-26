@@ -44,15 +44,18 @@ const VendorPaymentPage = () => {
   const dispatch = useAppDispatch();
   const { vendorPayments, loading, totalCount } = useAppSelector((state) => state.vendorPayments);
   const { user } = useAppSelector((state) => state.auth);
+  // Mobile/toggle/seed audit (2026-08-26), Phase D: this page never read
+  // the company toggle -- Vendor Payments always mixed both companies.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
   const [open, setOpen] = useState(false);
 
   const canCreate = user?.role?.permissions?.vendorpayment?.create;
 
   useEffect(() => {
-    dispatch(getAllVendorPaymentsThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllVendorPaymentsThunk({ companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
 
-  const refreshData = () => dispatch(getAllVendorPaymentsThunk(undefined));
+  const refreshData = () => dispatch(getAllVendorPaymentsThunk({ companyName: activeCompanyId || undefined }));
 
   return (
     <Box p={3}>
