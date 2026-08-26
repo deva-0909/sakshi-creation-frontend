@@ -19,8 +19,22 @@ import {
 } from "@/store/slices/machineSlice";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import type { MachineCategory } from "@/services/machine.service";
 
-const CATEGORIES = ["Printer", "Binder", "Booklet Binder"];
+// Multi-role audit fix (Finding 5): this list only ever offered Sakshi
+// Creation's print-shop categories, even though Quality Packaging's real
+// equipment (corrugator, flexo printer, box-making/folder-gluer, die punch)
+// needed its own vocabulary -- machines.category's CHECK constraint has been
+// widened to match (see migration audit_widen_machines_category_and_materials_type).
+const CATEGORIES = [
+  "Printer",
+  "Binder",
+  "Booklet Binder",
+  "Corrugation",
+  "Printing",
+  "Conversion",
+  "Punching",
+];
 const STATUSES = ["Active", "Under Maintenance", "Inactive"];
 
 const statusColor: Record<string, { bg: string; color: string }> = {
@@ -125,7 +139,7 @@ const MachinePage = () => {
     const payload = {
       machineName: form.machineName,
       machineCode: form.machineCode,
-      category: form.category as "Printer" | "Binder" | "Booklet Binder",
+      category: form.category as MachineCategory,
       companyName: form.companyName.value,
       capacity: form.capacity || undefined,
       status: form.status as "Active" | "Under Maintenance" | "Inactive",

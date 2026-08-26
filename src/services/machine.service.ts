@@ -2,11 +2,22 @@ import axios, { type AxiosResponse } from "axios";
 import Endpoint from "@/API/apiConfig";
 import { authService } from "./auth.service";
 
+// Multi-role audit fix (Finding 5): widened to include Quality Packaging's
+// real equipment categories alongside Sakshi Creation's print-shop ones.
+export type MachineCategory =
+  | "Printer"
+  | "Binder"
+  | "Booklet Binder"
+  | "Corrugation"
+  | "Printing"
+  | "Conversion"
+  | "Punching";
+
 export interface Machine {
   _id: string;
   machineName: string;
   machineCode: string;
-  category: "Printer" | "Binder" | "Booklet Binder";
+  category: MachineCategory;
   capacity?: string;
   status: "Active" | "Under Maintenance" | "Inactive";
   purchaseDate?: string;
@@ -20,7 +31,7 @@ export interface Machine {
 export interface CreateMachineData {
   machineName: string;
   machineCode: string;
-  category: "Printer" | "Binder" | "Booklet Binder";
+  category: MachineCategory;
   companyName: string;
   capacity?: string;
   status?: "Active" | "Under Maintenance" | "Inactive";

@@ -205,6 +205,11 @@ export const permissionsArray = {
     create: false,
     edit: false,
     delete: false,
+    // Multi-role audit fix (Finding 3): backend gates
+    // PATCH /:id/approve and /:id/reject on authorizePermission("purchaseorder",
+    // "approve") (routes/purchaseOrder.routes.js) but this key was missing here,
+    // so PO approval rights could only ever be granted via direct DB edit.
+    approve: false,
   },
   grn: {
     view_global: false,
@@ -242,6 +247,36 @@ export const permissionsArray = {
     delete: false,
   },
   opportunity: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
+  // Multi-role audit fix (Finding 2): the backend has enforced permissions on
+  // "quotation", "bom", and "jobcard" since Modules 8/9 (routes/quotation.routes.js,
+  // routes/bom.routes.js, routes/jobCard.routes.js) but none of the three ever
+  // had a template entry here, so an admin could not grant or revoke them
+  // through the Roles & Permissions UI at all -- only by direct DB edit
+  // (confirmed while seeding the multi-role audit's Sales/Production accounts).
+  quotation: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+    // Backend gates PATCH /:id/approve and /:id/reject on
+    // authorizePermission("quotation", "approve").
+    approve: false,
+  },
+  bom: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
+  jobcard: {
     view_global: false,
     view_own: false,
     create: false,

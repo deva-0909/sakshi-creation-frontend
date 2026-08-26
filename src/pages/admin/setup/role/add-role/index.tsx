@@ -85,7 +85,22 @@ const AddRoleForm: React.FC<AddRoleFormProps> = ({ isEditMode = false, roleId })
     if (isEditMode && singleRole) {
       setRoleName(singleRole.roleName);
 
-      setPermissions(singleRole?.permissions);
+      // Multi-role audit fix: this used to be `setPermissions(singleRole?.permissions)`,
+      // which replaced the form's state with exactly what the role had stored in the
+      // DB -- so a module/action added to `permissionsArray` after a role was created
+      // (e.g. this fix's own "quotation"/"bom"/"jobcard" additions, or "approve" on
+      // "purchaseorder") would silently never appear when editing that older role,
+      // even though the backend already enforces it. Merge the stored permissions on
+      // top of the current template instead, so every known module/action always
+      // renders (defaulting to false) and edits to older roles can't drift from what
+      // the backend actually checks.
+      const merged: Permission = Object.fromEntries(
+        Object.entries(permissionsArray).map(([module, actions]) => [
+          module,
+          { ...actions, ...(singleRole?.permissions?.[module] || {}) },
+        ])
+      );
+      setPermissions(merged);
       setStatus(singleRole?.status || "Active");
     }
   }, [isEditMode, singleRole]);

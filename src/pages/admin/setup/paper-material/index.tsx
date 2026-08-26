@@ -28,7 +28,12 @@ import Swal from 'sweetalert2';
 const STATUSES = ['Active', 'Inactive'];
 // Full Figma slide scan Phase 5 (Theme 9): a property of the paper stock,
 // per the user's decision -- not chosen per-purchase.
-const TYPES = ['Reel', 'Sheet'];
+// Multi-role audit fix (Finding 6): 'Reel'/'Sheet' had no bucket for
+// consumables (ink, adhesive/gum, poly-bag liner, kantan trims) -- those
+// used to have to be left with no type at all. materials.type's CHECK
+// constraint now also allows 'Consumable' (see migration
+// audit_widen_machines_category_and_materials_type).
+const TYPES = ['Reel', 'Sheet', 'Consumable'];
 const statusColor: Record<string, { bg: string; color: string }> = {
   Active: { bg: '#D1FADF', color: '#027A48' },
   Inactive: { bg: '#FEE4E2', color: '#B42318' },

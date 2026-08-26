@@ -14,7 +14,9 @@ export interface Material {
   // Full Figma slide scan Phase 5 (Theme 9): optional -- a property of the
   // paper stock (Reel/Sheet), shown read-only on the Purchase form once a
   // material is selected.
-  type?: 'Reel' | 'Sheet' | null;
+  // Multi-role audit fix (Finding 6): added 'Consumable' for materials that
+  // are neither reel nor sheet stock (ink, adhesive, poly-bag liner, trims).
+  type?: 'Reel' | 'Sheet' | 'Consumable' | null;
   uom?: { id: string; name: string; symbol?: string } | null;
   createdAt: string;
   updatedAt: string;
