@@ -28,6 +28,10 @@ export interface AccountMaster {
   _id: string;
   party?: any;
   assignment?: any;
+  // Full Figma slide scan Phase 6 (Theme 10): this party's single most
+  // recent order number, enriched server-side (accountMaster.controller.js's
+  // enrichWithLatestOrder) -- null when the party has no orders yet.
+  latestOrderNumber?: string | null;
   companyName: any;
   partyName: string;
   ownerName?: string;

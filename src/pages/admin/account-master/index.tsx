@@ -55,6 +55,9 @@ interface RowData {
   createdBy: string;
   assignedTo: string;
   statusApproval: "Pending" | "Approved";
+  // Full Figma slide scan Phase 6 (Theme 10): the party's single most
+  // recent order number, per the user's decision (not a total count).
+  orderNo: string;
 }
 
 const columns = [
@@ -62,6 +65,7 @@ const columns = [
   { id: "company", label: "Company" },
   { id: "createdDate", label: "Created Date" },
   { id: "party", label: "Party" },
+  { id: "orderNo", label: "Order No." },
   { id: "contactPerson", label: "Contact Person" },
   { id: "partyTag", label: "Party Tag" },
   { id: "mobile", label: "Mobile No." },
@@ -79,6 +83,7 @@ const csvColumns = [
   { id: "company", label: "Company", value: (row: RowData) => row.company?.name },
   { id: "createdDate", label: "Created Date", value: (row: RowData) => row.createdDate },
   { id: "party", label: "Party", value: (row: RowData) => row.party },
+  { id: "orderNo", label: "Order No.", value: (row: RowData) => row.orderNo },
   { id: "contactPerson", label: "Contact Person", value: (row: RowData) => row.contactPerson },
   { id: "partyTag", label: "Party Tag", value: (row: RowData) => row.partyTag },
   { id: "mobile", label: "Mobile No.", value: (row: RowData) => row.mobile },
@@ -494,6 +499,7 @@ const IndexPage: React.FC = () => {
         year: "2-digit",
       }),
       party: account.party?.partyName || "N/A",
+      orderNo: account.latestOrderNumber || "N/A",
       contactPerson: account.party?.ownerName || "N/A",
       partyTag: account.party?.partyTag || "New",
       mobile: account.party?.ownerWhatsAppNo || "N/A",
@@ -725,6 +731,7 @@ const IndexPage: React.FC = () => {
               >
                 {row.party}
               </TableCell>
+              <TableCell sx={{ fontSize: 14 }}>{row.orderNo}</TableCell>
               <TableCell sx={{ fontSize: 14 }}>{row.contactPerson}</TableCell>
               <TableCell>
                 <ThemeChip

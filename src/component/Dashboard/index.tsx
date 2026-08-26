@@ -168,6 +168,11 @@ const menuItems = [
   },
   { label: "Task", icon: <MdShoppingCart size={18} />, path: "/admin/task" },
   { label: "History", icon: <MdShoppingCart size={18} />, path: "/admin/history" },
+  // Full Figma slide scan Phase 6 (Theme 10, Slide 87): "my own orders" --
+  // exempted from the permission-key filter below the same way Dashboard
+  // is, since it's a personal view (this staff member's own assignments),
+  // not a module with its own permission category.
+  { label: "My Orders", icon: <MdAssignment size={18} />, path: "/admin/my-orders" },
   {
     label: "Setup",
     icon: <MdSettings size={18} />,
@@ -257,7 +262,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
 
       const filteredItems = menuItems
         .map((item) => {
-          if (item.label === "Dashboard") return item;
+          if (item.label === "Dashboard" || item.label === "My Orders") return item;
 
           // Not a view_global/view_own module -- shown only to staff whose
           // role can actually approve something (the same eligibility the
