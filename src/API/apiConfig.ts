@@ -213,6 +213,11 @@ const Endpoint = {
   GET_DYE_PUNCH_BY_ID: `${BaseURL}/api/dye-punches`,
   UPDATE_DYE_PUNCH: `${BaseURL}/api/dye-punches`,
   DELETE_DYE_PUNCH: `${BaseURL}/api/dye-punches`,
+  // Full Figma slide scan Phase 8 (Theme 7): Godown box/cartoon receiving.
+  CREATE_GODOWN_BOX_RECEIPT: `${BaseURL}/api/godown-box-receipts`,
+  GET_ALL_GODOWN_BOX_RECEIPTS: `${BaseURL}/api/godown-box-receipts`,
+  UPDATE_GODOWN_BOX_RECEIPT: `${BaseURL}/api/godown-box-receipts`,
+  DELETE_GODOWN_BOX_RECEIPT: `${BaseURL}/api/godown-box-receipts`,
 
   // Complaint endpoints (two-company Phase 3 Part A -- "All Complains" nav
   // item from the Quality Packaging dashboard, see two-company-gap-analysis.md)

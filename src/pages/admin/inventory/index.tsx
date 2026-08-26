@@ -10,6 +10,7 @@ import { getAllMaterialsThunk } from '@/store/slices/materialSlice';
 import { getAllVendorsThunk } from '@/store/slices/vendorSlice';
 import { toast } from 'react-toastify';
 import DyePunchPage from '@/pages/admin/setup/dye-punch';
+import GodownBoxReceiptPage from '@/pages/admin/setup/godown-box-receipt';
 
 enum InventoryCategory {
   PRINTER = 'printer',
@@ -133,10 +134,11 @@ const InventoryPage = () => {
   useEffect(() => {
     dispatch(getAllMaterialsThunk());
     dispatch(getAllVendorsThunk());
-    // Dye/Punch isn't a real backend inventory category (see the
-    // InventoryCategory.DYE_PUNCH comment above) -- it renders its own
-    // page component instead, so skip fetching inventory rows for it.
-    if (activeMainTab !== InventoryCategory.DYE_PUNCH) {
+    // Dye/Punch and Godown Box Receipt aren't real backend inventory
+    // categories (see the InventoryCategory.DYE_PUNCH comment above) --
+    // they render their own page components instead, so skip fetching
+    // inventory rows for them.
+    if (activeMainTab !== InventoryCategory.DYE_PUNCH && activeMainTab !== InventoryCategory.GODOWN) {
       dispatch(getInventoryByCategoryThunk(activeMainTab));
       dispatch(getInventorySummaryThunk(activeMainTab));
     }
@@ -360,6 +362,12 @@ const reorderLevelFor = (materialId: string, materialsList: any[]): number | nul
         // content only (no page-level layout of its own), so it's safe to
         // mount inside another page's tab body.
         <DyePunchPage />
+      ) : activeMainTab === InventoryCategory.GODOWN ? (
+        // Full Figma slide scan Phase 8 (Theme 7, Slides 74-75): Godown's
+        // box/cartoon receiving manifest, mounted the same way as Dye/Punch
+        // above -- its own standalone page component with an internal
+        // Inward/Outward toggle, reused here as inert inner content.
+        <GodownBoxReceiptPage />
       ) : (
         <>
           <Box py={2}>

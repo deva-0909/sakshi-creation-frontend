@@ -171,6 +171,17 @@ export const permissionsArray = {
     edit: false,
     delete: false,
   },
+  // Full Figma slide scan Phase 8 (Theme 7): Godown's box/cartoon receiving
+  // manifest, surfaced as an Inventory > Godown tab (same pattern as
+  // dye_punch above). Backend already grants this key to Admin directly in
+  // Supabase; other roles get it here.
+  godown_box_receipt: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
   // Two-company Phase 3 Part A: Complaints module ("All Complains" nav item
   // from the Figma reference's Quality Packaging dashboard). Backend already
   // grants this key to Admin directly in Supabase; other roles get it here.

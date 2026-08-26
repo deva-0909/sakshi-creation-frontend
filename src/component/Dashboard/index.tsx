@@ -91,6 +91,7 @@ const permissionMapping: { [key: string]: string } = {
   "Wastage Report": "jobcard",
   Machines: "machine",
   "Dye / Punch": "dye_punch",
+  "Godown Box Receipt": "godown_box_receipt",
   "Stock Ledger": "inventory",
   "Stock Movements": "inventory",
   RFQs: "rfq",
@@ -376,6 +377,11 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
     {
       label: "Dye / Punch",
       path: "/admin/setup/dye-punch",
+      icon: <MdBuild size={18} />,
+    },
+    {
+      label: "Godown Box Receipt",
+      path: "/admin/setup/godown-box-receipt",
       icon: <MdBuild size={18} />,
     },
     // {
