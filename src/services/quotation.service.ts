@@ -90,7 +90,7 @@ export const quotationService = {
     }
   },
 
-  async getAllQuotations(params?: { status?: string; search?: string; page?: number; limit?: number }): Promise<ApiResponse<Quotation[]>> {
+  async getAllQuotations(params?: { status?: string; search?: string; page?: number; limit?: number; companyName?: string }): Promise<ApiResponse<Quotation[]>> {
     try {
       const response: AxiosResponse<ApiResponse<Quotation[]>> = await axios.get(Endpoint.GET_ALL_QUOTATIONS, {
         headers: authHeaders(),

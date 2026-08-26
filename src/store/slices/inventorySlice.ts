@@ -3,9 +3,14 @@ import { inventoryService, Inventory, ApiResponse } from '@/services/inventory.s
 
 export const getInventoryByCategoryThunk = createAsyncThunk(
   'inventory/getByCategory',
-  async (category: string, { rejectWithValue }) => {
+  // Mobile/toggle/seed audit (2026-08-26), Phase C: companyName is optional
+  // and appended after category so every existing `dispatch(thunk(category))`
+  // call (a plain string) keeps compiling and behaving exactly as before.
+  async (arg: string | { category: string; companyName?: string }, { rejectWithValue }) => {
     try {
-      const response = await inventoryService.getInventoryByCategory(category);
+      const category = typeof arg === 'string' ? arg : arg.category;
+      const companyName = typeof arg === 'string' ? undefined : arg.companyName;
+      const response = await inventoryService.getInventoryByCategory(category, { companyName });
       if (response.success && Array.isArray(response.data)) {
         return response.data;
       } else {
@@ -19,9 +24,11 @@ export const getInventoryByCategoryThunk = createAsyncThunk(
 
 export const getInventorySummaryThunk = createAsyncThunk(
   'inventory/getSummary',
-  async (category: string, { rejectWithValue }) => {
+  async (arg: string | { category: string; companyName?: string }, { rejectWithValue }) => {
     try {
-      const response = await inventoryService.getInventorySummary(category);
+      const category = typeof arg === 'string' ? arg : arg.category;
+      const companyName = typeof arg === 'string' ? undefined : arg.companyName;
+      const response = await inventoryService.getInventorySummary(category, { companyName });
       if (response.success && response.data) {
         return response.data;
       } else {

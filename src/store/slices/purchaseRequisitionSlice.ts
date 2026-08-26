@@ -53,7 +53,7 @@ export const createPurchaseRequisitionThunk = createAsyncThunk(
 
 export const getAllPurchaseRequisitionsThunk = createAsyncThunk(
   "purchaseRequisition/getAll",
-  async (params: { status?: string; search?: string; page?: number; limit?: number } | undefined, { rejectWithValue }) => {
+  async (params: { status?: string; search?: string; page?: number; limit?: number; companyName?: string } | undefined, { rejectWithValue }) => {
     try {
       const response = await purchaseRequisitionService.getAllPurchaseRequisitions(params);
       if (response.success && Array.isArray(response.data)) {

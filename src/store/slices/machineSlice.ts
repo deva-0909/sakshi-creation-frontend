@@ -17,7 +17,7 @@ const initialState: MachineState = {
 
 export const getAllMachinesThunk = createAsyncThunk(
   "machines/getAll",
-  async (params: { category?: string; status?: string } | undefined, { rejectWithValue }) => {
+  async (params: { category?: string; status?: string; companyName?: string } | undefined, { rejectWithValue }) => {
     try {
       const response = await machineService.getAllMachines(params);
       if (response.success && Array.isArray(response.data)) return response.data;

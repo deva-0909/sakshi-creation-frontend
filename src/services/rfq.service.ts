@@ -72,7 +72,7 @@ export const rfqService = {
     }
   },
 
-  async getAllRfqs(params?: { status?: string; search?: string; page?: number; limit?: number }): Promise<ApiResponse<Rfq[]>> {
+  async getAllRfqs(params?: { status?: string; search?: string; page?: number; limit?: number; companyName?: string }): Promise<ApiResponse<Rfq[]>> {
     try {
       const response: AxiosResponse<ApiResponse<Rfq[]>> = await axios.get(Endpoint.GET_ALL_RFQS, {
         headers: authHeaders(),

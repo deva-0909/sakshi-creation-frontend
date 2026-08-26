@@ -10,7 +10,7 @@ interface BranchState {
 
 const initialState: BranchState = { branches: [], loading: false, error: null, successMessage: null };
 
-export const getAllBranchesThunk = createAsyncThunk("branches/getAll", async (params: { status?: string; search?: string } | undefined, { rejectWithValue }) => {
+export const getAllBranchesThunk = createAsyncThunk("branches/getAll", async (params: { status?: string; search?: string; companyName?: string } | undefined, { rejectWithValue }) => {
   try {
     const response = await branchService.getAllBranches(params);
     if (response.success && Array.isArray(response.data)) return response.data;

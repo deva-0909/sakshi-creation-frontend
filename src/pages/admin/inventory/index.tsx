@@ -123,6 +123,9 @@ const InventoryPage = () => {
   const { inventory, summary, loading, error } = useAppSelector(state => state.inventory);
   const { materials } = useAppSelector(state => state.materials);
   const { vendors } = useAppSelector(state => state.vendors);
+  // Mobile/toggle/seed audit (2026-08-26), Phase C: this page never read the
+  // company toggle at all -- every tab mixed both companies' inventory.
+  const { activeCompanyId } = useAppSelector(state => state.activeCompany);
   const [activeMainTab, setActiveMainTab] = useState<InventoryCategory>(InventoryCategory.PRINTER);
   const [activeWardTab, setActiveWardTab] = useState<WardTab>(WardTab.INWARD);
   const [showDetails, setShowDetails] = useState(false);
@@ -132,17 +135,17 @@ const InventoryPage = () => {
   const [selectedPrinterFilter, setSelectedPrinterFilter] = useState<string>('');
 
   useEffect(() => {
-    dispatch(getAllMaterialsThunk());
-    dispatch(getAllVendorsThunk());
+    dispatch(getAllMaterialsThunk({ companyName: activeCompanyId || undefined }));
+    dispatch(getAllVendorsThunk({ companyName: activeCompanyId || undefined }));
     // Dye/Punch and Godown Box Receipt aren't real backend inventory
     // categories (see the InventoryCategory.DYE_PUNCH comment above) --
     // they render their own page components instead, so skip fetching
     // inventory rows for them.
     if (activeMainTab !== InventoryCategory.DYE_PUNCH && activeMainTab !== InventoryCategory.GODOWN) {
-      dispatch(getInventoryByCategoryThunk(activeMainTab));
-      dispatch(getInventorySummaryThunk(activeMainTab));
+      dispatch(getInventoryByCategoryThunk({ category: activeMainTab, companyName: activeCompanyId || undefined }));
+      dispatch(getInventorySummaryThunk({ category: activeMainTab, companyName: activeCompanyId || undefined }));
     }
-  }, [dispatch, activeMainTab]);
+  }, [dispatch, activeMainTab, activeCompanyId]);
 
   useEffect(() => {
     if (error) {

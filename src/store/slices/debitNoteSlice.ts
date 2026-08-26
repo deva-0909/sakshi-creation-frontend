@@ -50,7 +50,7 @@ export const cancelDebitNoteThunk = createAsyncThunk("debitNote/cancel", async (
 
 export const getAllDebitNotesThunk = createAsyncThunk(
   "debitNote/getAll",
-  async (params: { vendorId?: string; purchaseOrderId?: string; status?: string; search?: string } | undefined, { rejectWithValue }) => {
+  async (params: { vendorId?: string; purchaseOrderId?: string; status?: string; search?: string; companyName?: string } | undefined, { rejectWithValue }) => {
     try {
       const response = await debitNoteService.getAllDebitNotes(params);
       if (response.success && Array.isArray(response.data)) return response.data;

@@ -77,7 +77,7 @@ export const debitNoteService = {
     }
   },
 
-  async getAllDebitNotes(params?: { vendorId?: string; purchaseOrderId?: string; status?: string; search?: string }): Promise<ApiResponse<DebitNote[]>> {
+  async getAllDebitNotes(params?: { vendorId?: string; purchaseOrderId?: string; status?: string; search?: string; companyName?: string }): Promise<ApiResponse<DebitNote[]>> {
     try {
       const response: AxiosResponse<ApiResponse<DebitNote[]>> = await axios.get(Endpoint.GET_ALL_DEBIT_NOTES, {
         headers: authHeaders(),

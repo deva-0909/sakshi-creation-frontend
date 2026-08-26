@@ -42,7 +42,7 @@ export const branchService = {
     }
   },
 
-  async getAllBranches(params?: { status?: string; search?: string }): Promise<ApiResponse<Branch[]>> {
+  async getAllBranches(params?: { status?: string; search?: string; companyName?: string }): Promise<ApiResponse<Branch[]>> {
     try {
       const response: AxiosResponse<ApiResponse<Branch[]>> = await axios.get(Endpoint.GET_ALL_BRANCHES, { headers: authHeaders(), params, withCredentials: true });
       return { success: response.data.success, data: response.data.data || [], message: response.data.message };

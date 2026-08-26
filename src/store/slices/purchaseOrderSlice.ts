@@ -57,7 +57,7 @@ export const selectWinningQuoteThunk = createAsyncThunk(
 
 export const getAllPurchaseOrdersThunk = createAsyncThunk(
   "purchaseOrder/getAll",
-  async (params: { status?: string; vendorId?: string; search?: string; page?: number; limit?: number } | undefined, { rejectWithValue }) => {
+  async (params: { status?: string; vendorId?: string; search?: string; page?: number; limit?: number; companyName?: string } | undefined, { rejectWithValue }) => {
     try {
       const response = await purchaseOrderService.getAllPurchaseOrders(params);
       if (response.success && Array.isArray(response.data)) {

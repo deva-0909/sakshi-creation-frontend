@@ -252,7 +252,7 @@ export const jobCardService = {
     }
   },
 
-  async getWastageReport(params?: { from?: string; to?: string; materialId?: string; stage?: string }): Promise<ApiResponse<WastageReportRow[]>> {
+  async getWastageReport(params?: { from?: string; to?: string; materialId?: string; stage?: string; companyName?: string }): Promise<ApiResponse<WastageReportRow[]>> {
     try {
       const response: AxiosResponse<ApiResponse<WastageReportRow[]>> = await axios.get(Endpoint.GET_WASTAGE_REPORT, {
         headers: authHeaders(),

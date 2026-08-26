@@ -50,7 +50,7 @@ export const cancelCreditNoteThunk = createAsyncThunk("creditNote/cancel", async
 
 export const getAllCreditNotesThunk = createAsyncThunk(
   "creditNote/getAll",
-  async (params: { invoiceId?: string; partyId?: string; status?: string; search?: string } | undefined, { rejectWithValue }) => {
+  async (params: { invoiceId?: string; partyId?: string; status?: string; search?: string; companyName?: string } | undefined, { rejectWithValue }) => {
     try {
       const response = await creditNoteService.getAllCreditNotes(params);
       if (response.success && Array.isArray(response.data)) return response.data;

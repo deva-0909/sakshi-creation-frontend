@@ -38,7 +38,7 @@ export const createRfqThunk = createAsyncThunk("rfq/create", async (data: Create
 
 export const getAllRfqsThunk = createAsyncThunk(
   "rfq/getAll",
-  async (params: { status?: string; search?: string; page?: number; limit?: number } | undefined, { rejectWithValue }) => {
+  async (params: { status?: string; search?: string; page?: number; limit?: number; companyName?: string } | undefined, { rejectWithValue }) => {
     try {
       const response = await rfqService.getAllRfqs(params);
       if (response.success && Array.isArray(response.data)) {

@@ -89,7 +89,7 @@ export const purchaseOrderService = {
     }
   },
 
-  async getAllPurchaseOrders(params?: { status?: string; vendorId?: string; search?: string; page?: number; limit?: number }): Promise<ApiResponse<PurchaseOrder[]>> {
+  async getAllPurchaseOrders(params?: { status?: string; vendorId?: string; search?: string; page?: number; limit?: number; companyName?: string }): Promise<ApiResponse<PurchaseOrder[]>> {
     try {
       const response: AxiosResponse<ApiResponse<PurchaseOrder[]>> = await axios.get(Endpoint.GET_ALL_PURCHASE_ORDERS, {
         headers: authHeaders(),

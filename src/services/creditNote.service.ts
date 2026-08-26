@@ -75,7 +75,7 @@ export const creditNoteService = {
     }
   },
 
-  async getAllCreditNotes(params?: { invoiceId?: string; partyId?: string; status?: string; search?: string }): Promise<ApiResponse<CreditNote[]>> {
+  async getAllCreditNotes(params?: { invoiceId?: string; partyId?: string; status?: string; search?: string; companyName?: string }): Promise<ApiResponse<CreditNote[]>> {
     try {
       const response: AxiosResponse<ApiResponse<CreditNote[]>> = await axios.get(Endpoint.GET_ALL_CREDIT_NOTES, {
         headers: authHeaders(),

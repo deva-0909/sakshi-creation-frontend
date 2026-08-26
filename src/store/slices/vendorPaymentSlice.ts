@@ -69,7 +69,7 @@ export const createVendorPaymentAllocationThunk = createAsyncThunk(
 
 export const getAllVendorPaymentsThunk = createAsyncThunk(
   "vendorPayment/getAll",
-  async (params: { vendorId?: string; purchaseOrderId?: string; search?: string; page?: number; limit?: number } | undefined, { rejectWithValue }) => {
+  async (params: { vendorId?: string; purchaseOrderId?: string; search?: string; page?: number; limit?: number; companyName?: string } | undefined, { rejectWithValue }) => {
     try {
       const response = await vendorPaymentService.getAllVendorPayments(params);
       if (response.success && Array.isArray(response.data)) {

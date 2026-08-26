@@ -11,7 +11,10 @@ export interface ApiResponse<T> {
 }
 
 export const leadService = {
-  async getAllLeads(): Promise<ApiResponse<Lead[]>> {
+  // Mobile/toggle/seed audit (2026-08-26), Phase C: the backend has always
+  // accepted a companyName filter here (lead.controller.js's getAllLeads)
+  // -- this service just never exposed a way to pass it through.
+  async getAllLeads(params?: { status?: string; partyName?: string; companyName?: string; page?: number; limit?: number }): Promise<ApiResponse<Lead[]>> {
   try {
     const token = authService.getToken();
     if (!token) {
@@ -21,6 +24,7 @@ export const leadService = {
       Endpoint.GET_ALL_LEADS,
       {
         headers: { Authorization: `Bearer ${token}` },
+        params,
         withCredentials: true,
       }
     );

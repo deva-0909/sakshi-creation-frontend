@@ -4,9 +4,9 @@ import { Lead } from '@/services/types';
 
 export const getAllLeadsThunk = createAsyncThunk(
   'leads/getAll',
-  async (_, { rejectWithValue }) => {
+  async (params: { status?: string; partyName?: string; companyName?: string; page?: number; limit?: number } | undefined, { rejectWithValue }) => {
     try {
-      const response = await leadService.getAllLeads();
+      const response = await leadService.getAllLeads(params);
       if (!response || typeof response !== 'object') {
         return rejectWithValue('Invalid response from server');
       }

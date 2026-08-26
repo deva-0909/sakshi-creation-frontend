@@ -74,7 +74,7 @@ export const purchaseRequisitionService = {
     }
   },
 
-  async getAllPurchaseRequisitions(params?: { status?: string; search?: string; page?: number; limit?: number }): Promise<ApiResponse<PurchaseRequisition[]>> {
+  async getAllPurchaseRequisitions(params?: { status?: string; search?: string; page?: number; limit?: number; companyName?: string }): Promise<ApiResponse<PurchaseRequisition[]>> {
     try {
       const response: AxiosResponse<ApiResponse<PurchaseRequisition[]>> = await axios.get(Endpoint.GET_ALL_PURCHASE_REQUISITIONS, {
         headers: authHeaders(),

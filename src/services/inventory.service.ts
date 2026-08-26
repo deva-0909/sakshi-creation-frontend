@@ -38,7 +38,10 @@ export interface ApiResponse<T> {
 }
 
 export const inventoryService = {
-  async getInventoryByCategory(category: string): Promise<ApiResponse<Inventory[]>> {
+  // Mobile/toggle/seed audit (2026-08-26), Phase C: companyName filters to
+  // one company's inventory entries; omitted keeps today's behavior (both
+  // companies mixed).
+  async getInventoryByCategory(category: string, params?: { companyName?: string }): Promise<ApiResponse<Inventory[]>> {
     try {
       const token = authService.getToken();
       if (!token) {
@@ -48,6 +51,7 @@ export const inventoryService = {
         `${Endpoint.GET_BY_CATEGORY}/${category}`,
         {
           headers: { Authorization: `Bearer ${token}` },
+          params,
           withCredentials: true,
         }
       );
@@ -59,7 +63,7 @@ export const inventoryService = {
     }
   },
 
-  async getInventorySummary(category: string): Promise<ApiResponse<{ lastPurchase: number, usedQty: number, balance: number }>> {
+  async getInventorySummary(category: string, params?: { companyName?: string }): Promise<ApiResponse<{ lastPurchase: number, usedQty: number, balance: number }>> {
     try {
       const token = authService.getToken();
       if (!token) {
@@ -69,6 +73,7 @@ export const inventoryService = {
         `${Endpoint.GET_CATEGORY}/${category}`,
         {
           headers: { Authorization: `Bearer ${token}` },
+          params,
           withCredentials: true,
         }
       );

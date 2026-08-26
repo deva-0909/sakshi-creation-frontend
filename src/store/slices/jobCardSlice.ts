@@ -164,7 +164,7 @@ export const recordMaterialUsageThunk = createAsyncThunk(
 
 export const getWastageReportThunk = createAsyncThunk(
   "jobCard/getWastageReport",
-  async (params: { from?: string; to?: string; materialId?: string; stage?: string } | undefined, { rejectWithValue }) => {
+  async (params: { from?: string; to?: string; materialId?: string; stage?: string; companyName?: string } | undefined, { rejectWithValue }) => {
     try {
       const response = await jobCardService.getWastageReport(params);
       if (response.success && Array.isArray(response.data)) return response.data;

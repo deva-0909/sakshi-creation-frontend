@@ -53,7 +53,7 @@ export const createQuotationThunk = createAsyncThunk(
 
 export const getAllQuotationsThunk = createAsyncThunk(
   "quotation/getAll",
-  async (params: { status?: string; search?: string; page?: number; limit?: number } | undefined, { rejectWithValue }) => {
+  async (params: { status?: string; search?: string; page?: number; limit?: number; companyName?: string } | undefined, { rejectWithValue }) => {
     try {
       const response = await quotationService.getAllQuotations(params);
       if (response.success && Array.isArray(response.data)) {

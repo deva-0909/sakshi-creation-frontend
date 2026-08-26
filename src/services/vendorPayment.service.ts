@@ -86,7 +86,7 @@ export const vendorPaymentService = {
     }
   },
 
-  async getAllVendorPayments(params?: { vendorId?: string; purchaseOrderId?: string; search?: string; page?: number; limit?: number }): Promise<ApiResponse<VendorPayment[]>> {
+  async getAllVendorPayments(params?: { vendorId?: string; purchaseOrderId?: string; search?: string; page?: number; limit?: number; companyName?: string }): Promise<ApiResponse<VendorPayment[]>> {
     try {
       const response: AxiosResponse<ApiResponse<VendorPayment[]>> = await axios.get(Endpoint.GET_ALL_VENDOR_PAYMENTS, {
         headers: authHeaders(),

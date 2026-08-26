@@ -101,7 +101,7 @@ export const opportunityService = {
     }
   },
 
-  async getAllOpportunities(params?: { stage?: string; partyId?: string; assignedTo?: string; search?: string; page?: number; limit?: number }): Promise<ApiResponse<Opportunity[]>> {
+  async getAllOpportunities(params?: { stage?: string; partyId?: string; assignedTo?: string; search?: string; page?: number; limit?: number; companyName?: string }): Promise<ApiResponse<Opportunity[]>> {
     try {
       const response: AxiosResponse<ApiResponse<Opportunity[]>> = await axios.get(Endpoint.GET_ALL_OPPORTUNITIES, {
         headers: authHeaders(),

@@ -66,7 +66,7 @@ export const createOpportunityThunk = createAsyncThunk(
 
 export const getAllOpportunitiesThunk = createAsyncThunk(
   "opportunity/getAll",
-  async (params: { stage?: string; partyId?: string; assignedTo?: string; search?: string; page?: number; limit?: number } | undefined, { rejectWithValue }) => {
+  async (params: { stage?: string; partyId?: string; assignedTo?: string; search?: string; page?: number; limit?: number; companyName?: string } | undefined, { rejectWithValue }) => {
     try {
       const response = await opportunityService.getAllOpportunities(params);
       if (response.success && Array.isArray(response.data)) {

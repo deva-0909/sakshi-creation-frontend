@@ -19,9 +19,9 @@ const initialState: ReportsState = {
   error: null,
 };
 
-export const getDelayedJobsThunk = createAsyncThunk("reports/getDelayedJobs", async (_: void, { rejectWithValue }) => {
+export const getDelayedJobsThunk = createAsyncThunk("reports/getDelayedJobs", async (params: { companyName?: string } | undefined, { rejectWithValue }) => {
   try {
-    const response = await reportsService.getDelayedJobs();
+    const response = await reportsService.getDelayedJobs(params);
     if (response.success) return response.data || [];
     return rejectWithValue(response.message || "Failed to fetch delayed jobs");
   } catch (error: any) {
@@ -29,9 +29,9 @@ export const getDelayedJobsThunk = createAsyncThunk("reports/getDelayedJobs", as
   }
 });
 
-export const getCustomerPerformanceThunk = createAsyncThunk("reports/getCustomerPerformance", async (_: void, { rejectWithValue }) => {
+export const getCustomerPerformanceThunk = createAsyncThunk("reports/getCustomerPerformance", async (params: { companyName?: string } | undefined, { rejectWithValue }) => {
   try {
-    const response = await reportsService.getCustomerPerformance();
+    const response = await reportsService.getCustomerPerformance(params);
     if (response.success) return response.data || [];
     return rejectWithValue(response.message || "Failed to fetch customer performance");
   } catch (error: any) {
@@ -39,9 +39,9 @@ export const getCustomerPerformanceThunk = createAsyncThunk("reports/getCustomer
   }
 });
 
-export const getSalespersonPerformanceThunk = createAsyncThunk("reports/getSalespersonPerformance", async (_: void, { rejectWithValue }) => {
+export const getSalespersonPerformanceThunk = createAsyncThunk("reports/getSalespersonPerformance", async (params: { companyName?: string } | undefined, { rejectWithValue }) => {
   try {
-    const response = await reportsService.getSalespersonPerformance();
+    const response = await reportsService.getSalespersonPerformance(params);
     if (response.success) return response.data || [];
     return rejectWithValue(response.message || "Failed to fetch salesperson performance");
   } catch (error: any) {

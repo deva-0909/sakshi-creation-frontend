@@ -65,7 +65,7 @@ export const machineService = {
     }
   },
 
-  async getAllMachines(params?: { category?: string; status?: string }): Promise<ApiResponse<Machine[]>> {
+  async getAllMachines(params?: { category?: string; status?: string; companyName?: string }): Promise<ApiResponse<Machine[]>> {
     try {
       const response: AxiosResponse<ApiResponse<Machine[]>> = await axios.get(Endpoint.GET_ALL_MACHINES, {
         headers: authHeaders(),

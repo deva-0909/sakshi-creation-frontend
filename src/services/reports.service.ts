@@ -59,27 +59,30 @@ const authHeaders = () => {
 };
 
 export const reportsService = {
-  async getDelayedJobs(): Promise<ApiResponse<DelayedJobRow[]>> {
+  // Mobile/toggle/seed audit (2026-08-26), Phase C: companyName filters
+  // this report to one company's orders/revenue; omitted keeps today's
+  // behavior (both companies mixed).
+  async getDelayedJobs(params?: { companyName?: string }): Promise<ApiResponse<DelayedJobRow[]>> {
     try {
-      const response: AxiosResponse<ApiResponse<DelayedJobRow[]>> = await axios.get(Endpoint.GET_DELAYED_JOBS, { headers: authHeaders(), withCredentials: true });
+      const response: AxiosResponse<ApiResponse<DelayedJobRow[]>> = await axios.get(Endpoint.GET_DELAYED_JOBS, { headers: authHeaders(), params, withCredentials: true });
       return { success: response.data.success, data: response.data.data || [], message: response.data.message };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Failed to fetch delayed jobs");
     }
   },
 
-  async getCustomerPerformance(): Promise<ApiResponse<CustomerPerformanceRow[]>> {
+  async getCustomerPerformance(params?: { companyName?: string }): Promise<ApiResponse<CustomerPerformanceRow[]>> {
     try {
-      const response: AxiosResponse<ApiResponse<CustomerPerformanceRow[]>> = await axios.get(Endpoint.GET_CUSTOMER_PERFORMANCE, { headers: authHeaders(), withCredentials: true });
+      const response: AxiosResponse<ApiResponse<CustomerPerformanceRow[]>> = await axios.get(Endpoint.GET_CUSTOMER_PERFORMANCE, { headers: authHeaders(), params, withCredentials: true });
       return { success: response.data.success, data: response.data.data || [], message: response.data.message };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Failed to fetch customer performance");
     }
   },
 
-  async getSalespersonPerformance(): Promise<ApiResponse<SalespersonPerformanceRow[]>> {
+  async getSalespersonPerformance(params?: { companyName?: string }): Promise<ApiResponse<SalespersonPerformanceRow[]>> {
     try {
-      const response: AxiosResponse<ApiResponse<SalespersonPerformanceRow[]>> = await axios.get(Endpoint.GET_SALESPERSON_PERFORMANCE, { headers: authHeaders(), withCredentials: true });
+      const response: AxiosResponse<ApiResponse<SalespersonPerformanceRow[]>> = await axios.get(Endpoint.GET_SALESPERSON_PERFORMANCE, { headers: authHeaders(), params, withCredentials: true });
       return { success: response.data.success, data: response.data.data || [], message: response.data.message };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Failed to fetch salesperson performance");
