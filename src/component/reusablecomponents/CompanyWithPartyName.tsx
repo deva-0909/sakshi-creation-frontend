@@ -44,6 +44,9 @@ const CompanySelect: React.FC<CompanySelectProps> = ({
   const dispatch = useAppDispatch()
   const { companies, loading, error: companyError } = useAppSelector((state) => state.company)
   const { parties, loading: partyLoading } = useAppSelector((state) => state.party)
+  // Mobile/toggle/seed audit (2026-08-26), Phase B: read the global company
+  // toggle so the default below can follow it instead of a hardcoded name.
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany)
   const [companyOptions, setCompanyOptions] = useState<{ label: string; value: string }[]>([])
   const [partyOptions, setPartyOptions] = useState<{ label: string; value: string }[]>([])
   const [defaultSet, setDefaultSet] = useState(false) // Track if default has been set
@@ -79,18 +82,28 @@ const CompanySelect: React.FC<CompanySelectProps> = ({
       }))
       setCompanyOptions(options)
 
-      // Set default to "Sakshi Creation" if value is not set and default hasn't been set yet
+      // Mobile/toggle/seed audit (2026-08-26), Phase B: default to whichever
+      // company is active in the global toggle, not a hardcoded "Sakshi
+      // Creation" -- this component backs ~8 shared forms (branches,
+      // dye-punch, godown-box-receipt, machines, vendor-name, warehouses,
+      // complaints, stock-movements), and every one of them was silently
+      // pre-filling a new/blank record to Sakshi Creation regardless of
+      // which company the user had toggled to. activeCompanyId === "" means
+      // "All companies" -- leave the field unset in that case (nothing to
+      // default to) rather than guessing.
       if (!value && !defaultSet) {
-        const sakshiCreation = options.find((option) => option.label === "Sakshi Creation")
-        if (sakshiCreation) {
-          onChange(null, sakshiCreation)
+        const activeOption = activeCompanyId
+          ? options.find((option) => option.value === activeCompanyId)
+          : undefined
+        if (activeOption) {
+          onChange(null, activeOption)
           setDefaultSet(true) // Mark default as set to prevent re-setting
         }
       }
     } else {
       setCompanyOptions([])
     }
-  }, [companies, hasParties, value, onChange, defaultSet])
+  }, [companies, hasParties, value, onChange, defaultSet, activeCompanyId])
 
   // Fetch parties when company changes (only if showPartyName is true)
   useEffect(() => {

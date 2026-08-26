@@ -18,6 +18,10 @@ export interface Material {
   // are neither reel nor sheet stock (ink, adhesive, poly-bag liner, trims).
   type?: 'Reel' | 'Sheet' | 'Consumable' | null;
   uom?: { id: string; name: string; symbol?: string } | null;
+  // Mobile/toggle/seed audit (2026-08-26), Phase B: optional, tri-state --
+  // unset means the material is shared/visible to every company, same
+  // pattern as product_items (Two-company Phase 1).
+  companyName?: { _id: string; companyName: string } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,6 +34,7 @@ export interface CreateMaterial {
   uom?: string;
   reorderLevel?: number | string;
   type?: string;
+  companyName?: string;
 }
 
 export interface UpdateMaterial {
@@ -40,6 +45,7 @@ export interface UpdateMaterial {
   uom?: string;
   reorderLevel?: number | string;
   type?: string;
+  companyName?: string;
 }
 
 export interface ApiResponse<T> {
@@ -64,7 +70,10 @@ export interface BulkImportResponse<T> {
 }
 
 export const materialService = {
-  async getMaterials(): Promise<ApiResponse<Material[]>> {
+  // Mobile/toggle/seed audit (2026-08-26), Phase B: companyName filters to
+  // one company's materials plus every unscoped one; omitted keeps today's
+  // behavior (every material, regardless of company).
+  async getMaterials(params?: { companyName?: string }): Promise<ApiResponse<Material[]>> {
     try {
       const token = authService.getToken();
       if (!token) {
@@ -75,6 +84,7 @@ export const materialService = {
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
+          params: params?.companyName ? { companyName: params.companyName } : undefined,
         }
       );
       return response.data;

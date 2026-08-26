@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Avatar,
@@ -10,6 +10,7 @@ import {
   ListItem,
   Collapse,
   useTheme,
+  useMediaQuery,
   Tooltip,
   IconButton,
 } from "@mui/material";
@@ -197,6 +198,22 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const [pageLoading, setPageLoading] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [dateTime, setDateTime] = useState<Date | null>(null);
+  // Mobile responsiveness audit (2026-08-26), Phase A: below `sm` the sidebar
+  // switches from a hover-expand push-layout to a tap-toggled overlay drawer
+  // (see the sx blocks below) -- hover has no touch equivalent, and a fixed
+  // 260px sidebar permanently eats most of a phone-width viewport otherwise.
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const didInitMobileDrawerRef = useRef(false);
+  useEffect(() => {
+    // Collapse the drawer by default on a mobile viewport instead of the
+    // desktop default of open -- only on the first render where isMobile is
+    // known (useMediaQuery reports false during SSR), so this never fights
+    // a user's manual toggle afterwards.
+    if (!didInitMobileDrawerRef.current) {
+      didInitMobileDrawerRef.current = true;
+      if (isMobile) setDrawerOpen(false);
+    }
+  }, [isMobile]);
   const [activeSubSidebar, setActiveSubSidebar] = useState<string | null>(
     router.pathname.startsWith("/admin/setup") ? "setup" : null
   );
@@ -454,11 +471,25 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
 
   return (
     <Box display="flex" fontFamily="Inter, sans-serif" minHeight="100vh" bgcolor="#FBFBFB" p={1}>
+      {/* Mobile-only backdrop -- taps outside the drawer close it, same as any
+          standard overlay drawer. Never rendered on desktop (drawer pushes
+          content there instead of overlaying it). */}
+      {isMobile && drawerOpen && (
+        <Box
+          onClick={() => setDrawerOpen(false)}
+          sx={{
+            position: "fixed",
+            inset: 0,
+            bgcolor: "rgba(16, 24, 40, 0.45)",
+            zIndex: 1250,
+          }}
+        />
+      )}
       <Box
         sx={{
-          width: drawerOpen ? 260 : 60,
-          minWidth: drawerOpen ? 260 : 60,
-          maxWidth: drawerOpen ? 260 : 60,
+          width: isMobile ? 260 : (drawerOpen ? 260 : 60),
+          minWidth: isMobile ? 260 : (drawerOpen ? 260 : 60),
+          maxWidth: isMobile ? 260 : (drawerOpen ? 260 : 60),
           bgcolor: "#ffffff",
           borderRight: "1px solid #e5e7eb",
           p: 1,
@@ -466,18 +497,23 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           boxShadow: "4px 0 6px -1px rgba(0, 0, 0, 0.1)",
           borderRadius: 1,
           flexDirection: "column",
-          transition: `width ${transitionDuration}ms ${transitionEasing}, min-width ${transitionDuration}ms ${transitionEasing}, max-width ${transitionDuration}ms ${transitionEasing}`,
+          // Mobile: a full off-canvas/on-canvas slide (translateX), tap-driven.
+          // Desktop: the original width-collapse, hover-driven behavior.
+          transform: isMobile ? (drawerOpen ? "translateX(0)" : "translateX(-100%)") : "none",
+          transition: isMobile
+            ? `transform ${transitionDuration}ms ${transitionEasing}`
+            : `width ${transitionDuration}ms ${transitionEasing}, min-width ${transitionDuration}ms ${transitionEasing}, max-width ${transitionDuration}ms ${transitionEasing}`,
           overflowX: "hidden",
           position: "fixed",
           top: 0,
           left: 0,
           height: "100vh",
           overflowY: "auto",
-          zIndex: 1200,
+          zIndex: 1300,
           flexShrink: 0,
         }}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={isMobile ? undefined : handleMouseEnter}
+        onMouseLeave={isMobile ? undefined : handleMouseLeave}
       >
         {/* Sidebar content */}
         <Box display="flex" justifyContent="space-between" alignItems="center" my={2}>
@@ -739,7 +775,9 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           bgcolor: "#fff",
           borderRadius: 2,
           overflowX: "auto",
-          ml: drawerOpen ? "260px" : "60px",
+          // Mobile: the drawer overlays instead of pushing content, so the
+          // main area keeps its full width regardless of drawerOpen.
+          ml: isMobile ? 0 : (drawerOpen ? "260px" : "60px"),
           transition: `margin-left ${transitionDuration}ms ${transitionEasing}`,
           height: "100vh",
           overflowY: "hidden",
@@ -750,22 +788,42 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           display="flex"
           justifyContent="space-between"
           alignItems="center"
+          flexWrap="wrap"
+          gap={1}
           px={2}
           py={1.5}
           bgcolor="#fff"
           boxShadow="4px 0 6px -1px rgba(0, 0, 0, 0.1)"
         >
-          <Typography variant="h6" fontSize={16} fontWeight={600}>
-            {getCurrentPageTitle()}
-          </Typography>
           <Box display="flex" alignItems="center" gap={1}>
+            {isMobile && (
+              <IconButton
+                onClick={() => setDrawerOpen(true)}
+                size="small"
+                aria-label="Open menu"
+                sx={{ color: "#344054" }}
+              >
+                <MdMenu />
+              </IconButton>
+            )}
+            <Typography variant="h6" fontSize={16} fontWeight={600}>
+              {getCurrentPageTitle()}
+            </Typography>
+          </Box>
+          <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
             {dateTime && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
               >
-                <Box display="flex" alignItems="center" gap={2} sx={{ fontFamily: "monospace", px: 2, py: 0.5 }}>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  gap={2}
+                  flexWrap="wrap"
+                  sx={{ fontFamily: "monospace", px: 2, py: 0.5, display: { xs: "none", sm: "flex" } }}
+                >
                   <Typography fontSize={14} fontWeight={600} color="text.secondary">
                     📅 {dateTime.toLocaleDateString()}
                   </Typography>

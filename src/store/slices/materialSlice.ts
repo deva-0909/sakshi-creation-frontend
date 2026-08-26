@@ -9,9 +9,9 @@ import {
 
 export const getAllMaterialsThunk = createAsyncThunk(
   'materials/getAll',
-  async (_, { rejectWithValue }) => {
+  async (params: { companyName?: string } | undefined, { rejectWithValue }) => {
     try {
-      const response = await materialService.getMaterials();
+      const response = await materialService.getMaterials(params);
       if (response.success && Array.isArray(response.data)) {
         return response.data;
       } else {

@@ -37,9 +37,9 @@ export const getVendorPerformanceThunk = createAsyncThunk(
 
 export const getAllVendorsThunk = createAsyncThunk(
   'vendors/getAll',
-  async (_, { rejectWithValue }) => {
+  async (params: { companyName?: string } | undefined, { rejectWithValue }) => {
     try {
-      const response = await vendorService.getVendors();
+      const response = await vendorService.getVendors(params);
       if (response.success && Array.isArray(response.data)) {
         return response.data;
       } else {

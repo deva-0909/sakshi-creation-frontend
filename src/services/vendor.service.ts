@@ -112,7 +112,11 @@ export interface BulkImportResponse<T> {
 }
 
 export const vendorService = {
-  async getVendors(): Promise<ApiResponse<Vendor[]>> {
+  // Mobile/toggle/seed audit (2026-08-26), Phase B: companyName filters to
+  // one company's vendors (vendors.company_name_id is required, so this is
+  // an exact match, unlike materials'/product_items' tri-state); omitted
+  // keeps today's behavior (every vendor, regardless of company).
+  async getVendors(params?: { companyName?: string }): Promise<ApiResponse<Vendor[]>> {
     try {
       const token = authService.getToken();
       if (!token) {
@@ -123,6 +127,7 @@ export const vendorService = {
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
+          params: params?.companyName ? { companyName: params.companyName } : undefined,
         }
       );
       return response.data;
