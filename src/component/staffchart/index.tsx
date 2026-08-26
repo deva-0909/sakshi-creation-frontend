@@ -1,65 +1,123 @@
+import React, { useEffect, useMemo } from 'react'
 import { Box, Typography } from '@mui/material'
-import React from 'react'
+import { useAppDispatch, useAppSelector } from '@/store'
+import { getAllCompanyNamesThunk } from '@/store/slices/companyNameSlice'
+import { getAllOrdersThunk } from '@/store/slices/orderSlice'
+import { getAllAccountMastersThunk } from '@/store/slices/accountMasterSlice'
+import { getAllLeadsThunk } from '@/store/slices/leadSlice'
 
-const statsData = [
-  { label: 'New Visit', value: 80, color: '#8B5CF6', key: 'newVisit' },
-  { label: 'New customers', value: 18, color: '#22C55E', key: 'newCustomers' },
-  { label: 'New party Added', value: 35, color: '#F59E42', key: 'newParty' },
-  { label: 'No of orders', value: 86, color: '#F43F5E', key: 'orders' },
-  { label: 'Amount of Business', value: 148000, color: '#FACC15', key: 'amount' },
-];
+// Mobile/toggle/seed audit (2026-08-26), Phase G: this component previously
+// rendered two hardcoded stat sets (statsData / statsData2) that never
+// changed no matter what was in the database, plus a mini "bar chart" of 5
+// literally-invented numbers ([80, 60, 100, 70, 90]) with no relationship
+// to the stats above them. Rebuilt from real data, scoped per company by
+// tab (0 = Sakshi Creation, 1 = Quality Packaging, matching the parent
+// Reports > Staff page's own tabs).
+//
+// Metric mapping decisions (no dedicated "dashboard stats" endpoint exists,
+// so this derives each figure from the same list endpoints other pages
+// already use):
+// - "No of orders" / "Amount of Business" = count and totalAmount sum of
+//   that company's orders (getAllOrdersThunk).
+// - "New party Added" = count of that company's parties/account masters
+//   (getAllAccountMastersThunk) -- parties actually added to the system.
+// - "New customers" = count of *distinct* parties who have placed at
+//   least one order for that company -- deliberately a different figure
+//   from "New party Added" (a party can be added without ever ordering).
+// - "New Visit" = count of that company's Party Call leads
+//   (getAllLeadsThunk) -- the closest existing concept to a sales visit.
+// The single bar under each number is proportional to that stat's own
+// share of the largest of the four count-based stats (Amount of Business
+// is a different unit and is excluded from that scale).
 
-const statsData2 = [
-  { label: 'New Visit', value: 60, color: '#8B5CF6', key: 'newVisit' },
-  { label: 'New customers', value: 25, color: '#22C55E', key: 'newCustomers' },
-  { label: 'New party Added', value: 20, color: '#F59E42', key: 'newParty' },
-  { label: 'No of orders', value: 70, color: '#F43F5E', key: 'orders' },
-  { label: 'Amount of Business', value: 98000, color: '#FACC15', key: 'amount' },
-];
+const tabLabels = ['Sakshi Creation', 'Quality Packaging'];
+
+const STAT_META = [
+  { key: 'newVisit', label: 'New Visit', color: '#8B5CF6' },
+  { key: 'newCustomers', label: 'New customers', color: '#22C55E' },
+  { key: 'newParty', label: 'New party Added', color: '#F59E42' },
+  { key: 'orders', label: 'No of orders', color: '#F43F5E' },
+  { key: 'amount', label: 'Amount of Business', color: '#FACC15' },
+] as const;
 
 // Accept tab as prop
 const StaffChart = ({ tab = 0 }: { tab?: number }) => {
-  const stats = tab === 0 ? statsData : statsData2;
+  const dispatch = useAppDispatch();
+  const { companyNames } = useAppSelector((state) => state.companyNames);
+  const { orders } = useAppSelector((state) => state.orders);
+  const { accountMasters } = useAppSelector((state) => state.accountMasters);
+  const { leads } = useAppSelector((state) => state.leads);
+
+  const companyId = useMemo(
+    () => companyNames.find((c) => c.companyName === tabLabels[tab])?._id,
+    [companyNames, tab]
+  );
+
+  useEffect(() => {
+    dispatch(getAllCompanyNamesThunk());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!companyId) return;
+    dispatch(getAllOrdersThunk({ limit: 1000, companyName: companyId }));
+    dispatch(getAllAccountMastersThunk({ companyName: companyId }));
+    dispatch(getAllLeadsThunk({ companyName: companyId }));
+  }, [dispatch, companyId]);
+
+  const distinctCustomerCount = new Set(
+    orders.map((o) => o.party?._id).filter(Boolean)
+  ).size;
+  const totalAmount = orders.reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0);
+
+  const values: Record<(typeof STAT_META)[number]['key'], number> = {
+    newVisit: leads.length,
+    newCustomers: distinctCustomerCount,
+    newParty: accountMasters.length,
+    orders: orders.length,
+    amount: totalAmount,
+  };
+
+  const maxCountStat = Math.max(values.newVisit, values.newCustomers, values.newParty, values.orders, 1);
+
   return (
     <Box display="flex" justifyContent="space-between" alignItems="flex-end" mb={2} flexWrap="wrap" gap={2}>
-      {stats.map((stat, idx) => (
-        <Box key={stat.key} flex={1} minWidth={120} textAlign="center">
-          <Typography fontWeight={600} fontSize={22} mb={0.5}>
-            {stat.key === 'amount' ? `₹${stat.value.toLocaleString()}` : stat.value}
-          </Typography>
-          <Typography fontSize={13} color="#667085" mb={1}>
-            {stat.label}
-          </Typography>
-          {/* Bar Chart */}
-          <Box
-            sx={{
-              height: 120,
-              display: 'flex',
-              alignItems: 'flex-end',
-              justifyContent: 'center',
-              gap: 1,
-            }}
-          >
-            {[80, 60, 100, 70, 90].map((val, i) => (
+      {STAT_META.map((stat) => {
+        const value = values[stat.key];
+        const barHeightPx = stat.key === 'amount' ? 120 : Math.max(8, Math.round((value / maxCountStat) * 120));
+        return (
+          <Box key={stat.key} flex={1} minWidth={120} textAlign="center">
+            <Typography fontWeight={600} fontSize={22} mb={0.5}>
+              {stat.key === 'amount' ? `₹${value.toLocaleString()}` : value}
+            </Typography>
+            <Typography fontSize={13} color="#667085" mb={1}>
+              {stat.label}
+            </Typography>
+            {/* Bar Chart -- height proportional to this stat's own value */}
+            <Box
+              sx={{
+                height: 120,
+                display: 'flex',
+                alignItems: 'flex-end',
+                justifyContent: 'center',
+              }}
+            >
               <Box
-                key={i}
                 sx={{
-                  width: 12,
-                  height: `${70 + (val % 60)}px`,
-                  background: ['#8B5CF6', '#22C55E', '#F59E42', '#F43F5E', '#FACC15'][i],
+                  width: 24,
+                  height: `${barHeightPx}px`,
+                  background: stat.color,
                   borderRadius: 2,
-                  opacity: idx === i ? 1 : 0.5,
                 }}
               />
-            ))}
+            </Box>
+            {/* Legend */}
+            <Box display="flex" justifyContent="center" alignItems="center" gap={1} mt={1}>
+              <Box width={16} height={4} bgcolor={stat.color} borderRadius={2} />
+              <Typography fontSize={12} color="#667085">{stat.label}</Typography>
+            </Box>
           </Box>
-          {/* Legend */}
-          <Box display="flex" justifyContent="center" alignItems="center" gap={1} mt={1}>
-            <Box width={16} height={4} bgcolor={stat.color} borderRadius={2} />
-            <Typography fontSize={12} color="#667085">{stat.label}</Typography>
-          </Box>
-        </Box>
-      ))}
+        );
+      })}
     </Box>
   )
 }

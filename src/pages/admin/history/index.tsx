@@ -20,7 +20,7 @@ import {
   clearSuccessMessage,
   getAccountMasterByStaffIdThunk,
 } from "@/store/slices/accountMasterSlice";
-import Dashboard from "@/component/Dashboard";
+import { getAllOrdersThunk } from "@/store/slices/orderSlice";
 import BasicTable from "@/component/common_component/Table/themetable";
 import ThemeButton from "@/component/common_component/themebutton";
 import ThemeChip from "@/component/common_component/themechip";
@@ -35,6 +35,7 @@ import DesignerTask from "../designer-task";
 import PrinterTask from "../printer-task";
 import BindrTask from "../binder-task";
 import BookletBinderTask from "../bookletbinder-task";
+import AdminOverviewTask from "@/component/AdminOverviewTask";
 const STATUS = {
   PENDING: "Pending",
   APPROVED: "Approved",
@@ -49,6 +50,18 @@ const Index = () => {
   );
   const { user } = useAppSelector((state) => state.auth);
   const { orders } = useAppSelector((state) => state.orders);
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
+
+  // Mobile/toggle/seed audit (2026-08-26), Phase G: this page filtered
+  // `orders` from Redux for every role's task list below, but never once
+  // dispatched anything to populate it -- `orders` was whatever another
+  // page happened to have already fetched (usually empty), so this page
+  // silently showed no tasks for everyone, not just the missing "admin"
+  // role case fixed below.
+  useEffect(() => {
+    dispatch(getAllOrdersThunk({ limit: 1000, companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
+
   const getRoleSpecificTasks = () => {
     if (!orders || orders.length === 0) return [];
 
@@ -102,6 +115,8 @@ const Index = () => {
         return <BindrTask tasks={tasks} />;
       case "booklet & folder binder":
         return <BookletBinderTask tasks={tasks} />;
+      case "admin":
+        return <AdminOverviewTask tasks={tasks as any} />;
       // Add more cases as needed
       default:
         return <div>No component available for your role: {role}</div>;

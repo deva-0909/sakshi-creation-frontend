@@ -1,8 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import BasicTable from '@/component/common_component/Table/themetable';
 import { Box, TableCell } from '@mui/material';
 import { FaChevronRight } from 'react-icons/fa6';
 import { useRouter } from 'next/router';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { getAllOrdersThunk, Order } from '@/store/slices/orderSlice';
+
+// Mobile/toggle/seed audit (2026-08-26), Phase G: this page previously
+// rendered 3 hardcoded mock rows (Mr. Shah / Mr. Roy / Mr. Akash) that never
+// changed no matter what was in the database. Rebuilt from real order data,
+// following the same pattern as the Designer/Binder/Booklet Binder reports.
+//
+// Column mapping decisions (no 1:1 backend field for a few of these):
+// - "Received" = issuedDate, "Sent for approval" = the first uploaded
+//   printer file's timestamp, "Approval Received" = receivedDate once
+//   printerStatus is Done, "Final Print file" = the most recently
+//   uploaded printer file's timestamp -- same conventions used for the
+//   Designer report's equivalent columns.
+// - "Balance" has no corresponding order field anywhere in the schema
+//   (no outstanding-amount or remaining-sheets figure is tracked at the
+//   Printer stage) -- shown as "-" rather than inventing a number. Flagged
+//   in the remediation plan as a real product gap, not a wiring gap.
 
 const columns = [
   { id: 'received', label: 'Received' },
@@ -16,80 +34,47 @@ const columns = [
   { id: 'finalPrintFile', label: 'Final Print file' },
 ];
 
-const rows = [
-  {
-    id: '1',
-    received: '01/04/25 , 10:10',
-    party: 'Mr . Shah',
-    printer: 'Raj',
-    orderNo: '123',
-    item: 'Item 1',
-    balance: '200',
-    sentForApproval: '01/04/25 , 10:10',
-    approvalReceived: '01/04/25 , 10:10',
-    finalPrintFile: '01/04/25 , 10:10',
-  },
-  {
-    id: '2',
-    received: '01/04/25 , 10:10',
-    party: 'Mr. Roy',
-    printer: 'Dhruv',
-    orderNo: '432',
-    item: 'Item 2',
-    balance: '180',
-    sentForApproval: '01/04/25 , 10:10',
-    approvalReceived: '01/04/25 , 10:10',
-    finalPrintFile: '01/04/25 , 10:10',
-  },
-  {
-    id: '3',
-    received: '01/04/25 , 10:10',
-    party: 'Mr. Akash',
-    printer: 'Sagar',
-    orderNo: '324',
-    item: 'Item 3',
-    balance: '190',
-    sentForApproval: '01/04/25 , 10:10',
-    approvalReceived: '01/04/25 , 10:10',
-    finalPrintFile: '01/04/25 , 10:10',
-  },
-];
+const formatDateTime = (value?: string) => (value ? new Date(value).toLocaleString() : '-');
 
-const csvColumns = [
-  { id: 'received', label: 'Received', value: (row: (typeof rows)[number]) => row.received },
-  { id: 'party', label: 'Party Name', value: (row: (typeof rows)[number]) => row.party },
-  { id: 'printer', label: 'Printer', value: (row: (typeof rows)[number]) => row.printer },
-  { id: 'orderNo', label: 'Order No', value: (row: (typeof rows)[number]) => row.orderNo },
-  { id: 'item', label: 'Item Name', value: (row: (typeof rows)[number]) => row.item },
-  { id: 'balance', label: 'Balance', value: (row: (typeof rows)[number]) => row.balance },
-  { id: 'sentForApproval', label: 'Sent for approval', value: (row: (typeof rows)[number]) => row.sentForApproval },
-  { id: 'approvalReceived', label: 'Approval Received', value: (row: (typeof rows)[number]) => row.approvalReceived },
-  { id: 'finalPrintFile', label: 'Final Print file', value: (row: (typeof rows)[number]) => row.finalPrintFile },
-];
+const toRow = (order: Order) => ({
+  id: order._id,
+  received: formatDateTime(order.issuedDate),
+  party: order.party?.partyName || 'N/A',
+  printer: order.printer ? `${order.printer.firstName || ''} ${order.printer.lastName || ''}`.trim() || 'N/A' : 'N/A',
+  orderNo: order.orderNumber,
+  item: order.productItem?.itemName || 'N/A',
+  balance: '-',
+  sentForApproval: order.printerFiles?.[0]?.uploadedAt ? formatDateTime(order.printerFiles[0].uploadedAt) : '-',
+  approvalReceived: order.printerStatus === 'Done' ? formatDateTime(order.receivedDate) : '-',
+  finalPrintFile: order.printerFiles?.length ? formatDateTime(order.printerFiles[order.printerFiles.length - 1].uploadedAt) : '-',
+});
+
+const csvColumns = columns.map((c) => ({
+  id: c.id,
+  label: c.label,
+  value: (row: ReturnType<typeof toRow>) => (row as any)[c.id],
+}));
 
 const PrintersPage = () => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { orders, loading } = useAppSelector((state) => state.orders);
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
 
-  type OrderRow = {
-    orderNo: string;
-    party: string;
-  };
-  
-  const handleRowClick = (row: OrderRow) => {
-    if (!row?.orderNo || !row?.party) {
-      console.warn("Missing order number or party in row:", row);
-      return;
-    }
-  
+  useEffect(() => {
+    dispatch(getAllOrdersThunk({ limit: 1000, companyName: activeCompanyId || undefined }));
+  }, [dispatch, activeCompanyId]);
+
+  // Only orders that have actually reached the Printer stage -- an order
+  // with no printerStatus was never assigned to a printer at all.
+  const rows = orders.filter((o) => o.printerStatus).map(toRow);
+
+  const handleRowClick = (row: ReturnType<typeof toRow>) => {
     router.push({
       pathname: '/admin/all-orders/view/printers',
-      query: {
-        orderNo: row.orderNo,
-        party: row.party,
-      },
+      query: { id: row.id },
     });
   };
-  
 
   return (
     <>
@@ -98,6 +83,7 @@ const PrintersPage = () => {
         rowData={rows}
         csvColumns={csvColumns}
         exportFilename="printers"
+        showFillter
         renderRow={(row) => (
           <>
           <TableCell>{row.received}</TableCell>
@@ -120,7 +106,7 @@ const PrintersPage = () => {
             <TableCell>{row.orderNo}</TableCell>
             <TableCell>{row.item}</TableCell>
             <TableCell>{row.balance}</TableCell>
-            
+
             <TableCell>{row.sentForApproval}</TableCell>
             <TableCell>{row.approvalReceived}</TableCell>
             <TableCell>
