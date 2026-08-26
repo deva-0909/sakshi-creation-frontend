@@ -5,12 +5,14 @@ import { useRouter } from 'next/router';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '@/store';
 import { getAllLeadsThunk } from '@/store/slices/leadSlice';
+import { getAllAssignTasksThunk } from '@/store/slices/assignTaskSlice';
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import ThemeInput from '@/component/common_component/themeinput';
 import ThemeChip from '@/component/common_component/themechip';
 import ThemeButton from '@/component/common_component/themebutton';
 import { MdTurnLeft } from 'react-icons/md';
 import AssignLeadDialog from '@/component/AssignLeadDialog';
+import AssignTaskDialog from '@/component/assigntaskdailog';
 import Loader from '@/component/common_component/loader';
 import Swal from 'sweetalert2';
 
@@ -260,20 +262,148 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, onRescheduleClick }) => {
   );
 };
 
+// Full Figma slide scan Phase 10 (Theme 10, Slide 82): the merged
+// "Party Click" screen (party header + Pending/History Task section +
+// Pending/History Lead section + an inline Assign-task button) already
+// exists almost exactly as designed on account-master/view-company/[id].tsx
+// -- just not on this page, which Party Call's own list links to. Per the
+// user's decision, extending this page (rather than redirecting Party
+// Call's list to the account-master route) so both entry points land on an
+// equally complete view. Task/TaskCard below mirror account-master's
+// TaskCard pattern; kept as a local copy rather than a shared import since
+// the two pages' surrounding layouts/data shapes differ enough that a
+// shared component would need its own prop-mapping layer for no real gain
+// at this scale (two call sites).
+interface Task {
+  _id: string;
+  date: string;
+  time: string;
+  visitDate?: string;
+  visitTime?: string;
+  reasonForVisit: string;
+  status: string;
+  assignTo: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+  };
+  feedback?: string;
+  partyName: {
+    _id: string;
+  };
+}
+
+interface TaskCardProps {
+  task: Task;
+}
+
+const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
+  return (
+    <Box mb={4} p={2} sx={{ backgroundColor: '#EDE9FE', borderRadius: 2 }}>
+      <Typography component="div" fontWeight={600} color="primary" mb={2}>
+        Task
+      </Typography>
+      <Box display="flex" justifyContent="space-between" flexWrap="wrap" rowGap={1}>
+        <Box>
+          <Typography component="div">Created Time</Typography>
+          <Typography component="div">
+            <strong>{task.date ? `${formatDate(task.date)}` : '-'}</strong>
+          </Typography>
+        </Box>
+        <Box>
+          <Typography component="div">Visit Time</Typography>
+          <Typography component="div">
+            <strong>
+              {task.visitDate ? `${formatDate(task.visitDate)} ${task.visitTime ? `, ${task.visitTime}` : ''}` : '-'}
+            </strong>
+          </Typography>
+        </Box>
+        <Box>
+          <Typography component="div">Reason for visit</Typography>
+          <Typography component="div">
+            <strong>{task.reasonForVisit}</strong>
+          </Typography>
+        </Box>
+        <Box>
+          <Typography component="div">Status</Typography>
+          <ThemeChip
+            label={task.status || '-'}
+            color={
+              task.status === 'Completed'
+                ? 'success'
+                : task.status === 'Pending'
+                ? 'warning'
+                : task.status === 'Cancelled'
+                ? 'error'
+                : 'primary'
+            }
+            variant="outlined"
+            sx={{
+              background:
+                task.status === 'Completed'
+                  ? '#DCFCE7'
+                  : task.status === 'Pending'
+                  ? '#FEF9C3'
+                  : task.status === 'Cancelled'
+                  ? '#FEE2E2'
+                  : '#E0F2FE',
+              color:
+                task.status === 'Completed'
+                  ? '#166534'
+                  : task.status === 'Pending'
+                  ? '#854D0E'
+                  : task.status === 'Cancelled'
+                  ? '#B91C1C'
+                  : '#0369A1',
+              fontWeight: 600,
+              fontSize: 13,
+              height: 24,
+              px: 1,
+              border: 'none',
+            }}
+          />
+        </Box>
+        <Box>
+          <Typography component="div">Assign to</Typography>
+          <Typography component="div">
+            <strong>{task.assignTo ? `${task.assignTo.firstName} ${task.assignTo.lastName}` : '-'}</strong>
+          </Typography>
+        </Box>
+      </Box>
+
+      <Box mt={2}>
+        <Typography component="div" fontWeight={500} color="text.secondary" mb={0.5}>
+          Task Feedback
+        </Typography>
+        <ThemeInput
+          label=""
+          value={task.feedback || '-'}
+          InputProps={{ readOnly: true }}
+          multiline
+          sx={{ width: '100%', background: '#fff', borderRadius: 1 }}
+        />
+      </Box>
+    </Box>
+  );
+};
+
 const ViewLeadPage: React.FC = () => {
   const router = useRouter();
   const { id } = router.query;
   const dispatch = useAppDispatch();
   const { leads, loading } = useSelector((state: RootState) => state.leads || {});
+  const { assignTasks } = useSelector((state: RootState) => state.assignTasks || { assignTasks: [] as Task[] });
   const { user } = useSelector((state: RootState) => state.auth || {});
   const canEdit = user?.role?.permissions?.party_call?.edit;
   const [open, setOpen] = useState(false);
+  const [assignTaskDialogOpen, setAssignTaskDialogOpen] = useState(false);
   const [partyDetails, setPartyDetails] = useState<PartyDetails | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const pendingPartyCallRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     dispatch(getAllLeadsThunk());
+    dispatch(getAllAssignTasksThunk());
   }, [dispatch]);
 
   useEffect(() => {
@@ -321,6 +451,17 @@ const ViewLeadPage: React.FC = () => {
   const completedLeads = partyLeads.filter((lead) =>
     ['completed', 'cancelled'].includes(lead.status)
   );
+
+  // Full Figma slide scan Phase 10: Assign Tasks and Leads both reference
+  // account_masters via party_name_id (see assignTask.controller.js's
+  // TASK_SELECT / lead.controller.js's LEAD_SELECT), so this party's tasks
+  // can be matched by id directly rather than the name-string fallback
+  // account-master/view-company/[id].tsx uses.
+  const partyTasks = (assignTasks as unknown as Task[]).filter(
+    (task) => task.partyName?._id === selectedLead?.partyName?._id
+  );
+  const pendingTasks = partyTasks.filter((task) => task.status === 'Pending');
+  const historyTasks = partyTasks.filter((task) => task.status !== 'Pending');
 
   // Group leads by date for pending and completed leads
   const groupedPendingLeads = useMemo(() => {
@@ -422,15 +563,20 @@ const ViewLeadPage: React.FC = () => {
           borderBottom: '1px solid #e0e0e0',
         }}
       >
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-        <IconButton onClick={() => router.back()} sx={{ p: 0, color: 'primary.main' }}>
-          <MdTurnLeft size={24} />
-        </IconButton>
-        <Typography variant="h6" component="div" sx={{ fontWeight: 400 }}>
-          {partyDetails.partyName} | {selectedLead?.companyName?.companyName || 'N/A'} |{' '}
-          {selectedLead?.partyName?.createdBy?.firstName}{' '}
-          {selectedLead?.partyName?.createdBy?.lastName}
-        </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <IconButton onClick={() => router.back()} sx={{ p: 0, color: 'primary.main' }}>
+            <MdTurnLeft size={24} />
+          </IconButton>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 400 }}>
+            {partyDetails.partyName} | {selectedLead?.companyName?.companyName || 'N/A'} |{' '}
+            {selectedLead?.partyName?.createdBy?.firstName}{' '}
+            {selectedLead?.partyName?.createdBy?.lastName}
+          </Typography>
+        </Box>
+        <ThemeButton onClick={() => setAssignTaskDialogOpen(true)}>
+          + Assign task
+        </ThemeButton>
       </Box>
       <Box display="flex" flexWrap="wrap" justifyContent="space-between" mb={4} gap={2}>
         <Box>
@@ -505,6 +651,17 @@ const ViewLeadPage: React.FC = () => {
           bgcolor: '#f5f5f5',
         }}
       >
+      {pendingTasks.length > 0 && (
+        <>
+          <Typography component="div" fontWeight={600} color="primary" mb={2}>
+            Pending Task{pendingTasks.length > 1 ? 's' : ''}
+          </Typography>
+          {pendingTasks.map((task) => (
+            <TaskCard key={`pending-task-${task._id}`} task={task} />
+          ))}
+        </>
+      )}
+
       <Typography component="div" fontWeight={600} color="primary" mb={2}>
 
         Pending Party Call
@@ -542,6 +699,17 @@ const ViewLeadPage: React.FC = () => {
         ))
       ) : (
         <Typography>No pending leads found</Typography>
+      )}
+
+      {historyTasks.length > 0 && (
+        <>
+          <Typography component="div" fontWeight={600} color="primary" mb={2} mt={4}>
+            Task History
+          </Typography>
+          {historyTasks.map((task) => (
+            <TaskCard key={`history-task-${task._id}`} task={task} />
+          ))}
+        </>
       )}
 
       <Typography component="div" fontWeight={600} color="primary" mb={2} mt={4}>
@@ -591,6 +759,24 @@ const ViewLeadPage: React.FC = () => {
         }}
         lead={selectedLead}
         onSuccess={handleAssignSuccess}
+      />
+
+      <AssignTaskDialog
+        open={assignTaskDialogOpen}
+        onClose={() => setAssignTaskDialogOpen(false)}
+        selectedParties={
+          selectedLead?.partyName?._id
+            ? [
+                {
+                  partyId: selectedLead.partyName._id,
+                  companyId: selectedLead.companyName?._id || '',
+                },
+              ]
+            : []
+        }
+        refreshData={() => {
+          dispatch(getAllAssignTasksThunk());
+        }}
       />
     </Box>
   );
