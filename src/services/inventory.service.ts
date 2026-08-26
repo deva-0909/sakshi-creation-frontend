@@ -17,6 +17,15 @@ export interface Inventory {
   companyName: any;
   for: any;
   forCompany: any;
+  // Full Figma slide scan Phase 4 (Theme 7): order/party on outward rows
+  // (null on inward purchase rows) and Factory dye/punch mirroring --
+  // see inventory.controller.js's SELECT for what actually populates these.
+  order?: { _id: string; orderNumber?: string } | null;
+  party?: { _id: string; partyName?: string } | null;
+  dyePunchNumber?: string | null;
+  ply?: string | null;
+  sheetSize?: string | null;
+  boxSize?: string | null;
   createdAt: string;
   updatedAt: string;
 }

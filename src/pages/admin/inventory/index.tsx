@@ -92,6 +92,31 @@ interface AggregatedInventory {
   purchases: any[];
 }
 
+// Full Figma slide scan Phase 4 (Theme 7, Low Stock threshold): a material
+// with no reorderLevel set shows no badge at all, rather than a misleading
+// always-"In Stock" or always-"Low Stock".
+const StockBadge = ({ balance, reorderLevel }: { balance: number; reorderLevel?: number | null }) => {
+  if (reorderLevel === undefined || reorderLevel === null) return <>N/A</>;
+  const isLow = balance <= reorderLevel;
+  return (
+    <Box
+      component="span"
+      sx={{
+        backgroundColor: isLow ? '#FEE4E2' : '#D1FADF',
+        color: isLow ? '#B42318' : '#027A48',
+        fontSize: '12px',
+        fontWeight: 600,
+        borderRadius: '8px',
+        px: 1.5,
+        py: 0.5,
+        display: 'inline-block',
+      }}
+    >
+      {isLow ? 'Low Stock' : 'In Stock'}
+    </Box>
+  );
+};
+
 const InventoryPage = () => {
   const dispatch = useAppDispatch();
   const { inventory, summary, loading, error } = useAppSelector(state => state.inventory);
@@ -195,6 +220,14 @@ const aggregateInventory = (): AggregatedInventory[] => {
 
   return Object.values(aggregated);
 };
+
+// Full Figma slide scan Phase 4 (Theme 7): looks up each aggregated row's
+// material by id to read its reorderLevel -- kept out of AggregatedInventory
+// itself since that shape is built from raw inventory rows, not materials.
+const reorderLevelFor = (materialId: string, materialsList: any[]): number | null | undefined => {
+  const material = materialsList.find((m) => m._id === materialId);
+  return material?.reorderLevel;
+};
   const aggregatedData = aggregateInventory();
 
   const handleRowClick = (printerData: AggregatedInventory) => {
@@ -265,6 +298,18 @@ const aggregateInventory = (): AggregatedInventory[] => {
               { id: 'qty', label: 'QTY' },
               { id: 'date', label: 'DATE' },
               { id: 'vendor', label: 'VENDOR' },
+              // Full Figma slide scan Phase 4 (Theme 7): Order No/Party only
+              // ever populate on outward rows (written by the job-card
+              // wastage/material-usage RPCs) -- inward purchase rows show
+              // N/A here, which is correct, they were never tied to an
+              // order. Dye/Punch details only populate when the Purchase
+              // form's optional section was used for this inward row.
+              { id: 'orderNo', label: 'ORDER NO' },
+              { id: 'party', label: 'PARTY' },
+              { id: 'dyePunchNo', label: 'DYE/PUNCH NO' },
+              { id: 'ply', label: 'PLY' },
+              { id: 'sheetSize', label: 'SHEET SIZE' },
+              { id: 'boxSize', label: 'BOX SIZE' },
             ]}
             rowData={filteredInventory.map(item => ({ ...item, id: item._id }))}
             renderRow={(row) => (
@@ -276,6 +321,12 @@ const aggregateInventory = (): AggregatedInventory[] => {
                 <TableCell>{row.quantity}</TableCell>
                 <TableCell>{new Date(row.date).toLocaleDateString()}</TableCell>
                 <TableCell>{row.vendor?.name || 'N/A'}</TableCell>
+                <TableCell>{row.order?.orderNumber || 'N/A'}</TableCell>
+                <TableCell>{row.party?.partyName || 'N/A'}</TableCell>
+                <TableCell>{row.dyePunchNumber || 'N/A'}</TableCell>
+                <TableCell>{row.ply || 'N/A'}</TableCell>
+                <TableCell>{row.sheetSize || 'N/A'}</TableCell>
+                <TableCell>{row.boxSize || 'N/A'}</TableCell>
               </>
             )}
             showDatePicker={false}
@@ -289,6 +340,12 @@ const aggregateInventory = (): AggregatedInventory[] => {
               { id: 'qty', label: 'QTY', value: (row: any) => row.quantity },
               { id: 'date', label: 'DATE', value: (row: any) => new Date(row.date).toLocaleDateString() },
               { id: 'vendor', label: 'VENDOR', value: (row: any) => row.vendor?.name || 'N/A' },
+              { id: 'orderNo', label: 'ORDER NO', value: (row: any) => row.order?.orderNumber || 'N/A' },
+              { id: 'party', label: 'PARTY', value: (row: any) => row.party?.partyName || 'N/A' },
+              { id: 'dyePunchNo', label: 'DYE/PUNCH NO', value: (row: any) => row.dyePunchNumber || 'N/A' },
+              { id: 'ply', label: 'PLY', value: (row: any) => row.ply || 'N/A' },
+              { id: 'sheetSize', label: 'SHEET SIZE', value: (row: any) => row.sheetSize || 'N/A' },
+              { id: 'boxSize', label: 'BOX SIZE', value: (row: any) => row.boxSize || 'N/A' },
             ]}
             exportFilename="inventory-factory"
           />
@@ -357,9 +414,10 @@ const aggregateInventory = (): AggregatedInventory[] => {
                   { id: 'lastPurchase', label: 'LAST PURCHASE' },
                   { id: 'usedQty', label: 'USED QUANTITY' },
                   { id: 'balance', label: 'BALANCE' },
+                  { id: 'stockStatus', label: 'STOCK STATUS' },
                   { id: 'action', label: 'ACTIONS' },
                 ]}
-                rowData={aggregatedData.filter(item => 
+                rowData={aggregatedData.filter(item =>
                   (!selectedMaterial || item.materialId === selectedMaterial) &&
                   (!selectedPrinterFilter || item.printerId === selectedPrinterFilter)
                 )}
@@ -373,6 +431,9 @@ const aggregateInventory = (): AggregatedInventory[] => {
                     <TableCell>{row.lastPurchase}</TableCell>
                     <TableCell>{row.usedQty}</TableCell>
                     <TableCell>{row.balance}</TableCell>
+                    <TableCell>
+                      <StockBadge balance={row.balance} reorderLevel={reorderLevelFor(row.materialId, materials)} />
+                    </TableCell>
                     <TableCell>
                       <Box display="flex" justifyContent="flex-end" alignItems="center">
                         <FaChevronRight
@@ -395,6 +456,15 @@ const aggregateInventory = (): AggregatedInventory[] => {
                   { id: 'lastPurchase', label: 'LAST PURCHASE', value: (row: AggregatedInventory) => row.lastPurchase },
                   { id: 'usedQty', label: 'USED QUANTITY', value: (row: AggregatedInventory) => row.usedQty },
                   { id: 'balance', label: 'BALANCE', value: (row: AggregatedInventory) => row.balance },
+                  {
+                    id: 'stockStatus',
+                    label: 'STOCK STATUS',
+                    value: (row: AggregatedInventory) => {
+                      const reorderLevel = reorderLevelFor(row.materialId, materials);
+                      if (reorderLevel === undefined || reorderLevel === null) return 'N/A';
+                      return row.balance <= reorderLevel ? 'Low Stock' : 'In Stock';
+                    },
+                  },
                 ]}
                 exportFilename="inventory-printer-summary"
               />
@@ -462,6 +532,11 @@ const aggregateInventory = (): AggregatedInventory[] => {
                     label: activeWardTab === WardTab.OUTWARD ? 'DATE OUT WARD' : 'DATE IN WARD',
                   },
                   { id: 'vendor', label: 'VENDOR' },
+                  // Full Figma slide scan Phase 4 (Theme 7): only outward
+                  // rows carry an order/party (see the SELECT comment in
+                  // inventory.controller.js) -- inward rows show N/A here.
+                  { id: 'orderNo', label: 'ORDER NO' },
+                  { id: 'party', label: 'PARTY' },
                 ]}
                 rowData={filteredInventory.filter(item =>
                   item.forCompany?._id === selectedPrinter?.printerId &&
@@ -483,6 +558,8 @@ const aggregateInventory = (): AggregatedInventory[] => {
                         <FaChevronRight style={styles.tableActionIcon} />
                       </Box>
                     </TableCell>
+                    <TableCell>{row.order?.orderNumber || 'N/A'}</TableCell>
+                    <TableCell>{row.party?.partyName || 'N/A'}</TableCell>
                   </>
                 )}
                 csvColumns={[
@@ -496,6 +573,8 @@ const aggregateInventory = (): AggregatedInventory[] => {
                     value: (row: any) => new Date(row.date).toLocaleDateString(),
                   },
                   { id: 'vendor', label: 'VENDOR', value: (row: any) => row.vendor?.name || 'N/A' },
+                  { id: 'orderNo', label: 'ORDER NO', value: (row: any) => row.order?.orderNumber || 'N/A' },
+                  { id: 'party', label: 'PARTY', value: (row: any) => row.party?.partyName || 'N/A' },
                 ]}
                 exportFilename="inventory-printer-detail"
               />

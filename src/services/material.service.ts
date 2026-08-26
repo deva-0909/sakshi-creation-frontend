@@ -8,6 +8,9 @@ export interface Material {
   materialSize: string;
   materialGSM: number;
   status?: string;
+  // Full Figma slide scan Phase 4 (Theme 7): optional -- Inventory only
+  // shows a Low Stock/In Stock badge for a material once this is set.
+  reorderLevel?: number | null;
   uom?: { id: string; name: string; symbol?: string } | null;
   createdAt: string;
   updatedAt: string;
@@ -19,6 +22,7 @@ export interface CreateMaterial {
   materialGSM: number;
   status?: string;
   uom?: string;
+  reorderLevel?: number | string;
 }
 
 export interface UpdateMaterial {
@@ -27,6 +31,7 @@ export interface UpdateMaterial {
   materialGSM?: number;
   status?: string;
   uom?: string;
+  reorderLevel?: number | string;
 }
 
 export interface ApiResponse<T> {

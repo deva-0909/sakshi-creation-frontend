@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { getAllMaterialsThunk } from '@/store/slices/materialSlice';
 import { getCompaniesThunk, getRolesThunk, getStaffByRoleThunk, createPurchaseThunk, getPurchaseByIdThunk, updatePurchaseThunk } from '@/store/slices/purchaseSlice';
 import { getAllVendorsThunk } from '@/store/slices/vendorSlice';
+import { getPartiesByCompanyThunk } from '@/store/slices/partySlice';
 import Swal from 'sweetalert2';
 import { useRouter } from 'next/router';
 
@@ -27,6 +28,7 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
   const { materials } = useAppSelector(state => state.materials);
   const { companies, roles, staff, singlePurchase, loading, error } = useAppSelector(state => state.purchase);
   const { vendors } = useAppSelector(state => state.vendors);
+  const { parties } = useAppSelector(state => state.party);
 
   const [formData, setFormData] = useState({
     vendorName: '',
@@ -40,7 +42,15 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
     kg: '',
     companyName: '',
     for: '',
-    forCompany: ''
+    forCompany: '',
+    // Full Figma slide scan Phase 4 (Theme 7): optional, only meaningful
+    // (and only shown) once "Factory" is picked as Deliver To -- see
+    // isFactoryRole below.
+    dyePunchNumber: '',
+    party: '',
+    ply: '',
+    sheetSize: '',
+    boxSize: ''
   });
   const [vendorOptions, setVendorOptions] = useState<Option[]>([]);
 
@@ -106,6 +116,16 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
     label: `${staffMember.firstName} ${staffMember.lastName}`
   }));
 
+  // Full Figma slide scan Phase 4 (Theme 7): the optional Dye/Punch Details
+  // section below only makes sense for a Factory-category purchase --
+  // mirrors the backend's categoryForRole("Factory") -> "factory" mapping.
+  const isFactoryRole = roles.find(role => role._id === formData.for)?.roleName === 'Factory';
+
+  const partyOptions = parties.map(p => ({
+    value: p._id,
+    label: p.partyName
+  }));
+
   useEffect(() => {
     dispatch(getAllMaterialsThunk());
     dispatch(getCompaniesThunk());
@@ -115,6 +135,12 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
       dispatch(getPurchaseByIdThunk(purchaseId));
     }
   }, [dispatch, isEditMode, purchaseId]);
+
+  useEffect(() => {
+    if (formData.companyName) {
+      dispatch(getPartiesByCompanyThunk(formData.companyName));
+    }
+  }, [formData.companyName, dispatch]);
 
   useEffect(() => {
     if (vendors.length > 0) {
@@ -148,7 +174,15 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
         kg: singlePurchase.kg.toString() || '',
         companyName: singlePurchase.companyName?._id || '',
         for: singlePurchase.for?._id || '',
-        forCompany: singlePurchase.forCompany?._id || ''
+        forCompany: singlePurchase.forCompany?._id || '',
+        // Editing an existing purchase doesn't round-trip these back from
+        // the API (getPurchaseById's SELECT doesn't carry them) -- left
+        // blank rather than guessed.
+        dyePunchNumber: '',
+        party: '',
+        ply: '',
+        sheetSize: '',
+        boxSize: ''
       });
 
       if (singlePurchase.for?._id) {
@@ -224,7 +258,14 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
         ...formData,
         quantity: Number(formData.quantity),
         ratePerSheet: Number(formData.ratePerSheet),
-        kg: Number(formData.kg)
+        kg: Number(formData.kg),
+        // Only sent through when Factory is the Deliver-To role -- the
+        // backend ignores these for every other category anyway (see
+        // createInventoryForPurchase), but no point sending stale values
+        // left over from switching away from Factory mid-form.
+        ...(isFactoryRole
+          ? { dyePunchNumber: formData.dyePunchNumber, party: formData.party, ply: formData.ply, sheetSize: formData.sheetSize, boxSize: formData.boxSize }
+          : { dyePunchNumber: undefined, party: undefined, ply: undefined, sheetSize: undefined, boxSize: undefined })
       };
 
       const result = await Swal.fire({
@@ -366,6 +407,50 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
           disabled={!formData.for}
         />
         </Stack>
+
+        {isFactoryRole && (
+          <>
+            <Stack direction="row" spacing={2} mb={2}>
+              <ThemeInput
+                labelName="DYE/PUNCH NUMBER (OPTIONAL)"
+                name="dyePunchNumber"
+                value={formData.dyePunchNumber}
+                onChange={handleChange}
+                fullWidth
+              />
+              <ThemeSelect
+                label="PARTY (OPTIONAL)"
+                options={partyOptions}
+                value={partyOptions.find(opt => opt.value === formData.party) || null}
+                onChange={(e, newValue) => handleSelectChange('party', newValue?.value)}
+              />
+            </Stack>
+            <Stack direction="row" spacing={2} mb={2}>
+              <ThemeInput
+                labelName="PLY (OPTIONAL)"
+                name="ply"
+                value={formData.ply}
+                onChange={handleChange}
+                fullWidth
+              />
+              <ThemeInput
+                labelName="SHEET SIZE (OPTIONAL)"
+                name="sheetSize"
+                value={formData.sheetSize}
+                onChange={handleChange}
+                fullWidth
+              />
+              <ThemeInput
+                labelName="BOX SIZE (OPTIONAL)"
+                name="boxSize"
+                value={formData.boxSize}
+                onChange={handleChange}
+                fullWidth
+              />
+            </Stack>
+          </>
+        )}
+
         <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end">
           <Button
             variant="outlined"

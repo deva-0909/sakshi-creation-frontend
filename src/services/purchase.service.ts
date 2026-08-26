@@ -65,6 +65,15 @@ export interface CreatePurchase {
   companyName: string;
   for: string;
   forCompany: string;
+  // Full Figma slide scan Phase 4 (Theme 7): only meaningful for a
+  // Factory-category purchase (see purchase.controller.js's
+  // createInventoryForPurchase) -- ignored server-side for every other
+  // category.
+  dyePunchNumber?: string;
+  party?: string;
+  ply?: string;
+  sheetSize?: string;
+  boxSize?: string;
 }
 
 export interface UpdatePurchase {

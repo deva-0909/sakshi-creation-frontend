@@ -37,6 +37,9 @@ interface MaterialForm {
   materialGSM: string;
   uom: string;
   status: string;
+  // Full Figma slide scan Phase 4 (Theme 7, Low Stock threshold): optional
+  // -- left blank, Inventory shows no stock badge for this material at all.
+  reorderLevel: string;
 }
 
 const columns = [
@@ -45,6 +48,7 @@ const columns = [
   { id: 'materialSize', label: 'Size' },
   { id: 'materialGSM', label: 'GSM' },
   { id: 'uom', label: 'UOM' },
+  { id: 'reorderLevel', label: 'Reorder Level' },
   { id: 'status', label: 'Status' },
   { id: 'action', label: 'Actions' },
 ];
@@ -58,6 +62,7 @@ const csvColumns = [
     label: 'UOM',
     value: (row: any) => (row.uom ? `${row.uom.name}${row.uom.symbol ? ` (${row.uom.symbol})` : ''}` : '-'),
   },
+  { id: 'reorderLevel', label: 'Reorder Level', value: (row: any) => (row.reorderLevel ?? '-') },
   { id: 'status', label: 'Status', value: (row: any) => row.status || 'Active' },
 ];
 
@@ -74,6 +79,7 @@ const MaterialPage = () => {
     materialGSM: '',
     uom: '',
     status: 'Active',
+    reorderLevel: '',
   });
 
   useEffect(() => {
@@ -92,10 +98,11 @@ const MaterialPage = () => {
         materialGSM: material.materialGSM.toString(),
         uom: material.uom?.id || material.uom?._id || '',
         status: material.status || 'Active',
+        reorderLevel: material.reorderLevel !== undefined && material.reorderLevel !== null ? material.reorderLevel.toString() : '',
       });
     } else {
       setEditId(null);
-      setForm({ materialName: '', materialSize: '', materialGSM: '', uom: '', status: 'Active' });
+      setForm({ materialName: '', materialSize: '', materialGSM: '', uom: '', status: 'Active', reorderLevel: '' });
     }
     setDialogOpen(true);
   };
@@ -112,6 +119,11 @@ const MaterialPage = () => {
       return;
     }
 
+    if (form.reorderLevel.trim() && (isNaN(Number(form.reorderLevel)) || Number(form.reorderLevel) < 0)) {
+      toast.error('Reorder Level must be a valid non-negative number');
+      return;
+    }
+
     try {
       if (editId) {
         await dispatch(
@@ -123,6 +135,7 @@ const MaterialPage = () => {
               materialGSM,
               uom: form.uom || undefined,
               status: form.status,
+              reorderLevel: form.reorderLevel.trim() ? Number(form.reorderLevel) : '',
             },
           })
         ).unwrap();
@@ -135,12 +148,13 @@ const MaterialPage = () => {
             materialGSM,
             uom: form.uom || undefined,
             status: form.status,
+            reorderLevel: form.reorderLevel.trim() ? Number(form.reorderLevel) : undefined,
           })
         ).unwrap();
         toast.success('Material created successfully');
       }
       setDialogOpen(false);
-      setForm({ materialName: '', materialSize: '', materialGSM: '', uom: '', status: 'Active' });
+      setForm({ materialName: '', materialSize: '', materialGSM: '', uom: '', status: 'Active', reorderLevel: '' });
       setEditId(null);
     } catch (err: any) {
       toast.error(err || 'Failed to save material');
@@ -211,6 +225,7 @@ const MaterialPage = () => {
             <TableCell>{row.materialSize}</TableCell>
             <TableCell>{row.materialGSM}</TableCell>
             <TableCell>{row.uom ? `${row.uom.name}${row.uom.symbol ? ` (${row.uom.symbol})` : ''}` : '-'}</TableCell>
+            <TableCell>{row.reorderLevel ?? '-'}</TableCell>
             <TableCell>
               <ThemeChip label={row.status || 'Active'} sx={{ background: statusColor[row.status || 'Active']?.bg, color: statusColor[row.status || 'Active']?.color, fontWeight: 600 }} />
             </TableCell>
@@ -263,6 +278,16 @@ const MaterialPage = () => {
           }
           fullWidth
           required
+          type="number"
+          sx={{ mb: 2 }}
+        />
+        <Input
+          labelName="Reorder Level (optional)"
+          value={form.reorderLevel}
+          onChange={(e: any) =>
+            setForm((f) => ({ ...f, reorderLevel: e.target.value }))
+          }
+          fullWidth
           type="number"
           sx={{ mb: 2 }}
         />

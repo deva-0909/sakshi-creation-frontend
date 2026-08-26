@@ -86,14 +86,20 @@ const DyePunchPage = () => {
   const { dyePunches, loading, error, successMessage } = useAppSelector((state) => state.dyePunches);
   const { user } = useAppSelector((state) => state.auth);
   const permissions = user?.role?.permissions?.dye_punch;
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<DyePunchForm>(emptyForm);
 
+  // Full Figma slide scan Phase 4 (deferred from Phase 1, claude/full-figma-
+  // slide-scan.md Theme 7): this list ignored the global Sakshi
+  // Creation/Quality Packaging company toggle entirely, always showing
+  // every company's tooling regardless of which one was active -- the same
+  // bug Phase 1 fixed on the Complaints list.
   useEffect(() => {
-    dispatch(getAllDyePunchesThunk(undefined));
-  }, [dispatch]);
+    dispatch(getAllDyePunchesThunk(activeCompanyId ? { companyName: activeCompanyId } : undefined));
+  }, [dispatch, activeCompanyId]);
 
   useEffect(() => {
     if (successMessage) {
