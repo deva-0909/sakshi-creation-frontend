@@ -540,11 +540,12 @@ const IndexPage: React.FC = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          flexWrap: "wrap",
           mb: 2,
           gap: 2,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
           <DateRangePicker
             startDate={startDate}
             endDate={endDate}
@@ -561,7 +562,7 @@ const IndexPage: React.FC = () => {
           </ThemeButton>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
 
           <Box
             sx={{
@@ -570,7 +571,7 @@ const IndexPage: React.FC = () => {
               border: "1px solid #D0D5DD",
               borderRadius: 2,
               px: 1.5,
-              width: 200,
+              width: { xs: "100%", sm: 200 },
               height: 35,
             }}
           >

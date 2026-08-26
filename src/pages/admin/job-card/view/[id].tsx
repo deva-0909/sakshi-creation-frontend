@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Paper, Stack, CircularProgress, Divider, Stepper, Step, StepLabel } from "@mui/material";
+import { Box, Typography, Paper, Stack, CircularProgress, Divider, Stepper, Step, StepLabel, useMediaQuery, useTheme } from "@mui/material";
 import { useRouter } from "next/router";
 import ThemeButton from "@/component/common_component/themebutton";
 import ThemeChip from "@/component/common_component/themechip";
@@ -95,6 +95,8 @@ const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) 
 const JobCardDetailPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { id } = router.query;
   const { singleJobCard: jc, stageHistory, loading, error, successMessage } = useAppSelector((state) => state.jobCards);
   const { suggestedTemplate } = useAppSelector((state) => state.routing);
@@ -477,7 +479,7 @@ const JobCardDetailPage = () => {
       </Box>
 
       <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 2 }}>
-        <Stepper activeStep={activeStepIndex} alternativeLabel>
+        <Stepper activeStep={activeStepIndex} alternativeLabel={!isMobile} orientation={isMobile ? "vertical" : "horizontal"}>
           {STAGES.map((s) => (
             <Step key={s}>
               <StepLabel>{s}</StepLabel>
@@ -632,7 +634,7 @@ const JobCardDetailPage = () => {
               disabled={!permissions?.edit}
             />
 
-            <Stack direction="row" spacing={2}>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
               <ThemeInput
                 labelName="Completed Qty"
                 type="number"
@@ -704,7 +706,7 @@ const JobCardDetailPage = () => {
                   Kantan anywhere in the design either -- these are plain manual fields, recorded the same way
                   staff already write them down.
                 </Typography>
-                <Stack direction="row" spacing={2}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                   <ThemeInput
                     labelName="Unit"
                     type="number"
@@ -723,7 +725,7 @@ const JobCardDetailPage = () => {
                     disabled={!permissions?.edit}
                   />
                 </Stack>
-                <Stack direction="row" spacing={2}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                   <ThemeInput
                     labelName="Pasteing"
                     fullWidth
@@ -746,7 +748,7 @@ const JobCardDetailPage = () => {
                   onChange={(e) => setRsFor(e.target.value)}
                   disabled={!permissions?.edit}
                 />
-                <Stack direction="row" spacing={2}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                   <ThemeInput
                     labelName="Kantan"
                     fullWidth
@@ -947,7 +949,7 @@ const JobCardDetailPage = () => {
                     </Box>
                     <ThemeChip label={r.status} sx={{ background: rc.bg, color: rc.color, fontWeight: 600, flexShrink: 0 }} />
                   </Box>
-                  <Stack direction="row" spacing={1} mt={1.5}>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1} mt={1.5}>
                     {r.status === "Pending" && reworkPermissions?.edit && (
                       <ThemeButton
                         size="small"

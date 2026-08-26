@@ -225,6 +225,7 @@ const RfqDetailPage = () => {
         <Typography fontWeight={600} mb={1}>
           Materials Needed
         </Typography>
+        <Box sx={{ overflowX: "auto" }}>
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -241,6 +242,7 @@ const RfqDetailPage = () => {
             ))}
           </TableBody>
         </Table>
+        </Box>
       </Paper>
 
       <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
@@ -284,6 +286,7 @@ const RfqDetailPage = () => {
                 </Box>
 
                 {quote.items && quote.items.length > 0 && (
+                  <Box sx={{ overflowX: "auto" }}>
                   <Table size="small" sx={{ mt: 1 }}>
                     <TableHead>
                       <TableRow>
@@ -303,6 +306,7 @@ const RfqDetailPage = () => {
                       })}
                     </TableBody>
                   </Table>
+                  </Box>
                 )}
 
                 {quoteFormId === quote._id && (

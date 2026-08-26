@@ -148,7 +148,7 @@ const AddPurchaseRequisitionDialog: React.FC<AddPurchaseRequisitionDialogProps> 
         </Typography>
         <Stack spacing={1.5} mb={2}>
           {items.map((item, index) => (
-            <Stack key={index} direction="row" spacing={2} alignItems="flex-start">
+            <Stack key={index} direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="flex-start">
               <Box flex={2}>
                 <ThemeSelect
                   label={index === 0 ? "Material" : undefined}

@@ -230,6 +230,7 @@ const InvoiceDetailPage = () => {
           <Typography fontWeight={600} mb={1}>
             Line Items
           </Typography>
+          <Box sx={{ overflowX: "auto" }}>
           <Table size="small">
             <TableHead>
               <TableRow>
@@ -254,6 +255,7 @@ const InvoiceDetailPage = () => {
               ))}
             </TableBody>
           </Table>
+          </Box>
 
           <Box sx={{ mt: 2, ml: "auto", maxWidth: 260 }}>
             <DetailRow label="Subtotal" value={inv.subtotal} />

@@ -153,7 +153,7 @@ const AddPurchaseOrderDialog: React.FC<AddPurchaseOrderDialogProps> = ({ open, o
   return (
     <CustomDialog open={open} onClose={handleClose} maxWidth="md" title="New Purchase Order">
       <Box sx={{ p: 2, background: "#fff", borderRadius: 2 }}>
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <Box flex={1}>
             <ThemeSelect
               label="Vendor"
@@ -180,7 +180,7 @@ const AddPurchaseOrderDialog: React.FC<AddPurchaseOrderDialogProps> = ({ open, o
         </Typography>
         <Stack spacing={1.5} mb={2}>
           {items.map((item, index) => (
-            <Stack key={index} direction="row" spacing={2} alignItems="flex-start">
+            <Stack key={index} direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="flex-start">
               <Box flex={2}>
                 <ThemeSelect
                   label={index === 0 ? "Material" : undefined}
@@ -227,7 +227,7 @@ const AddPurchaseOrderDialog: React.FC<AddPurchaseOrderDialogProps> = ({ open, o
           </ThemeButton>
         </Stack>
 
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <ThemeInput
             labelName="Expected Date"
             type="date"

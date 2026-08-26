@@ -338,6 +338,7 @@ const PurchaseOrderDetailPage = () => {
           <Typography fontWeight={600} mb={1}>
             Materials
           </Typography>
+          <Box sx={{ overflowX: "auto" }}>
           <Table size="small">
             <TableHead>
               <TableRow>
@@ -358,6 +359,7 @@ const PurchaseOrderDetailPage = () => {
               ))}
             </TableBody>
           </Table>
+          </Box>
         </Paper>
 
         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, flex: 1 }}>
@@ -476,6 +478,7 @@ const PurchaseOrderDetailPage = () => {
                   {g.vendorInvoiceDate ? ` (${new Date(g.vendorInvoiceDate).toLocaleDateString()})` : ""}
                 </Typography>
               )}
+              <Box sx={{ overflowX: "auto" }}>
               <Table size="small" sx={{ mt: 1 }}>
                 <TableBody>
                   {(g.items || []).map((it) => (
@@ -487,6 +490,7 @@ const PurchaseOrderDetailPage = () => {
                   ))}
                 </TableBody>
               </Table>
+              </Box>
               {returnPermissions?.create && (
                 <Box display="flex" justifyContent="flex-end" mt={1}>
                   <ThemeButton variant="outlined" onClick={() => handleOpenReturn(g)}>
@@ -561,6 +565,7 @@ const PurchaseOrderDetailPage = () => {
               </Box>
             </Stack>
 
+            <Box sx={{ overflowX: "auto" }}>
             <Table size="small" sx={{ mb: 2 }}>
               <TableHead>
                 <TableRow>
@@ -590,6 +595,7 @@ const PurchaseOrderDetailPage = () => {
                   ))}
               </TableBody>
             </Table>
+            </Box>
 
             <ThemeInput
               labelName="Notes"
@@ -683,6 +689,7 @@ const PurchaseOrderDetailPage = () => {
               sx={{ mb: 2 }}
             />
 
+            <Box sx={{ overflowX: "auto" }}>
             <Table size="small" sx={{ mb: 2 }}>
               <TableHead>
                 <TableRow>
@@ -715,6 +722,7 @@ const PurchaseOrderDetailPage = () => {
                   })}
               </TableBody>
             </Table>
+            </Box>
             {(returnGrn.items || []).every((it: any) => it.quantityReceived - (alreadyReturnedByItem[it._id] || 0) <= 0) && (
               <Typography fontSize={13} color="text.secondary" mb={2}>
                 Every material on this GRN has already been fully returned.

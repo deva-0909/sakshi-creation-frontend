@@ -179,7 +179,7 @@ const AddInvoiceDialog: React.FC<AddInvoiceDialogProps> = ({ open, onClose, refr
           CGST/SGST vs IGST is determined automatically from the company's and party's State — set those under Setup if this fails.
         </Typography>
 
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <Box flex={1}>
             <ThemeSelect
               label="Order (optional)"
@@ -200,7 +200,7 @@ const AddInvoiceDialog: React.FC<AddInvoiceDialogProps> = ({ open, onClose, refr
           </Box>
         </Stack>
 
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <ThemeInput
             labelName="Invoice Date"
             type="date"
@@ -225,7 +225,7 @@ const AddInvoiceDialog: React.FC<AddInvoiceDialogProps> = ({ open, onClose, refr
         </Typography>
         <Stack spacing={1.5} mb={2}>
           {items.map((item, index) => (
-            <Stack key={index} direction="row" spacing={1.5} alignItems="flex-start">
+            <Stack key={index} direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems="flex-start">
               <Box flex={2}>
                 <ThemeInput
                   labelName={index === 0 ? "Description" : undefined}

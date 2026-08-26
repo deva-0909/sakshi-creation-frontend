@@ -315,7 +315,7 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
       <ToastContainer position="top-right" autoClose={3000} />
       
       <form onSubmit={handleSubmit}>
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <ThemeSelect
             label="VENDOR NAME"
             options={vendorOptions}
@@ -333,7 +333,7 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
           />
         </Stack>
         
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <ThemeSelect
             label="MATERIAL NAME"
             options={materialNameOptions}
@@ -368,7 +368,7 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
           />
         </Stack>
 
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <ThemeInput
             labelName="QUANTITY"
             name="quantity"
@@ -397,7 +397,7 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
             required
           />
         </Stack>
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           
         <ThemeSelect
           label="COMPANY NAME"
@@ -436,7 +436,7 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
 
         {isFactoryRole && (
           <>
-            <Stack direction="row" spacing={2} mb={2}>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
               <ThemeInput
                 labelName="DYE/PUNCH NUMBER (OPTIONAL)"
                 name="dyePunchNumber"
@@ -451,7 +451,7 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
                 onChange={(e, newValue) => handleSelectChange('party', newValue?.value)}
               />
             </Stack>
-            <Stack direction="row" spacing={2} mb={2}>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
               <ThemeInput
                 labelName="PLY (OPTIONAL)"
                 name="ply"

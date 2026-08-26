@@ -157,7 +157,7 @@ const AddVendorPaymentDialog: React.FC<AddVendorPaymentDialogProps> = ({ open, o
   return (
     <CustomDialog open={open} onClose={handleClose} maxWidth="sm" title="New Vendor Payment">
       <Box sx={{ p: 2, background: "#fff", borderRadius: 2 }}>
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <Box flex={1}>
             <ThemeSelect
               label="Vendor"
@@ -189,7 +189,7 @@ const AddVendorPaymentDialog: React.FC<AddVendorPaymentDialogProps> = ({ open, o
           />
         </Box>
 
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <ThemeInput
             labelName="Amount"
             type="number"
@@ -209,7 +209,7 @@ const AddVendorPaymentDialog: React.FC<AddVendorPaymentDialogProps> = ({ open, o
           />
         </Stack>
 
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <Box flex={1}>
             <ThemeSelect
               label="Mode"

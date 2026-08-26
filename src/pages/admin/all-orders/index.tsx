@@ -428,10 +428,11 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          flexWrap: "wrap",
           gap: 2,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
           <DateRangePicker
             startDate={startDate}
             endDate={endDate}
@@ -448,7 +449,7 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
           </ThemeButton>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
           <Box
             sx={{
               display: "flex",
@@ -456,7 +457,7 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
               border: "1px solid #D0D5DD",
               borderRadius: 2,
               px: 1.5,
-              width: 200,
+              width: { xs: "100%", sm: 200 },
               height: 35,
             }}
           >

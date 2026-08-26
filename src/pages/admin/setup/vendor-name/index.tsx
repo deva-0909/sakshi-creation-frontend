@@ -291,7 +291,7 @@ const VendorPage = () => {
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
         <Typography variant="h5" fontWeight={600}>
           Vendors
         </Typography>
@@ -364,7 +364,7 @@ const VendorPage = () => {
         maxWidth="md"
         fullWidth
       >
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <CompanySelect
             name="companyName"
             value={form.companyName}
@@ -384,7 +384,7 @@ const VendorPage = () => {
             sx={{ flex: 1 }}
           />
         </Stack>
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <Input
             labelName="Contact Number"
             value={form.contactNumber}
@@ -412,7 +412,7 @@ const VendorPage = () => {
             sx={{ flex: 1 }}
           />
         </Stack>
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <Input
             labelName="GST Number"
             value={form.gst}
@@ -433,7 +433,7 @@ const VendorPage = () => {
             sx={{ flex: 1 }}
           />
         </Stack>
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <Input
             labelName="Credit Limit (optional)"
             type="number"
@@ -454,7 +454,7 @@ const VendorPage = () => {
           </Box>
         </Stack>
         {/* Module 11 Part B: banking/commercial terms -- all optional. */}
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <Input
             labelName="PAN (optional)"
             value={form.pan}
@@ -470,7 +470,7 @@ const VendorPage = () => {
             sx={{ flex: 1 }}
           />
         </Stack>
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <Input
             labelName="Bank Account Number (optional)"
             value={form.bankAccountNumber}
@@ -486,7 +486,7 @@ const VendorPage = () => {
             sx={{ flex: 1 }}
           />
         </Stack>
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <Input
             labelName="Bank Name (optional)"
             value={form.bankName}

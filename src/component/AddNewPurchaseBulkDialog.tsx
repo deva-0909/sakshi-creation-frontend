@@ -240,7 +240,7 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
   return (
     <CustomDialog open={open} maxWidth="md" onClose={onClose} title="Bulk Upload Purchases">
       <Box sx={{ background: '#fff', borderRadius: 2, p: 3 }} component="form" onSubmit={formik.handleSubmit}>
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <ThemeSelect
             label="VENDOR NAME"
             options={vendorOptions}
@@ -267,7 +267,7 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
             helperText={formik.touched.companyName && formik.errors.companyName}
           />
         </Stack>
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <ThemeSelect
             label="DELIVER TO"
             options={roleOptions}
@@ -295,7 +295,7 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
             helperText={formik.touched.forCompany && formik.errors.forCompany}
           />
         </Stack>
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <ThemeSelect
             label="MATERIAL NAME"
             options={materialNameOptions}

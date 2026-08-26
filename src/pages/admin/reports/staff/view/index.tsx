@@ -114,7 +114,7 @@ const StaffView = () => {
   return (
     <>
       <Box sx={{ width: '100%' }}>
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <ThemeInput
             labelName="First name"
             value={formData.firstName}
@@ -138,7 +138,7 @@ const StaffView = () => {
   
           sx={{ mb: 2 }}
         />
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <ThemeInput
             labelName="Mobile No."
             value={formData.mobile}
@@ -176,7 +176,7 @@ const StaffView = () => {
   
           sx={{ mb: 2 }}
         />
-        <Stack direction="row" spacing={2} mb={4}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={4}>
           <ThemeInput
             labelName="Joining date"
             type="date"

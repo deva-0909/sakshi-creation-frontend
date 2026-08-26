@@ -212,6 +212,7 @@ const PurchaseRequisitionDetailPage = () => {
           <Typography fontWeight={600} mb={1}>
             Materials Required
           </Typography>
+          <Box sx={{ overflowX: "auto" }}>
           <Table size="small">
             <TableHead>
               <TableRow>
@@ -230,6 +231,7 @@ const PurchaseRequisitionDetailPage = () => {
               ))}
             </TableBody>
           </Table>
+          </Box>
         </Paper>
 
         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, flex: 1 }}>
@@ -362,6 +364,7 @@ const PurchaseRequisitionDetailPage = () => {
             </Box>
           </Stack>
 
+          <Box sx={{ overflowX: "auto" }}>
           <Table size="small" sx={{ mb: 2 }}>
             <TableHead>
               <TableRow>
@@ -387,6 +390,7 @@ const PurchaseRequisitionDetailPage = () => {
               ))}
             </TableBody>
           </Table>
+          </Box>
 
           <ThemeInput
             labelName="Notes"
