@@ -42,6 +42,8 @@ import {
   MdHistory,
   MdWarehouse,
   MdSwapHoriz,
+  MdCalendarToday,
+  MdAccessTime,
 } from "react-icons/md";
 import { IoChevronBack } from "react-icons/io5";
 import { useRouter } from "next/router";
@@ -220,6 +222,25 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const [filteredMenuItems, setFilteredMenuItems] = useState(menuItems);
   const transitionDuration = 300;
   const transitionEasing = "cubic-bezier(0.4, 0, 0.2, 1)";
+  // Shared "selected/hover" look for a sidebar nav item -- previously this
+  // exact bgcolor/color/border trio was copy-pasted at three separate call
+  // sites (main items, child items, setup submenu), which is how the two
+  // foreign purples/mismatched grays crept in over time. Each call site
+  // still owns its own layout (padding, justifyContent, etc.); only the
+  // color/selection styling is centralized here (Phase K, see
+  // claude/ui-ux-professional-polish-plan.md).
+  const navSelectionSx = {
+    "&.Mui-selected": {
+      bgcolor: theme.palette.primary.light,
+      color: theme.palette.grey[700],
+      border: `2px solid ${theme.palette.primary.main}`,
+    },
+    "&:hover": {
+      bgcolor: theme.palette.primary.light,
+      border: `2px solid ${theme.palette.primary.main}`,
+    },
+  } as const;
+  const sidebarShadow = "4px 0 6px -1px rgba(16, 24, 40, 0.08)";
 
   // Function to get current page title
   const getCurrentPageTitle = () => {
@@ -470,7 +491,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   ];
 
   return (
-    <Box display="flex" fontFamily="Inter, sans-serif" minHeight="100vh" bgcolor="#FBFBFB" p={1}>
+    <Box display="flex" fontFamily="Inter, sans-serif" minHeight="100vh" bgcolor={theme.palette.background.default} p={1}>
       {/* Mobile-only backdrop -- taps outside the drawer close it, same as any
           standard overlay drawer. Never rendered on desktop (drawer pushes
           content there instead of overlaying it). */}
@@ -494,7 +515,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           borderRight: "1px solid #e5e7eb",
           p: 1,
           mr: 1.5,
-          boxShadow: "4px 0 6px -1px rgba(0, 0, 0, 0.1)",
+          boxShadow: sidebarShadow,
           borderRadius: 1,
           flexDirection: "column",
           // Mobile: a full off-canvas/on-canvas slide (translateX), tap-driven.
@@ -603,15 +624,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
                             px: drawerOpen ? 1 : 1.5,
                             justifyContent: drawerOpen ? "flex-start" : "center",
                             minHeight: 48,
-                            "&.Mui-selected": {
-                              bgcolor: theme.palette.primary.light,
-                              color: "#344054",
-                              border: "2px solid #7F56D9",
-                            },
-                            "&:hover": {
-                              bgcolor: theme.palette.primary.light,
-                              border: "2px solid #7F56D9",
-                            },
+                            ...navSelectionSx,
                           }}
                         >
                           <ListItemIcon
@@ -658,15 +671,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
                           px: drawerOpen ? 1 : 1.5,
                           justifyContent: drawerOpen ? "flex-start" : "center",
                           minHeight: 48,
-                          "&.Mui-selected": {
-                            bgcolor: theme.palette.primary.light,
-                            color: "#344054",
-                            border: "2px solid #7F56D9",
-                          },
-                          "&:hover": {
-                            bgcolor: theme.palette.primary.light,
-                            border: "2px solid #7F56D9",
-                          },
+                          ...navSelectionSx,
                         }}
                       >
                         <ListItemIcon
@@ -674,7 +679,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
                             minWidth: 0,
                             mr: drawerOpen ? 2 : "auto",
                             justifyContent: "center",
-                            color: "#6b7280",
+                            color: theme.palette.grey[500],
                           }}
                         >
                           {item.icon}
@@ -703,15 +708,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
                                   py: 0.75,
                                   px: 1,
                                   pl: 4,
-                                  "&.Mui-selected": {
-                                    bgcolor: theme.palette.primary.light,
-                                    color: "#344054",
-                                    border: "2px solid #7F56D9",
-                                  },
-                                  "&:hover": {
-                                    bgcolor: theme.palette.primary.light,
-                                    border: "2px solid #7F56D9",
-                                  },
+                                  ...navSelectionSx,
                                 }}
                               >
                                 <ListItemIcon sx={{ minWidth: 32 }}>{child.icon}</ListItemIcon>
@@ -740,8 +737,8 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
                       px: drawerOpen ? 1 : 1.5,
                       justifyContent: drawerOpen ? "flex-start" : "center",
                       minHeight: 48,
-                      color: "#ef4444",
-                      "&:hover": { bgcolor: "#fee2e2" },
+                      color: theme.palette.error.main,
+                      "&:hover": { bgcolor: theme.palette.error.light },
                     }}
                   >
                     <ListItemIcon
@@ -749,7 +746,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
                         minWidth: 0,
                         mr: drawerOpen ? 2 : "auto",
                         justifyContent: "center",
-                        color: "#ef4444",
+                        color: theme.palette.error.main,
                       }}
                     >
                       <MdLogout size={18} />
@@ -793,7 +790,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           px={2}
           py={1.5}
           bgcolor="#fff"
-          boxShadow="4px 0 6px -1px rgba(0, 0, 0, 0.1)"
+          boxShadow={sidebarShadow}
         >
           <Box display="flex" alignItems="center" gap={1}>
             {isMobile && (
@@ -824,11 +821,21 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
                   flexWrap="wrap"
                   sx={{ fontFamily: "monospace", px: 2, py: 0.5, display: { xs: "none", sm: "flex" } }}
                 >
-                  <Typography fontSize={14} fontWeight={600} color="text.secondary">
-                    📅 {dateTime.toLocaleDateString()}
+                  <Typography
+                    fontSize={14}
+                    fontWeight={600}
+                    color="text.secondary"
+                    sx={{ display: "flex", alignItems: "center", gap: 0.75 }}
+                  >
+                    <MdCalendarToday size={14} /> {dateTime.toLocaleDateString()}
                   </Typography>
-                  <Typography fontSize={14} fontWeight={600} color="text.secondary">
-                    ⏰ {dateTime.toLocaleTimeString()}
+                  <Typography
+                    fontSize={14}
+                    fontWeight={600}
+                    color="text.secondary"
+                    sx={{ display: "flex", alignItems: "center", gap: 0.75 }}
+                  >
+                    <MdAccessTime size={14} /> {dateTime.toLocaleTimeString()}
                   </Typography>
                 </Box>
               </motion.div>
