@@ -65,6 +65,21 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
     priority: "Normal",
     // Module 14: powers the Delayed Jobs report.
     expectedDeliveryDate: "",
+    // QP "New Order" Figma match (2026-08-27): the reference design for
+    // Quality Packaging's own order-intake screen (as filled in by the
+    // production manager) adds an order Date, an Order From (Factory/
+    // Godown -- same pair PurchaseDialog already uses for QP's "purpose"),
+    // a DYE number/size/sheet size/remark row, and separate Godown Remark
+    // / Factory Remarks fields -- all QP-only, shown conditionally below
+    // alongside Ply/Deckal/GSM.
+    orderDate: "",
+    orderFrom: "",
+    dyeNumber: "",
+    dyeSize: "",
+    dyeSheetSize: "",
+    dyeRemark: "",
+    godownRemark: "",
+    factoryRemarks: "",
   })
 
   const [gstNotApplicable, setGstNotApplicable] = useState(false)
@@ -228,6 +243,14 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
         ply: isQP && formData.ply ? Number.parseFloat(formData.ply) : undefined,
         deckal: isQP && formData.deckal ? Number.parseFloat(formData.deckal) : undefined,
         gsm: isQP && formData.gsm ? Number.parseFloat(formData.gsm) : undefined,
+        orderDate: isQP && formData.orderDate ? formData.orderDate : undefined,
+        orderFrom: isQP && formData.orderFrom ? formData.orderFrom : undefined,
+        dyeNumber: isQP && formData.dyeNumber ? formData.dyeNumber : undefined,
+        dyeSize: isQP && formData.dyeSize ? formData.dyeSize : undefined,
+        dyeSheetSize: isQP && formData.dyeSheetSize ? formData.dyeSheetSize : undefined,
+        dyeRemark: isQP && formData.dyeRemark ? formData.dyeRemark : undefined,
+        godownRemark: isQP && formData.godownRemark ? formData.godownRemark : undefined,
+        factoryRemarks: isQP && formData.factoryRemarks ? formData.factoryRemarks : undefined,
       }
 
       await dispatch(createOrderThunk(orderData)).unwrap()
@@ -262,6 +285,14 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
       ply: "",
       deckal: "",
       gsm: "",
+      orderDate: "",
+      orderFrom: "",
+      dyeNumber: "",
+      dyeSize: "",
+      dyeSheetSize: "",
+      dyeRemark: "",
+      godownRemark: "",
+      factoryRemarks: "",
     })
     setGstNotApplicable(false)
     setSelectedFiles([])
@@ -301,6 +332,28 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
             onPartyChange={handlePartyChange}
           />
         </Box>
+
+        {isQP && (
+          <Stack direction="row" spacing={2} mb={2}>
+            <ThemeInput
+              labelName="Date"
+              type="date"
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              value={formData.orderDate}
+              onChange={(e) => handleChange("orderDate", e.target.value)}
+            />
+            <ThemeSelect
+              label="Order From"
+              value={formData.orderFrom ? { label: formData.orderFrom, value: formData.orderFrom } : null}
+              options={[
+                { label: "FACTORY", value: "FACTORY" },
+                { label: "GODOWN", value: "GODOWN" },
+              ]}
+              onChange={(_, v) => handleChange("orderFrom", v ? v.value : "")}
+            />
+          </Stack>
+        )}
 
         <Stack direction="row" spacing={2} mb={2}>
           <ThemeInput
@@ -369,20 +422,20 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
               onChange={(e) => handleChange("ply", e.target.value)}
             />
             <ThemeInput
-              labelName="Deckal"
-              placeholder="Enter deckal"
-              fullWidth
-              type="number"
-              value={formData.deckal}
-              onChange={(e) => handleChange("deckal", e.target.value)}
-            />
-            <ThemeInput
               labelName="GSM"
               placeholder="Enter GSM"
               fullWidth
               type="number"
               value={formData.gsm}
               onChange={(e) => handleChange("gsm", e.target.value)}
+            />
+            <ThemeInput
+              labelName="Deckal"
+              placeholder="Enter deckal"
+              fullWidth
+              type="number"
+              value={formData.deckal}
+              onChange={(e) => handleChange("deckal", e.target.value)}
             />
           </Stack>
         )}
@@ -428,6 +481,39 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
           </Box>
         </Stack>
 
+        {isQP && (
+          <Stack direction="row" spacing={2} mb={2}>
+            <ThemeInput
+              labelName="DYE Number"
+              placeholder="Enter DYE number"
+              fullWidth
+              value={formData.dyeNumber}
+              onChange={(e) => handleChange("dyeNumber", e.target.value)}
+            />
+            <ThemeInput
+              labelName="DYE Size"
+              placeholder="Enter DYE size"
+              fullWidth
+              value={formData.dyeSize}
+              onChange={(e) => handleChange("dyeSize", e.target.value)}
+            />
+            <ThemeInput
+              labelName="DYE Sheet Size"
+              placeholder="Enter DYE sheet size"
+              fullWidth
+              value={formData.dyeSheetSize}
+              onChange={(e) => handleChange("dyeSheetSize", e.target.value)}
+            />
+            <ThemeInput
+              labelName="DYE Remark"
+              placeholder="Enter DYE remark"
+              fullWidth
+              value={formData.dyeRemark}
+              onChange={(e) => handleChange("dyeRemark", e.target.value)}
+            />
+          </Stack>
+        )}
+
         <Stack direction="row" spacing={2} mb={2}>
           <ThemeInput
             labelName="Customer PO Number"
@@ -449,9 +535,33 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
           />
         </Stack>
 
+        {isQP && (
+          <Stack direction="row" spacing={2} mb={2}>
+            <ThemeInput
+              labelName="Godown Remark"
+              placeholder="Enter godown remark"
+              fullWidth
+              value={formData.godownRemark}
+              onChange={(e) => handleChange("godownRemark", e.target.value)}
+            />
+            <ThemeInput
+              labelName="Factory Remarks"
+              placeholder="Enter factory remarks"
+              fullWidth
+              value={formData.factoryRemarks}
+              onChange={(e) => handleChange("factoryRemarks", e.target.value)}
+            />
+          </Stack>
+        )}
+
         <Stack direction="row" spacing={2} mb={2}>
           <ThemeInput
-            labelName="Expected Delivery Date"
+            // QP's Figma reference labels this field "Delivery"; Sakshi
+            // Creation's own order form keeps the fuller "Expected Delivery
+            // Date" label -- same underlying expectedDeliveryDate field and
+            // API contract either way, just the label the production
+            // manager sees changes with the active company.
+            labelName={isQP ? "Delivery" : "Expected Delivery Date"}
             type="date"
             fullWidth
             InputLabelProps={{ shrink: true }}
