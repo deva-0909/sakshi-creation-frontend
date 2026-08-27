@@ -427,6 +427,76 @@ const BookletBinderTaskView = () => {
             sx={{ flex: 1 }}
             InputProps={{ readOnly: true }}
           />
+          <ThemeInput
+            labelName="Order Number"
+            value={singleOrder.orderNumber || "N/A"}
+            sx={{ flex: 1 }}
+            InputProps={{ readOnly: true }}
+          />
+          <ThemeInput
+            labelName="Quantity"
+            value={singleOrder.qty?.toString() || "N/A"}
+            sx={{ flex: 1 }}
+            InputProps={{ readOnly: true }}
+          />
+        </Box>
+        <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={2} mb={2}>
+          <ThemeInput
+            labelName="Size"
+            value={singleOrder.size || "N/A"}
+            sx={{ flex: 1 }}
+            InputProps={{ readOnly: true }}
+          />
+          <ThemeInput
+            labelName="Binding"
+            value={singleOrder.bookletBinderBinding || "N/A"}
+            sx={{ flex: 1 }}
+            InputProps={{ readOnly: true }}
+          />
+          <ThemeInput
+            labelName="Pages / book"
+            value={singleOrder.bookletBinderPagesPerBook?.toString() || "N/A"}
+            sx={{ flex: 1 }}
+            InputProps={{ readOnly: true }}
+          />
+          <ThemeInput
+            labelName="Sub Paper"
+            value={singleOrder.bookletBinderSubPaper || "N/A"}
+            sx={{ flex: 1 }}
+            InputProps={{ readOnly: true }}
+          />
+          <ThemeInput
+            labelName="Used Paper"
+            value={singleOrder.bookletBinderUsedPaper || "N/A"}
+            sx={{ flex: 1 }}
+            InputProps={{ readOnly: true }}
+          />
+        </Box>
+        <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={2} mb={2}>
+          <ThemeInput
+            labelName="Rate / book"
+            value={singleOrder.bookletBinderRateBook || "N/A"}
+            sx={{ flex: 1 }}
+            InputProps={{ readOnly: true }}
+          />
+          <ThemeInput
+            labelName="Total Amount"
+            value={singleOrder.bookletBinderTotalAmount || "N/A"}
+            sx={{ flex: 1 }}
+            InputProps={{ readOnly: true }}
+          />
+          <ThemeInput
+            labelName="GSM"
+            value={singleOrder.gsm || "N/A"}
+            sx={{ flex: 1 }}
+            InputProps={{ readOnly: true }}
+          />
+          <ThemeInput
+            labelName="GST"
+            value={singleOrder.bookletBinderGst || "N/A"}
+            sx={{ flex: 1 }}
+            InputProps={{ readOnly: true }}
+          />
         </Box>
         <Box mb={2}>
           <ThemeInput

@@ -155,6 +155,20 @@ export interface Order {
   // printer/binder assignment forms.
   rawPaperSize?: string;
   rawPaperUsed?: string;
+
+  // Booklet Binder field-parity fix (Build 2): own booklet_binder_-
+  // prefixed columns, deliberately separate from Binder's own
+  // binding/pagesPerBook/subPaper/usedPaper/rateBook/totalAmount/bindergst
+  // above so the two production stages never silently overwrite each
+  // other's data on the same order row. Typed the same as their Binder
+  // equivalents.
+  bookletBinderBinding?: string;
+  bookletBinderPagesPerBook?: number;
+  bookletBinderSubPaper?: string;
+  bookletBinderUsedPaper?: string;
+  bookletBinderRateBook?: string;
+  bookletBinderTotalAmount?: string;
+  bookletBinderGst?: string;
 }
 export interface PaperField {
   paperName?: string;
@@ -291,7 +305,7 @@ export const updateOrderThunk = createAsyncThunk(
       id: string;
       data: Partial<
         CreateOrderData &
-          Omit<Order, "_id" | "designer" | "printer" | "binder" | "bookletBinder" | "deliveryStaff" | "pagesPerBook"> & {
+          Omit<Order, "_id" | "designer" | "printer" | "binder" | "bookletBinder" | "deliveryStaff" | "pagesPerBook" | "bookletBinderPagesPerBook"> & {
             // Update payloads send plain staff IDs, not the populated relation objects
             // the read shape uses.
             designer?: string | null;
@@ -300,6 +314,7 @@ export const updateOrderThunk = createAsyncThunk(
             bookletBinder?: string | number | null;
             deliveryStaff?: string | null;
             pagesPerBook?: string | number;
+            bookletBinderPagesPerBook?: string | number;
           }
       >;
     },
