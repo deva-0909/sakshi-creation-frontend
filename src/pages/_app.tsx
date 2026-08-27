@@ -2,6 +2,7 @@ import { persistor, store } from "@/store";
 import "@/styles/globals.css";
 import theme from "@/theme";
 import { ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
 import type { AppProps } from "next/app";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
@@ -17,6 +18,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <ThemeProvider theme={theme}>
+          <CssBaseline />
 {router.pathname === "/login" ? <Component {...pageProps} />:<Dashboard>
   <Component {...pageProps} /></Dashboard>}
           {/* <Component {...pageProps} />; */}
