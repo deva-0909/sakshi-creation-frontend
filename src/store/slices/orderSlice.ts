@@ -169,6 +169,20 @@ export interface Order {
   bookletBinderRateBook?: string;
   bookletBinderTotalAmount?: string;
   bookletBinderGst?: string;
+
+  // QP "New Order" Figma match (2026-08-27): already returned by
+  // order.controller.js's ORDER_SELECT (orderFrom/orderDate) but never
+  // typed here -- Order To Factory page (Build 4) reads these directly
+  // rather than through an `as any` cast.
+  orderFrom?: string;
+  orderDate?: string;
+  orderType?: string;
+  deliveryDestination?: string;
+  // Order To Factory page follow-up (2026-08-27): exposed on the API
+  // response as of this same patch (see order.controller.js ORDER_SELECT),
+  // but no formula anywhere in this codebase ever computes or writes it --
+  // stays null on every order until that separate calculation is built.
+  estimatedBoxCost?: number;
 }
 export interface PaperField {
   paperName?: string;
@@ -252,6 +266,9 @@ export const getAllOrdersThunk = createAsyncThunk(
       companyName?: string;
       party?: string;
       search?: string;
+      // Order To Factory page (Build 4, 2026-08-27): optional server-side
+      // filter, additive alongside the existing params above.
+      orderFrom?: string;
     } | undefined,
     { rejectWithValue }
   ) => {
