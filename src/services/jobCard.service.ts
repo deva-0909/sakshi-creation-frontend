@@ -13,7 +13,10 @@ export interface JobCard {
   // Phase 2 Part B (two-company): drives which stage set the detail page
   // offers -- Quality Packaging's job cards run Printer -> Binder ->
   // Booklet Binder -> Factory -> Godown, no Designer/QC/Delivery.
-  order?: { _id: string; orderNumber: string; companyName?: { _id: string; companyName: string } | null };
+  // Build 5 (Quality Manager Dashboard, sub-item 2): `size` added so the
+  // dashboard can group Factory-stage job cards by box size without a
+  // second fetch -- see jobCard.controller.js's SELECT.
+  order?: { _id: string; orderNumber: string; size?: string | null; companyName?: { _id: string; companyName: string } | null };
   productItem?: { _id: string; itemName: string };
   assignedTo?: { _id: string; firstName: string; lastName: string };
   createdBy?: { _id: string; firstName: string; lastName: string };

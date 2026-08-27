@@ -475,9 +475,42 @@ const JobCardDetailPage = () => {
           </Typography>
           <ThemeChip label={jc.status} sx={{ background: sColor.bg, color: sColor.color, fontWeight: 600 }} />
         </Box>
-        <ThemeButton variant="outlined" onClick={() => router.push("/admin/job-card")}>
-          Back to list
-        </ThemeButton>
+        <Box display="flex" alignItems="center" gap={2}>
+          {/* Build 5, sub-item 4 -- "Printer -> Return to Factory" module.
+              No directly analogous existing Sakshi Creation flow was found
+              after searching both repos for "return to factory"/"printer
+              return" -- the generic Advance Stage panel below already lets
+              any stage be selected out of sequence (advanceStage only
+              checks the target stage is *in* this company's pipeline, not
+              that it's next), so a Quality Packaging box job card at
+              Printer could already be moved straight to Factory today.
+              This button is a conservative, best-guess convenience layer
+              on top of that: a single-purpose quick action (matching the
+              existing "Assign To Printer ->"/"Assign to Binder ->" style
+              buttons on Sakshi Creation's own per-stage pages) rather than
+              a new workflow or backend endpoint. Flagged in the build
+              report as best-guess and worth a user review. */}
+          {jc.order?.companyName?.companyName === "Quality Packaging" &&
+            jc.currentStage === "Printer" &&
+            permissions?.edit && (
+              <ThemeButton
+                onClick={() => {
+                  if (typeof id !== "string") return;
+                  dispatch(
+                    advanceJobCardStageThunk({
+                      id,
+                      data: { stage: "Factory", status: "Pending" },
+                    })
+                  );
+                }}
+              >
+                Return to Factory
+              </ThemeButton>
+            )}
+          <ThemeButton variant="outlined" onClick={() => router.push("/admin/job-card")}>
+            Back to list
+          </ThemeButton>
+        </Box>
       </Box>
 
       <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 2 }}>

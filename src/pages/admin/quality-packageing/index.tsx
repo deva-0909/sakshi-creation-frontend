@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Box, Typography, Grid, Paper, TableCell, Chip, Stack } from "@mui/material";
 import { useRouter } from "next/router";
 import BasicTable from "@/component/common_component/Table/themetable";
@@ -6,6 +6,16 @@ import { useAppDispatch, useAppSelector } from "@/store";
 import { getAllJobCardsThunk } from "@/store/slices/jobCardSlice";
 import { getAllComplaintsThunk } from "@/store/slices/complaintSlice";
 import { getAllOrdersThunk } from "@/store/slices/orderSlice";
+// Build 5 (Quality Manager Dashboard):
+// - Cartoon/box inventory (sub-item 2) reads from the Godown box/cartoon
+//   receiving manifest that already exists (Phase 8, full-figma-slide-
+//   scan.md) for the "ready in Store" side, and from job cards already at
+//   the Factory stage for the "ready in Factory" side -- no new table.
+// - Low-stock alert (sub-item 3) reads the stock summary endpoint, which
+//   already computes a per-material balance and now also returns each
+//   material's existing reorderLevel plus a computed belowReorder flag.
+import { getAllGodownBoxReceiptsThunk } from "@/store/slices/godownBoxReceiptSlice";
+import { getStockSummaryThunk } from "@/store/slices/stockLedgerSlice";
 
 // Two-company Phase 3 Part B (claude/two-company-gap-analysis.md): the real
 // Quality Manager Dashboard, replacing this page's previous entirely-mock
@@ -62,9 +72,33 @@ const complaintColumns = [
   { id: "status", label: "Status" },
 ];
 
-function KpiCard({ label, value, accent }: { label: string; value: number; accent: string }) {
+function KpiCard({
+  label,
+  value,
+  accent,
+  onClick,
+}: {
+  label: string;
+  value: number;
+  accent: string;
+  // Build 5 (Quality Manager Dashboard, sub-item 1 -- KPI drill-down):
+  // optional so every pre-existing card (no drill-down target) is
+  // unaffected; only "Jobs Completed Today" and "Jobs Hold" pass one.
+  onClick?: () => void;
+}) {
   return (
-    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, height: "100%" }}>
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 2,
+        borderRadius: 2,
+        height: "100%",
+        cursor: onClick ? "pointer" : "default",
+        transition: "box-shadow 0.15s",
+        "&:hover": onClick ? { boxShadow: 2 } : undefined,
+      }}
+      onClick={onClick}
+    >
       <Typography fontSize={13} color="text.secondary" mb={0.5}>
         {label}
       </Typography>
@@ -82,7 +116,18 @@ const QualityManagerDashboard = () => {
   const { jobCards } = useAppSelector((state) => state.jobCards);
   const { complaints } = useAppSelector((state) => state.complaints);
   const { orders } = useAppSelector((state) => state.orders);
+  const { receipts: boxReceipts } = useAppSelector((state) => state.godownBoxReceipts);
+  const { summary: stockSummary } = useAppSelector((state) => state.stockLedger);
   const [ordersTotalCount, setOrdersTotalCount] = useState<number | null>(null);
+  // Build 5 (Quality Manager Dashboard, sub-item 1): "Hold" total comes
+  // from the same lightweight pagination.totalCount trick already used
+  // for ordersTotalCount above (limit: 1, read only the count). "Completed
+  // today" needs the actual rows (to check each one's date), so it's
+  // fetched unpaginated like jobCards/complaints already are elsewhere on
+  // this page -- fine at this app's data volume, same reasoning as the
+  // file-level comment above.
+  const [holdOrdersCount, setHoldOrdersCount] = useState<number | null>(null);
+  const [completedOrders, setCompletedOrders] = useState<any[]>([]);
 
   useEffect(() => {
     const companyName = activeCompanyId || undefined;
@@ -95,12 +140,62 @@ const QualityManagerDashboard = () => {
       .unwrap()
       .then((res: any) => setOrdersTotalCount(res?.pagination?.totalCount ?? null))
       .catch(() => setOrdersTotalCount(null));
+    dispatch(getAllOrdersThunk({ companyName, status: "Hold", limit: 1 }))
+      .unwrap()
+      .then((res: any) => setHoldOrdersCount(res?.pagination?.totalCount ?? null))
+      .catch(() => setHoldOrdersCount(null));
+    dispatch(getAllOrdersThunk({ companyName, status: "Completed", limit: 200 }))
+      .unwrap()
+      .then((res: any) => setCompletedOrders(res?.data || []))
+      .catch(() => setCompletedOrders([]));
+    dispatch(getAllGodownBoxReceiptsThunk({ companyName }));
+    dispatch(getStockSummaryThunk({ companyName }));
   }, [dispatch, activeCompanyId]);
 
   const inProduction = jobCards.filter((jc: any) => jc.status !== "Completed" && jc.status !== "Cancelled").length;
   const atFactory = jobCards.filter((jc: any) => jc.currentStage === "Factory").length;
   const atGodown = jobCards.filter((jc: any) => jc.currentStage === "Godown").length;
   const openComplaints = complaints.filter((c: any) => c.status === "Open" || c.status === "In Progress").length;
+
+  // Build 5, sub-item 1: "today" = local calendar day, matching the
+  // `?today=1` handling added to all-orders/index.tsx.
+  const isToday = (dateString?: string) => {
+    if (!dateString) return false;
+    const d = new Date(dateString);
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  };
+  const completedTodayCount = completedOrders.filter((o: any) => isToday(o.updatedAt)).length;
+
+  // Build 5, sub-item 2 -- cartoon/box inventory by size, Factory vs Store.
+  // Store side: net (inward - outward) from the existing Godown box/
+  // cartoon receiving manifest, grouped by size. Factory side: job cards
+  // currently sitting at the Factory stage (finished, not yet moved to
+  // Godown), grouped by their order's box size -- both are real existing
+  // data, no new table.
+  const cartonInventory = useMemo(() => {
+    const bySize: Record<string, { factory: number; store: number }> = {};
+    for (const jc of jobCards as any[]) {
+      if (jc.currentStage !== "Factory") continue;
+      const size = jc.order?.size || "Unspecified";
+      bySize[size] = bySize[size] || { factory: 0, store: 0 };
+      bySize[size].factory += Number(jc.qty) || 0;
+    }
+    for (const r of boxReceipts as any[]) {
+      const size = r.size || "Unspecified";
+      bySize[size] = bySize[size] || { factory: 0, store: 0 };
+      const qty = Number(r.qty) || 0;
+      bySize[size].store += r.type === "outward" ? -qty : qty;
+    }
+    return Object.entries(bySize)
+      .map(([size, v]) => ({ size, factory: v.factory, store: v.store }))
+      .sort((a, b) => a.size.localeCompare(b.size));
+  }, [jobCards, boxReceipts]);
+
+  // Build 5, sub-item 3 -- low-stock alert. Materials with no reorderLevel
+  // set are never flagged (belowReorder is only true when one is set and
+  // the current balance is under it) -- see stockLedger.controller.js.
+  const lowStockMaterials = (stockSummary as any[]).filter((s: any) => s.belowReorder);
 
   return (
     <Box p={3}>
@@ -129,7 +224,85 @@ const QualityManagerDashboard = () => {
         <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
           <KpiCard label="Open Complaints" value={openComplaints} accent="#d32f2f" />
         </Grid>
+        {/* Build 5, sub-item 1: clickable, drill down into all-orders
+            pre-filtered. Duration (start date vs. end date) shows there as
+            a computed column, not here -- these are just counts. */}
+        <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
+          <KpiCard
+            label="Jobs Completed Today"
+            value={completedTodayCount}
+            accent="#0891b2"
+            onClick={() => router.push("/admin/all-orders?status=Completed&today=1")}
+          />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
+          <KpiCard
+            label="Jobs Hold"
+            value={holdOrdersCount ?? 0}
+            accent="#DC2626"
+            onClick={() => router.push("/admin/all-orders?status=Hold")}
+          />
+        </Grid>
       </Grid>
+
+      {/* Build 5, sub-item 3 -- low-stock alert banner. Only rendered when
+          at least one material is below its own set reorder level; a
+          material with no threshold set never appears here. */}
+      {lowStockMaterials.length > 0 && (
+        <Paper
+          variant="outlined"
+          sx={{ p: 2, borderRadius: 2, mb: 3, borderColor: "#FCA5A5", bgcolor: "#FEF2F2" }}
+        >
+          <Typography fontWeight={600} color="#B42318" mb={1}>
+            Low Stock Alert
+          </Typography>
+          <Stack spacing={0.5}>
+            {lowStockMaterials.map((s: any) => (
+              <Typography key={s.material._id} fontSize={13} color="#7A271A">
+                {s.material.materialName}
+                {s.material.materialSize ? ` (${s.material.materialSize})` : ""}: {s.balance}
+                {" "}
+                on hand -- below reorder level of {s.material.reorderLevel}
+              </Typography>
+            ))}
+          </Stack>
+        </Paper>
+      )}
+
+      {/* Build 5, sub-item 2 -- cartoon (box) inventory by size, Factory
+          vs Store. Read-only aggregation of existing data: Factory column
+          is job cards currently at the Factory stage (finished, not yet
+          moved to Godown); Store column is the net inward-outward balance
+          from the existing Godown box/cartoon receiving manifest. */}
+      <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 3 }}>
+        <Typography fontWeight={600} mb={1}>
+          Cartoon Inventory (Ready Boxes)
+        </Typography>
+        {cartonInventory.length === 0 ? (
+          <Typography fontSize={13} color="text.secondary">
+            No box/cartoon inventory recorded yet.
+          </Typography>
+        ) : (
+          <BasicTable
+            showFillter={false}
+            showDatePicker={false}
+            showSearch={false}
+            tableHeader={[
+              { id: "size", label: "Size" },
+              { id: "factory", label: "Ready in Factory" },
+              { id: "store", label: "Ready in Store (Godown)" },
+            ]}
+            rowData={cartonInventory.map((row, idx) => ({ ...row, id: idx }))}
+            renderRow={(row: any) => (
+              <>
+                <TableCell>{row.size}</TableCell>
+                <TableCell>{row.factory}</TableCell>
+                <TableCell>{row.store}</TableCell>
+              </>
+            )}
+          />
+        )}
+      </Paper>
 
       <Stack spacing={3}>
         <Box>

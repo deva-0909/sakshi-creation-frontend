@@ -44,6 +44,12 @@ const columns = [
   // this page, added here.
   { id: "priority", label: "Priority" },
   { id: "orderStatus", label: "Order Status" },
+  // Build 5 (Quality Manager Dashboard, sub-item 1 -- KPI drill-down): the
+  // spec asks the "jobs completed today" drill-down to show the gap
+  // between an order's start and end date. Computed read-only from fields
+  // every order already has (createdAt/updatedAt) rather than a new
+  // backend field -- see the render below for the exact formula.
+  { id: "duration", label: "Duration (Days)" },
 ]
 
 const PRIORITY_COLOR: Record<string, { bg: string; color: string }> = {
@@ -71,6 +77,21 @@ const AllOrdersPage = () => {
   const [startDate, setStartDate] = useState<Date | null>(null)
   const [endDate, setEndDate] = useState<Date | null>(null)
 const [filters, setFilters] = useState<{ [key: string]: string[] }>({});
+  // Build 5 (Quality Manager Dashboard, sub-item 1 -- KPI drill-down): lets
+  // the dashboard deep-link here as e.g. `?status=Hold` or
+  // `?status=Completed&today=1`, reusing this page's existing client-side
+  // filtering rather than a second filtered view. Read once router.query
+  // is populated; absent (the normal, non-drill-down case) it's a no-op
+  // and every existing caller of this page is unaffected.
+  const [queryStatusFilter, setQueryStatusFilter] = useState<string | null>(null)
+  const [queryTodayOnly, setQueryTodayOnly] = useState(false)
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const { status, today } = router.query;
+    setQueryStatusFilter(typeof status === "string" ? status : null);
+    setQueryTodayOnly(today === "1" || today === "true");
+  }, [router.isReady, router.query])
 
   const canViewGlobal = user?.role?.permissions?.all_orders?.view_global
   const canViewOwn = user?.role?.permissions?.all_orders?.view_own
@@ -217,9 +238,12 @@ const filteredOrders = useMemo(() => {
       return value && filters[columnId].includes(value);
     });
 
-    return matchesDateRange && matchesSearch && matchesFilters;
+    const matchesQueryStatus = !queryStatusFilter || order.status === queryStatusFilter;
+    const matchesQueryToday = !queryTodayOnly || isSameDayAsToday(order.updatedAt);
+
+    return matchesDateRange && matchesSearch && matchesFilters && matchesQueryStatus && matchesQueryToday;
   });
-}, [orders, startDate, endDate, searchQuery, filters]);
+}, [orders, startDate, endDate, searchQuery, filters, queryStatusFilter, queryTodayOnly]);
 
   useEffect(() => {
     const token = authService.getToken();
@@ -248,6 +272,29 @@ const filteredOrders = useMemo(() => {
       month: "2-digit",
       year: "2-digit",
     });
+  };
+
+  // Build 5 (Quality Manager Dashboard): "today" for the `?today=1`
+  // drill-down means the local calendar day, not the last 24 hours.
+  const isSameDayAsToday = (dateString?: string | null) => {
+    if (!dateString) return false;
+    const d = new Date(dateString);
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  };
+
+  // Build 5 (Quality Manager Dashboard, sub-item 1): read-only "Duration"
+  // computed as the gap between the order's creation (its start) and its
+  // last update (its end -- for a Completed/Hold order this is effectively
+  // when it reached that state, since nothing else touches updatedAt after
+  // an order stops moving through stages). No new backend field: both
+  // timestamps already exist on every order.
+  const getDurationDays = (row: Order): number | null => {
+    if (!row.createdAt || !row.updatedAt) return null;
+    const start = new Date(row.createdAt).getTime();
+    const end = new Date(row.updatedAt).getTime();
+    if (Number.isNaN(start) || Number.isNaN(end) || end < start) return null;
+    return Math.round((end - start) / (1000 * 60 * 60 * 24));
   };
 
   const getRouteByStatus = (row: Order): string => {
@@ -445,6 +492,7 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
     { id: "orderedBy", label: "Ordered By", value: (row: OrderRow) => `${row.createdBy?.firstName || "N/A"} ${row.createdBy?.lastName || "N/A"}` },
     { id: "priority", label: "Priority", value: (row: OrderRow) => (row as any).priority || "Normal" },
     { id: "orderStatus", label: "Order Status", value: (row: OrderRow) => getDisplayStatus(row).text },
+    { id: "duration", label: "Duration (Days)", value: (row: OrderRow) => getDurationDays(row) ?? "N/A" },
   ];
 
   return (
@@ -691,6 +739,13 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
                     }}
                   />
                 </Box>
+              </TableCell>
+
+              {/* Duration (Days) */}
+              <TableCell>
+                <Typography fontSize="14px" color="#6B7280">
+                  {getDurationDays(row) ?? "N/A"}
+                </Typography>
               </TableCell>
             </>
           )}

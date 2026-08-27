@@ -19,8 +19,13 @@ export interface MaterialLedger {
 }
 
 export interface StockSummaryEntry {
-  material: { _id: string; materialName: string; materialSize?: string; materialGSM?: number };
+  material: { _id: string; materialName: string; materialSize?: string; materialGSM?: number; reorderLevel?: number | null };
   balance: number;
+  // Build 5 (Quality Manager Dashboard, sub-item 3 -- low-stock alert):
+  // true when this material has a reorderLevel set and its current
+  // balance is below it. Materials with no reorderLevel set are never
+  // flagged (backend leaves this false for them).
+  belowReorder?: boolean;
 }
 
 // Module 11: On Hand vs Available -- available narrows on-hand by active
