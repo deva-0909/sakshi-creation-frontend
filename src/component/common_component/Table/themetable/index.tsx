@@ -425,7 +425,12 @@ const BasicTable = <T extends { id: string }>({
         </Box>
       </Box>
 
-      <TableContainer sx={{ width: "100%", overflowX: "auto", maxWidth: "100vw" }}>
+      {/* maxWidth was "100vw" -- that unit includes the vertical scrollbar's
+          own width, so on any page tall enough to scroll it made this
+          container a few pixels WIDER than the actually visible area,
+          forcing a spurious horizontal scroll. "100%" of the parent is the
+          correct constraint here. */}
+      <TableContainer sx={{ width: "100%", overflowX: "auto", maxWidth: "100%" }}>
         <Box sx={{ minWidth: 0, width: "100%" }}>
           <Table>
             <TableHead>

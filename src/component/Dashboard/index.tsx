@@ -771,12 +771,22 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           flexDirection: "column",
           bgcolor: "#fff",
           borderRadius: 2,
-          overflowX: "auto",
+          // Was "auto" -- with the wide-table case already handled by
+          // themetable's own contained TableContainer scroll, this outer
+          // wrapper never legitimately needs its own horizontal scrollbar;
+          // leaving it "auto" meant a second, page-level horizontal
+          // scrollbar could appear alongside the table's own.
+          overflowX: "hidden",
           // Mobile: the drawer overlays instead of pushing content, so the
           // main area keeps its full width regardless of drawerOpen.
           ml: isMobile ? 0 : (drawerOpen ? "260px" : "60px"),
           transition: `margin-left ${transitionDuration}ms ${transitionEasing}`,
-          height: "100vh",
+          // Was a flat "100vh": the outer flex container (below) has its own
+          // p={1} (8px top + 8px bottom), so a full-100vh child inside it
+          // overflowed the viewport by 16px, producing a second, short-throw
+          // vertical scrollbar on the browser window itself, on top of this
+          // box's own overflowY. calc() accounts for that padding instead.
+          height: "calc(100vh - 16px)",
           overflowY: "hidden",
         }}
       >
