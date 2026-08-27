@@ -231,6 +231,17 @@ const BasicTable = <T extends { id: string }>({
     setPage(0); // Reset to first page when rows per page changes
   };
 
+  // Shared style for a pagination page-number button, so the active/inactive
+  // look is defined once instead of copy-pasted at each of the three call
+  // sites below (first page, middle range, last page).
+  const pageButtonSx = (active: boolean) => ({
+    background: active ? "#F9F5FF" : "transparent",
+    color: active ? "#7F56D9" : "#667085",
+    fontWeight: active ? 600 : 500,
+    borderRadius: "6px",
+    textTransform: "none" as const,
+  });
+
   // Pagination logic with ellipsis
   const getPaginationItems = () => {
     const maxVisiblePages = 5; // Show up to 5 page buttons
@@ -243,13 +254,7 @@ const BasicTable = <T extends { id: string }>({
         variant="outlined"
         size="small"
         onClick={() => setPage(0)}
-        sx={{
-          background: page === 0 ? "#F9F5FF" : "transparent",
-          color: page === 0 ? "#7F56D9" : "#667085",
-          fontWeight: page === 0 ? 600 : 500,
-          borderRadius: "6px",
-          textTransform: "none",
-        }}
+        sx={pageButtonSx(page === 0)}
       >
         1
       </Button>
@@ -275,13 +280,7 @@ const BasicTable = <T extends { id: string }>({
           variant="outlined"
           size="small"
           onClick={() => setPage(i)}
-          sx={{
-            background: page === i ? "#F9F5FF" : "transparent",
-            color: page === i ? "#7F56D9" : "#667085",
-            fontWeight: page === i ? 600 : 500,
-            borderRadius: "6px",
-            textTransform: "none",
-          }}
+          sx={pageButtonSx(page === i)}
         >
           {i + 1}
         </Button>
@@ -305,13 +304,7 @@ const BasicTable = <T extends { id: string }>({
           variant="outlined"
           size="small"
           onClick={() => setPage(pageCount - 1)}
-          sx={{
-            background: page === pageCount - 1 ? "#F9F5FF" : "transparent",
-            color: page === pageCount - 1 ? "#7F56D9" : "#667085",
-            fontWeight: page === pageCount - 1 ? 600 : 500,
-            borderRadius: "6px",
-            textTransform: "none",
-          }}
+          sx={pageButtonSx(page === pageCount - 1)}
         >
           {pageCount}
         </Button>
@@ -442,13 +435,10 @@ const BasicTable = <T extends { id: string }>({
                     key={col.id}
                     align={col.align || "left"}
                     sx={{
-                      background: "#EAECF0",
-                      fontSize: "14px",
-                      fontWeight: 500,
-                      color: "#667085",
-                      borderBottom: "none",
+                      // Colors/weight/background come from the theme's
+                      // MuiTableCell `head` variant (src/theme/index.tsx) --
+                      // only this table's own layout needs stay here.
                       whiteSpace: "nowrap",
-                      padding: "10px 10px",
                       minWidth: "80px",
                       maxWidth: "150px",
                     }}
@@ -473,10 +463,11 @@ const BasicTable = <T extends { id: string }>({
                   key={row.id}
                   hover
                   sx={{
-                    borderBottom: "2px solid #F2F4F7",
+                    // Border color/hover tint now come from the theme
+                    // (MuiTableCell / MuiTableRow); this table just keeps
+                    // its own deliberately compact row density.
                     "& .MuiTableCell-root": {
                       padding: "6px 10px",
-                      fontSize: "14px",
                       lineHeight: "1.2",
                     },
                   }}

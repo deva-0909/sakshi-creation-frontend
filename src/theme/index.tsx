@@ -109,6 +109,128 @@ const theme = createTheme({
         }),
       },
     },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+        },
+        outlined: {
+          borderColor: '#EAECF0',
+        },
+      },
+    },
+    // Centralizes the table look that themetable/index.tsx previously
+    // hardcoded per-instance (see claude/ui-ux-professional-polish-plan.md,
+    // Phase J). Existing sx overrides on individual tables still win where
+    // present -- this only sets the shared default so any *new* table gets
+    // it for free and the values live in one place.
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          borderBottom: '1px solid #EAECF0',
+          padding: '10px 12px',
+          fontSize: '0.8125rem',
+        },
+        head: {
+          backgroundColor: '#F2F4F7',
+          color: '#475467',
+          fontWeight: 600,
+          fontSize: '0.75rem',
+        },
+      },
+    },
+    MuiTableRow: {
+      styleOverrides: {
+        root: {
+          '&:hover': {
+            backgroundColor: '#FAFAFF',
+          },
+        },
+      },
+    },
+    // Status/priority chips: previously every page (e.g. all-orders'
+    // PRIORITY_COLOR map) redeclared its own bg/text hex pair per status.
+    // These map the standard MUI `color` prop to the same semantic tokens,
+    // so a page can use <Chip color="success" /> etc. instead of inline hex.
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          fontWeight: 600,
+          fontSize: '0.75rem',
+        },
+        colorSuccess: {
+          backgroundColor: '#ECFDF3',
+          color: '#027A48',
+        },
+        colorError: {
+          backgroundColor: '#FEF3F2',
+          color: '#B42318',
+        },
+        colorWarning: {
+          backgroundColor: '#FFFAEB',
+          color: '#B54708',
+        },
+        colorInfo: {
+          backgroundColor: '#EFF8FF',
+          color: '#175CD3',
+        },
+        colorDefault: {
+          backgroundColor: '#F2F4F7',
+          color: '#344054',
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          backgroundColor: '#ffffff',
+          '& .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#D0D5DD',
+          },
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#98A2B3',
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#7F56D9',
+            borderWidth: 1,
+          },
+        },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          color: '#475467',
+        },
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 12,
+          boxShadow: '0px 8px 32px rgba(16, 24, 40, 0.12)',
+        },
+      },
+    },
+    MuiDialogTitle: {
+      styleOverrides: {
+        root: {
+          fontSize: '1.125rem',
+          fontWeight: 700,
+          color: '#101828',
+        },
+      },
+    },
+    MuiTooltip: {
+      styleOverrides: {
+        tooltip: {
+          backgroundColor: '#101828',
+          fontSize: '0.75rem',
+          borderRadius: 6,
+        },
+      },
+    },
   },
 });
 
