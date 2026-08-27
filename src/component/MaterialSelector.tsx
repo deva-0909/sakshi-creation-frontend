@@ -13,6 +13,8 @@ import {
   DialogActions,
   Chip,
   Alert,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material"
 import { Add as AddIcon, Delete as DeleteIcon, Inventory as InventoryIcon } from "@mui/icons-material"
 import ThemeInput from "@/component/common_component/themeinput"
@@ -51,6 +53,7 @@ const MaterialSelector: React.FC<MaterialSelectorProps> = ({
   title = "Materials",
   showInventoryStatus = true,
 }) => {
+  const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'));
   const dispatch = useAppDispatch()
   const { materials } = useAppSelector((state) => state.materials)
   const [inventoryDialog, setInventoryDialog] = useState(false)
@@ -319,7 +322,7 @@ const MaterialSelector: React.FC<MaterialSelectorProps> = ({
       })}
 
       {/* Inventory Dialog */}
-      <Dialog open={inventoryDialog} onClose={() => setInventoryDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog open={inventoryDialog} onClose={() => setInventoryDialog(false)} maxWidth="sm" fullWidth fullScreen={isMobile}>
         <DialogTitle>Material Inventory Status</DialogTitle>
         <DialogContent>
           {selectedMaterialInventory && (

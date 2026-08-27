@@ -3,6 +3,7 @@
   import { Box, Typography, Paper, Button, CircularProgress, Alert, Select, MenuItem, FormControl, InputLabel } from "@mui/material"
   import ThemeInput from "@/component/common_component/themeinput"
   import ThemeButton from "@/component/common_component/themebutton"
+  import BackButton from "@/component/common_component/BackButton"
   import StepperProgress from "@/component/common_component/stepperprogress"
   import ViewFilesDialog from "@/component/reusablecomponents/ViewFilesDialog"
   import FileUpload from "@/component/reusablecomponents/FileUpload"
@@ -265,6 +266,7 @@
 
     return (
         <Box>
+          <BackButton />
           {canCreateJobCard && (
             <Box display="flex" justifyContent="flex-end" mb={1}>
               <ThemeButton

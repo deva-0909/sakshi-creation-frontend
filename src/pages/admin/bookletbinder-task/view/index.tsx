@@ -23,6 +23,7 @@ import ThemeButton from "@/component/common_component/themebutton";
 import ThemeCheckbox from "@/component/common_component/themecheckbox";
 import ViewFilesDialog from "@/component/reusablecomponents/ViewFilesDialog";
 import FileUpload from "@/component/reusablecomponents/FileUpload";
+import BackButton from "@/component/common_component/BackButton";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { getOrderByIdThunk, updateOrderThunk } from "@/store/slices/orderSlice";
 import { useRouter } from "next/router";
@@ -382,6 +383,7 @@ const BookletBinderTaskView = () => {
 
   return (
     <Box>
+      <BackButton />
       {/* Order Details */}
       <Paper variant="outlined" sx={{ p: 3, mb: 3, borderRadius: 2 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>

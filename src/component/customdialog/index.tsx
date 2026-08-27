@@ -6,6 +6,8 @@ import {
   IconButton,
   Box,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { AiOutlineClose } from 'react-icons/ai';
 
@@ -29,8 +31,17 @@ const CustomDialog: React.FC<CustomDialogProps> = ({
   title,
   maxWidth = 'sm',
   fullWidth = true,
-  fullScreen = false,
+  fullScreen,
 }) => {
+  const theme = useTheme();
+  // Mobile PWA usability audit: none of this dialog's ~50 call sites ever
+  // passed fullScreen, so every dialog -- including multi-section create/
+  // edit forms -- rendered as a small, height-capped modal on a phone
+  // instead of a full-screen sheet. Fixing it centrally here (rather than
+  // touching every call site) makes every dialog in the app fullScreen on
+  // mobile automatically; an explicit `fullScreen` prop still overrides.
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const resolvedFullScreen = fullScreen ?? isMobile;
 
   return (
     <Dialog
@@ -38,12 +49,12 @@ const CustomDialog: React.FC<CustomDialogProps> = ({
       onClose={onClose}
       fullWidth={fullWidth}
       maxWidth={maxWidth}
-      fullScreen={fullScreen}
+      fullScreen={resolvedFullScreen}
       scroll="paper"
       PaperProps={{
         sx: {
           width: '100%',
-          borderRadius: 3,
+          borderRadius: resolvedFullScreen ? 0 : 3,
         },
       }}
     >

@@ -10,6 +10,8 @@ import {
   Box,
   IconButton,
   InputAdornment,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useAppDispatch } from "@/store";
@@ -29,6 +31,7 @@ const PasswordUpdateDialog = ({
   staffId,
   staffName,
 }: PasswordUpdateDialogProps) => {
+  const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'));
   const dispatch = useAppDispatch();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -104,7 +107,7 @@ const PasswordUpdateDialog = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth fullScreen={isMobile}>
       <DialogTitle>Update Password for {staffName}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>

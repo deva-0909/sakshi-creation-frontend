@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
+import BackButton from "@/component/common_component/BackButton";
 import { Box, Typography, Button, CircularProgress, Paper, Stack, TextField } from "@mui/material"
 import { AiOutlineEye } from "react-icons/ai"
 import { withAuthToken } from "@/utills/utills"
@@ -187,6 +188,7 @@ const DesignerViewTask = () => {
 
   return (
     <Box>
+      <BackButton />
       {/* Order Details */}
       <Paper variant="outlined" sx={{ p: 3, mb: 3, borderRadius: 2 }}>
         <Typography variant="h6" fontWeight={600} mb={2} color="#1976D2">

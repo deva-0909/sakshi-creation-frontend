@@ -514,6 +514,15 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           bgcolor: "#ffffff",
           borderRight: "1px solid #e5e7eb",
           p: 1,
+          // Safe-area insets (paired with viewport-fit=cover in
+          // _document.tsx): this sidebar is position:fixed against the
+          // viewport, so it sits UNDER a notch/Dynamic Island or behind the
+          // home-indicator gesture bar in standalone PWA mode unless it
+          // reserves that space itself -- max() keeps the existing 8px
+          // padding as a floor on devices with no inset to report.
+          pt: "max(8px, env(safe-area-inset-top))",
+          pl: "max(8px, env(safe-area-inset-left))",
+          pb: "max(8px, env(safe-area-inset-bottom))",
           mr: 1.5,
           boxShadow: sidebarShadow,
           borderRadius: 1,
@@ -559,12 +568,18 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
                 e.stopPropagation();
                 toggleDrawer();
               }}
-              size="small"
               sx={{
                 position: "absolute",
                 right: 8,
                 top: 8,
                 zIndex: 1,
+                // Was size="small" (~34px) -- under the 44px/48dp minimum
+                // touch target both Apple and Google recommend (mobile PWA
+                // usability audit); this is the desktop collapse toggle,
+                // but kept consistent since the same component also renders
+                // on mobile widths.
+                minWidth: 44,
+                minHeight: 44,
                 backgroundColor: "rgba(255,255,255,0.8)",
                 "&:hover": { backgroundColor: "rgba(255,255,255,0.9)" },
               }}
@@ -798,17 +813,25 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           flexWrap="wrap"
           gap={1}
           px={2}
-          py={1.5}
           bgcolor="#fff"
           boxShadow={sidebarShadow}
+          sx={{
+            py: 1.5,
+            // Safe-area inset: this is the topmost visible content on
+            // mobile (sidebar is off-canvas there), so it's the one that
+            // would sit under a notch/Dynamic Island in standalone PWA mode.
+            pt: "max(12px, env(safe-area-inset-top))",
+          }}
         >
           <Box display="flex" alignItems="center" gap={1}>
             {isMobile && (
               <IconButton
                 onClick={() => setDrawerOpen(true)}
-                size="small"
                 aria-label="Open menu"
-                sx={{ color: "#344054" }}
+                // Was size="small" -- this is THE way a phone user opens
+                // navigation at all, so it's the highest-priority touch
+                // target fix in the whole app (mobile PWA usability audit).
+                sx={{ color: "#344054", minWidth: 44, minHeight: 44 }}
               >
                 <MdMenu />
               </IconButton>
@@ -863,7 +886,17 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
         </Box>
 
         {/* Page content */}
-        <Box p={2} sx={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
+        <Box
+          p={2}
+          sx={{
+            flex: 1,
+            overflowY: "auto",
+            overflowX: "hidden",
+            // Safe-area inset: clears the home-indicator gesture bar at the
+            // bottom of the screen in standalone PWA mode on notched phones.
+            pb: "max(16px, env(safe-area-inset-bottom))",
+          }}
+        >
           {pageLoading || loading ? <Loader /> : children}
         </Box>
       </Box>

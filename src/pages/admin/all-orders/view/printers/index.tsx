@@ -22,6 +22,7 @@ import { useAppDispatch, useAppSelector } from "@/store";
 import { getOrderByIdThunk, updateOrderThunk } from "@/store/slices/orderSlice";
 import ViewFilesDialog from "@/component/reusablecomponents/ViewFilesDialog";
 import RoleStaffSelect from "@/component/reusablecomponents/RoleStaffSelect";
+import BackButton from "@/component/common_component/BackButton";
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
@@ -332,6 +333,7 @@ const handleAssignToBookletBinder = async () => {
   return (
     <>
       <Box>
+        <BackButton />
         <Typography fontWeight={600} fontSize={18} mb={3}>
           {singleOrder.party?.partyName || "Party"}
         </Typography>

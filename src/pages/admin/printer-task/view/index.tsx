@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
+import BackButton from "@/component/common_component/BackButton";
 import { Box, Button, Typography, Paper, CircularProgress, Stack, IconButton } from "@mui/material"
 import { AiOutlineEye } from "react-icons/ai"
 import AddIcon from '@mui/icons-material/Add';
@@ -239,6 +240,7 @@ const handleUpdateStatus = async (orderId: string, statusType: string, status: s
 
   return (
     <Box>
+      <BackButton />
       {/* Order Details */}
       <Paper variant="outlined" sx={{ p: 3, mb: 3, borderRadius: 2 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>

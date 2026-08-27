@@ -13,6 +13,8 @@ import {
   ListItemText,
   IconButton,
   CircularProgress,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
@@ -44,6 +46,7 @@ const ViewFilesDialog: React.FC<ViewFilesDialogProps> = ({
   showView = false,
   downloadEndpoint = `${BaseURL}`,
 }) => {
+  const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'));
   const [downloading, setDownloading] = useState<string | null>(null);
 
   const getFileName = (filePath: string) => {
@@ -155,7 +158,7 @@ const handleDownloadFile = async (filePath: string) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth fullScreen={isMobile}>
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6" fontWeight={600}>

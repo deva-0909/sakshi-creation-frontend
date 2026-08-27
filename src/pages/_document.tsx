@@ -8,7 +8,7 @@ export default function Document() {
             harmless on desktop, but it meant mobile browsers rendered the
             page at desktop width and let the user pinch-zoom out, which
             also breaks how a PWA installs/launches full-screen on a phone. */}
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
         {/*
           Loaded as a plain stylesheet link (rather than next/font, which
           next/font/google does not support inside _document.tsx) so the

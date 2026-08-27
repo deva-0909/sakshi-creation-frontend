@@ -1,5 +1,6 @@
 "use client"
 import { useRef, useEffect, useState } from "react"
+import BackButton from "@/component/common_component/BackButton";
 import { Box, Typography, Paper, Button, CircularProgress, Stack, IconButton } from "@mui/material"
 import ThemeInput from "@/component/common_component/themeinput"
 import ThemeButton from "@/component/common_component/themebutton"
@@ -348,6 +349,7 @@ const BinderForm = () => {
   return (
     <>
       <Box>
+        <BackButton />
         <Typography fontWeight={600} fontSize={18} mb={2}>
           {singleOrder.party?.partyName || "Party Name"}
         </Typography>

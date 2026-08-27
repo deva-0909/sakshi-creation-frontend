@@ -1,5 +1,6 @@
 "use client"
 import { useRef, useEffect, useState } from "react"
+import BackButton from "@/component/common_component/BackButton";
 import { 
   Box, 
   Typography, 
@@ -444,6 +445,7 @@ const areFieldsReadOnly = isHeld || isBookletBinderStatusInProgress || isBooklet
   return (
     <>
       <Box className="p-4 border rounded-md">
+        <BackButton />
         <Typography fontWeight={600} fontSize={18} mb={2}>
         {singleOrder.party?.partyName || "Party Name"}
       </Typography>

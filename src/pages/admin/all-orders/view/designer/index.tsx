@@ -16,6 +16,8 @@ import {
   DialogContent,
   DialogActions,
   Chip,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material"
 import { MdEmail, MdRemoveRedEye, MdArrowBack, MdClose, MdEdit, MdDelete } from "react-icons/md"
 import { AiOutlineEye } from "react-icons/ai"
@@ -191,6 +193,7 @@ const ReworkDialog: React.FC<{
   onSubmit: (remark: string, files: any[]) => void;
   loading: boolean;
 }> = ({ open, onClose, onSubmit, loading }) => {
+  const isMobileDialog = useMediaQuery(useTheme().breakpoints.down('sm'));
   const [reworkRemark, setReworkRemark] = useState("");
   const fileUploadRef = useRef<any>(null);
 
@@ -238,7 +241,7 @@ const ReworkDialog: React.FC<{
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth fullScreen={isMobileDialog}>
       <DialogTitle>
         <Box display="flex" alignItems="center" gap={1}>
           <IconButton onClick={handleClose} size="small" sx={{ mr: 1 }}>
@@ -303,6 +306,7 @@ const ApprovalDialog: React.FC<{
   onSubmit: (files: any[], remark: string) => void
   loading: boolean
 }> = ({ open, onClose, onSubmit, loading }) => {
+  const isMobileDialog = useMediaQuery(useTheme().breakpoints.down('sm'));
   const [approvalRemark, setApprovalRemark] = useState("")
   const fileUploadRef = useRef<any>(null)
 
@@ -348,7 +352,7 @@ const ApprovalDialog: React.FC<{
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth fullScreen={isMobileDialog}>
       <DialogTitle>
         <Box display="flex" alignItems="center" gap={1}>
           <IconButton onClick={handleClose} size="small" sx={{ mr: 1 }}>
@@ -409,6 +413,7 @@ const RedesignDialog: React.FC<{
   loading: boolean
   currentFile: any
 }> = ({ open, onClose, onSubmit, loading, currentFile }) => {
+  const isMobileDialog = useMediaQuery(useTheme().breakpoints.down('sm'));
   const [redesignRemark, setRedesignRemark] = useState("")
   const fileUploadRef = useRef<any>(null)
 
@@ -451,7 +456,7 @@ const RedesignDialog: React.FC<{
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth fullScreen={isMobileDialog}>
       <DialogTitle>
         <Box display="flex" alignItems="center" gap={1}>
           <IconButton onClick={handleClose} size="small" sx={{ mr: 1 }}>
@@ -511,6 +516,7 @@ const InvoiceValidProofDialog: React.FC<{
   onSubmit: (files: any[], remark: string) => void
   loading: boolean
 }> = ({ open, onClose, onSubmit, loading }) => {
+  const isMobileDialog = useMediaQuery(useTheme().breakpoints.down('sm'));
   const [invoiceProofRemark, setInvoiceProofRemark] = useState("")
   const fileUploadRef = useRef<any>(null)
 
@@ -556,7 +562,7 @@ const InvoiceValidProofDialog: React.FC<{
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth fullScreen={isMobileDialog}>
       <DialogTitle>
         <Box display="flex" alignItems="center" gap={1}>
           <IconButton onClick={handleClose} size="small" sx={{ mr: 1 }}>
@@ -611,6 +617,7 @@ const InvoiceValidProofDialog: React.FC<{
 }
 
 const ViewOrderDesigner = () => {
+  const isMobileDialog = useMediaQuery(useTheme().breakpoints.down('sm'));
   const fileUploadRef = useRef<any>(null)
   const router = useRouter()
   const { id: orderId } = router.query
@@ -1902,7 +1909,7 @@ const ViewOrderDesigner = () => {
           </Collapse>
         </Paper>
 
-        <Dialog open={reassignDialogOpen} onClose={() => setReassignDialogOpen(false)} maxWidth="sm" fullWidth>
+        <Dialog open={reassignDialogOpen} onClose={() => setReassignDialogOpen(false)} maxWidth="sm" fullWidth fullScreen={isMobileDialog}>
           <DialogTitle>
             <Typography fontWeight={600} fontSize={18}>
               Reassign Designer

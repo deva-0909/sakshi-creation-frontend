@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import BackButton from "@/component/common_component/BackButton";
 import { Box, Stack } from '@mui/material';
 import ThemeInput from '@/component/common_component/themeinput';
 import ThemeButton from '@/component/common_component/themebutton';
@@ -114,6 +115,7 @@ const StaffView = () => {
   return (
     <>
       <Box sx={{ width: '100%' }}>
+        <BackButton />
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <ThemeInput
             labelName="First name"

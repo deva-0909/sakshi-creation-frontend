@@ -5,6 +5,7 @@ import ThemeButton from "@/component/common_component/themebutton";
 import ThemeChip from "@/component/common_component/themechip";
 import ThemeInput from "@/component/common_component/themeinput";
 import CustomDialog from "@/component/customdialog";
+import BackButton from "@/component/common_component/BackButton";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   getQuotationByIdThunk,
@@ -122,6 +123,7 @@ const QuotationDetailPage = () => {
 
   return (
     <Box p={3}>
+      <BackButton />
       <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
         <Box display="flex" alignItems="center" gap={2}>
           <Typography variant="h5" fontWeight={600}>

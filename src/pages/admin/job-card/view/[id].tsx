@@ -7,6 +7,7 @@ import ThemeInput from "@/component/common_component/themeinput";
 import ThemeSelect from "@/component/common_component/themeselect";
 import RoleStaffSelect from "@/component/reusablecomponents/RoleStaffSelect";
 import CustomDialog from "@/component/customdialog";
+import BackButton from "@/component/common_component/BackButton";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { getAllRolesThunk } from "@/store/slices/roleSlice";
 import { getAllMaterialsThunk } from "@/store/slices/materialSlice";
@@ -466,6 +467,7 @@ const JobCardDetailPage = () => {
 
   return (
     <Box p={3}>
+      <BackButton />
       <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
         <Box display="flex" alignItems="center" gap={2}>
           <Typography variant="h5" fontWeight={600}>

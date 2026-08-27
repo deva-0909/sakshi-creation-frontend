@@ -109,7 +109,7 @@ if (autocomplete && options) {
                   borderRadius: '10px',
                   background: readOnly ? '#F9FAFB' : '#fff',
                   fontWeight: 500,
-                  fontSize: 14,
+                  fontSize: 16, // iOS Safari/PWA auto-zooms any focused input under 16px
                   color: '#667085',
                   '&.Mui-disabled': {
                     background: '#F9FAFB',
@@ -201,7 +201,7 @@ if (autocomplete && options) {
                   outline: 'none',
                   background: 'transparent',
                   fontWeight: 500,
-                  fontSize: 14,
+                  fontSize: 16, // iOS Safari/PWA auto-zooms any focused input under 16px
                   color: '#667085',
                   textAlign: 'center',
                 }}
@@ -232,7 +232,7 @@ if (autocomplete && options) {
             borderRadius: '10px',
             background: readOnly ? '#F9FAFB' : '#fff', // Different background for readOnly
             fontWeight: 500,
-            fontSize: 14,
+            fontSize: 16, // iOS Safari/PWA auto-zooms any focused input under 16px
             color: '#667085',
             '&.Mui-disabled': {
               background: '#F9FAFB', // Background when disabled

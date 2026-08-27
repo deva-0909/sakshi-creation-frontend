@@ -411,7 +411,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
       <Box sx={{ background: "#fff", borderRadius: 2 }} component="form" onSubmit={formik.handleSubmit}>
         {!isBulkUpload && (
           <>
-            <Box display="flex" gap={2} mb={1} justifyContent="space-between" width="100%">
+            <Box display="flex" flexDirection={{ xs: "column", sm: "row" }} gap={2} mb={1} justifyContent="space-between" width="100%">
               <CompanySelect
                 name="companyName"
                 value={formik.values.companyName}
@@ -463,7 +463,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
               />
             </Box>
 
-            <Box display="flex" gap={2} mb={1}>
+            <Box display="flex" flexDirection={{ xs: "column", sm: "row" }} gap={2} mb={1}>
               <ThemeInput
                 labelName="Owner Name"
                 placeholder="Owner Name"
@@ -527,7 +527,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
               />
             </Box>
 
-            <Box display="flex" gap={2} mb={1}>
+            <Box display="flex" flexDirection={{ xs: "column", sm: "row" }} gap={2} mb={1}>
               <ThemeInput
                 labelName="Contact Person"
                 placeholder="Contact Person"
@@ -590,7 +590,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
               />
             </Box>
 
-            <Box display="flex" gap={2} mb={1}>
+            <Box display="flex" flexDirection={{ xs: "column", sm: "row" }} gap={2} mb={1}>
               <ThemeInput
                 labelName="Contact For Payment"
                 placeholder="Contact Name"
@@ -654,7 +654,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
               />
             </Box>
 
-           <Box display="flex" gap={2} mb={1} alignItems="flex-end">
+           <Box display="flex" flexDirection={{ xs: "column", sm: "row" }} gap={2} mb={1} alignItems={{ xs: "stretch", sm: "flex-end" }}>
   {/* GST Field */}
             <Box sx={{ width: '24.2%' }}>
               <ThemeInput
@@ -862,7 +862,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
 
         {isBulkUpload && (
           <>
-            <Box display="flex" gap={2} mb={1} justifyContent="space-between" width="100%">
+            <Box display="flex" flexDirection={{ xs: "column", sm: "row" }} gap={2} mb={1} justifyContent="space-between" width="100%">
               <CompanySelect
                 name="companyName"
                 value={formik.values.companyName}

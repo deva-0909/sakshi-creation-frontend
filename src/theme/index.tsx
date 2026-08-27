@@ -193,6 +193,12 @@ const theme = createTheme({
         root: {
           borderRadius: 8,
           backgroundColor: '#ffffff',
+          // iOS Safari (and PWA standalone webviews) auto-zoom the whole
+          // viewport when a focused text input computes to under 16px --
+          // the theme's base fontSize is 14, so without this override every
+          // plain MUI TextField not going through the ThemeInput wrapper
+          // triggered that zoom on focus (mobile PWA usability audit).
+          fontSize: 16,
           '& .MuiOutlinedInput-notchedOutline': {
             borderColor: '#D0D5DD',
           },

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Dialog, DialogContent, DialogTitle, IconButton, Box, Typography } from "@mui/material"
+import { Dialog, DialogContent, DialogTitle, IconButton, Box, Typography, useTheme, useMediaQuery } from "@mui/material"
 import { Close } from "@mui/icons-material"
 
 interface FileViewerModalProps {
@@ -13,12 +13,13 @@ interface FileViewerModalProps {
 }
 
 const FileViewerModal: React.FC<FileViewerModalProps> = ({ open, onClose, fileUrl, fileName, fileType }) => {
+    const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'));
     if (!open || !fileUrl) {
         return null
     }
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth fullScreen={isMobile}>
             <DialogTitle sx={{ m: 0, p: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography variant="h6" component="div">
                     {fileName || "File Preview"}
