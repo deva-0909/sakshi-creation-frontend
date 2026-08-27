@@ -158,20 +158,28 @@ const theme = createTheme({
           fontWeight: 600,
           fontSize: '0.75rem',
         },
+        // Backgrounds corrected (Phase M) to the shade the app's existing
+        // status chips already use consistently everywhere -- #ECFDF3 etc.
+        // (the theme's `success.light` background-tint token) is meant for
+        // subtle hover/background tints, not a legible chip fill; the
+        // stronger #D1FADF-family tone below is what ~40-47 chips across
+        // the app were already using before any of this work started, so
+        // this is the theme catching up to established convention, not the
+        // other way around. Text colors were already correct and unchanged.
         colorSuccess: {
-          backgroundColor: '#ECFDF3',
+          backgroundColor: '#D1FADF',
           color: '#027A48',
         },
         colorError: {
-          backgroundColor: '#FEF3F2',
+          backgroundColor: '#FEE4E2',
           color: '#B42318',
         },
         colorWarning: {
-          backgroundColor: '#FFFAEB',
+          backgroundColor: '#FEF0C7',
           color: '#B54708',
         },
         colorInfo: {
-          backgroundColor: '#EFF8FF',
+          backgroundColor: '#D1E9FF',
           color: '#175CD3',
         },
         colorDefault: {
