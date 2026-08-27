@@ -38,4 +38,14 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# PWA -- @ducanh2912/next-pwa (next.config.ts) generates these into public/
+# at every `next build`; they're build output, not source, and get
+# regenerated fresh on every deploy (including Vercel's own build step).
+/public/sw.js
+/public/sw.js.map
+/public/swe-worker*.js
+/public/workbox-*.js
+/public/worker-*.js
+/public/fallback-*.js
 next-env.d.ts
