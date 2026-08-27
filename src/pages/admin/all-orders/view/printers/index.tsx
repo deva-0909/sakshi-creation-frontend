@@ -91,8 +91,8 @@ const PrinterForm = () => {
         printingrate: singleOrder.printingrate || "",
         // printingratePerUnit: singleOrder.printingratePerUnit || "",
         gsm: singleOrder.gsm || "",
-        // rowPaperSize: singleOrder.rowPaperSize || "",
-        // rowPaperUser: singleOrder.rowPaperUser || "",
+        rawPaperSize: singleOrder.rawPaperSize || "",
+        rawPaperUsed: singleOrder.rawPaperUsed || "",
         printerRemarks: singleOrder.printerRemarks || "",
       });
 
@@ -136,8 +136,8 @@ const PrinterForm = () => {
       printingrate: "",
       // printingratePerUnit: "",
       gsm: "",
-      // rowPaperSize: "",
-      // rowPaperUser: "",
+      rawPaperSize: "",
+      rawPaperUsed: "",
       printerRemarks: "",
     },
     validationSchema: Yup.object({
@@ -149,8 +149,6 @@ const PrinterForm = () => {
       printingrate: Yup.string().required("Printing Rate is required"),
       // printingratePerUnit: Yup.string().required("Printing Rate Per Unit is required"),
       // gsm: Yup.string().required("GSM is required"),
-      // rowPaperSize: Yup.string().required("Raw Paper Size is required"),
-      // rowPaperUser: Yup.string().required("Raw Paper User is required"),
       printerRemarks: Yup.string().required("Remarks are required"),
       printerPapers: Yup.array().of(
       Yup.object().shape({
@@ -186,8 +184,8 @@ const PrinterForm = () => {
           printingrate: values.printingrate,
           // printingratePerUnit: values.printingratePerUnit,
           gsm: values.gsm,
-          // rowPaperSize: values.rowPaperSize,
-          // rowPaperUser: values.rowPaperUser,
+          rawPaperSize: values.rawPaperSize,
+          rawPaperUsed: values.rawPaperUsed,
           printerRemarks: values.printerRemarks,
           printer: selectedPrinterStaff.value,
           printerStatus: "Pending",
@@ -574,26 +572,26 @@ const handleAssignToBookletBinder = async () => {
               helperText={formik.touched.printingratePerUnit && formik.errors.printingratePerUnit}
               InputProps={{ readOnly: areFieldsReadOnly }}
             /> */}
-          {/* <ThemeInput
+          <ThemeInput
               labelName="Raw Paper Size"
-              name="rowPaperSize"
-              value={formik.values.rowPaperSize}
+              name="rawPaperSize"
+              value={formik.values.rawPaperSize}
               onChange={formik.handleChange}
               fullWidth
-              error={formik.touched.rowPaperSize && Boolean(formik.errors.rowPaperSize)}
-              helperText={formik.touched.rowPaperSize && formik.errors.rowPaperSize}
+              error={formik.touched.rawPaperSize && Boolean(formik.errors.rawPaperSize)}
+              helperText={formik.touched.rawPaperSize && formik.errors.rawPaperSize}
               InputProps={{ readOnly: areFieldsReadOnly }}
-            /> */}
-            {/* <ThemeInput
+            />
+            <ThemeInput
               labelName="Raw Paper No. Of Sheet Used"
-              name="rowPaperUser"
-              value={formik.values.rowPaperUser}
+              name="rawPaperUsed"
+              value={formik.values.rawPaperUsed}
               onChange={formik.handleChange}
               fullWidth
-              error={formik.touched.rowPaperUser && Boolean(formik.errors.rowPaperUser)}
-              helperText={formik.touched.rowPaperUser && formik.errors.rowPaperUser}
+              error={formik.touched.rawPaperUsed && Boolean(formik.errors.rawPaperUsed)}
+              helperText={formik.touched.rawPaperUsed && formik.errors.rawPaperUsed}
               InputProps={{ readOnly: areFieldsReadOnly }}
-            /> */}
+            />
            
           </Stack>
 

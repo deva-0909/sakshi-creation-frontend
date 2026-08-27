@@ -26,6 +26,11 @@ const columns = [
   // these blank ("N/A"), same as Size already does for non-QP context.
   { id: "ply", label: "Ply" },
   { id: "deckal", label: "Deckal" },
+  // Figma frame check follow-up (2026-08-27): Order Type (New Order / New
+  // Pending Order / Ready), a pre-production readiness state confirmed
+  // with the user, shown on every Quality Packaging Order In screen in the
+  // design -- same "blank for Sakshi Creation" treatment as Ply/Deckal.
+  { id: "orderType", label: "Order Type" },
   { id: "remarks", label: "Remarks" },
   { id: "orderedBy", label: "Ordered By" },
   // Sakshi Creation order-process audit (2026-08-25): `priority` is a real
@@ -76,6 +81,7 @@ const [filters, setFilters] = useState<{ [key: string]: string[] }>({});
     "Size": "size",
     "Ply": "ply",
     "Deckal": "deckal",
+    "Order Type": "orderType",
     "Remarks": "remarks",
     "Ordered By": "createdBy",
     "Order Status": "status"
@@ -114,6 +120,9 @@ const getUniqueValues = useMemo(() => {
         break;
       case "deckal":
         value = (order as any).deckal !== undefined && (order as any).deckal !== null ? String((order as any).deckal) : undefined;
+        break;
+      case "orderType":
+        value = (order as any).orderType || undefined;
         break;
       case "remarks":
         value = order.remarks;
@@ -176,6 +185,9 @@ const filteredOrders = useMemo(() => {
           break;
         case "deckal":
           value = (order as any).deckal !== undefined && (order as any).deckal !== null ? String((order as any).deckal) : undefined;
+          break;
+        case "orderType":
+          value = (order as any).orderType || undefined;
           break;
         case "remarks":
           value = order.remarks;
@@ -415,6 +427,7 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
     { id: "size", label: "Size", value: (row: OrderRow) => row.size || "N/A" },
     { id: "ply", label: "Ply", value: (row: OrderRow) => ((row as any).ply ?? "N/A") },
     { id: "deckal", label: "Deckal", value: (row: OrderRow) => ((row as any).deckal ?? "N/A") },
+    { id: "orderType", label: "Order Type", value: (row: OrderRow) => ((row as any).orderType ?? "N/A") },
     { id: "remarks", label: "Remarks", value: (row: OrderRow) => row.remarks || "None" },
     { id: "orderedBy", label: "Ordered By", value: (row: OrderRow) => `${row.createdBy?.firstName || "N/A"} ${row.createdBy?.lastName || "N/A"}` },
     { id: "priority", label: "Priority", value: (row: OrderRow) => (row as any).priority || "Normal" },
@@ -582,6 +595,13 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
               <TableCell>
                 <Typography fontSize="14px" color="#6B7280">
                   {(row as any).deckal ?? "N/A"}
+                </Typography>
+              </TableCell>
+
+              {/* Order Type */}
+              <TableCell>
+                <Typography fontSize="14px" color="#6B7280">
+                  {(row as any).orderType ?? "N/A"}
                 </Typography>
               </TableCell>
 

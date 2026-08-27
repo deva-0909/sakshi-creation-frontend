@@ -67,6 +67,27 @@
     const { id: orderId } = router.query
     const { singleOrder } = useAppSelector((state: any) => state.orders)
 
+    // Figma frame check follow-up (2026-08-27): Order Type (New Order / New
+    // Pending Order / Ready) -- confirmed with the user as a pre-production
+    // readiness state, manually set by staff, separate from the pipeline
+    // status shown by StepperProgress above. Self-contained local state +
+    // its own dispatch (not folded into the big page-submit formik above)
+    // since it's a single-field, save-immediately control, the same shape
+    // as a status dropdown rather than a multi-field form section.
+    const [orderTypeSaving, setOrderTypeSaving] = useState(false)
+    const handleOrderTypeChange = async (value: string) => {
+      if (!orderId || typeof orderId !== "string") return
+      setOrderTypeSaving(true)
+      try {
+        await dispatch(updateOrderThunk({ id: orderId, data: { orderType: value } })).unwrap()
+        toast.success("Order type updated")
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to update order type")
+      } finally {
+        setOrderTypeSaving(false)
+      }
+    }
+
     const formik = useFormik<FormValues>({
       initialValues: {
         companyName: "",
@@ -346,6 +367,22 @@
                 <Typography fontSize={12} color="text.secondary" ml={1.5}>
                   Customer PO: {singleOrder.customerPoNumber}
                 </Typography>
+              )}
+              {singleOrder?.companyName?.companyName === "Quality Packaging" && (
+                <FormControl size="small" sx={{ ml: 1.5, minWidth: 170 }}>
+                  <InputLabel id="order-type-label">Order Type</InputLabel>
+                  <Select
+                    labelId="order-type-label"
+                    label="Order Type"
+                    value={singleOrder?.orderType || "New Order"}
+                    disabled={orderTypeSaving}
+                    onChange={(e) => handleOrderTypeChange(e.target.value as string)}
+                  >
+                    <MenuItem value="New Order">New Order</MenuItem>
+                    <MenuItem value="New Pending Order">New Pending Order</MenuItem>
+                    <MenuItem value="Ready">Ready</MenuItem>
+                  </Select>
+                </FormControl>
               )}
             </Box>
 

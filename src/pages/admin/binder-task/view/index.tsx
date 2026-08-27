@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 import BackButton from "@/component/common_component/BackButton";
-import { Box, Button, Typography, Paper, CircularProgress, Stack, IconButton } from "@mui/material"
+import { Box, Button, Typography, Paper, CircularProgress, Stack, IconButton, FormControl, InputLabel, Select, MenuItem } from "@mui/material"
 import { AiOutlineEye } from "react-icons/ai"
 import AddIcon from '@mui/icons-material/Add';
 import ThemeInput from "@/component/common_component/themeinput"
@@ -127,6 +127,26 @@ const BinderTaskView = () => {
       [field]: value
     }
     setBinderPapers(updatedPapers)
+  }
+
+  // Binder task-portal Figma restore (2026-08-27): Status dropdown, shown in
+  // the design but only ever present here as dead, never-functional WIP
+  // (a ThemeSelect that isn't imported, bound to state that doesn't exist).
+  // Rebuilt as a self-contained control following the exact same pattern as
+  // the Order Type dropdown (patch92, src/pages/admin/all-orders/view/
+  // index.tsx: orderTypeSaving + handleOrderTypeChange) -- a local "saving"
+  // flag disables the Select while the request is in flight, wired to the
+  // already-working handleUpdateStatus (used by the Start Task / Mark As
+  // Done buttons above) rather than a new endpoint.
+  const [binderStatusSaving, setBinderStatusSaving] = useState(false)
+  const handleBinderStatusChange = async (value: string) => {
+    if (!singleOrder?._id) return
+    setBinderStatusSaving(true)
+    try {
+      await handleUpdateStatus(singleOrder._id, "binder", value)
+    } finally {
+      setBinderStatusSaving(false)
+    }
   }
 
   const handleUpdateStatus = async (orderId: string, statusType: string, status: string) => {
@@ -300,18 +320,18 @@ const BinderTaskView = () => {
           />
         </Box>
         <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={2} mb={2}>
-          {/* <ThemeInput
+          <ThemeInput
             labelName="Raw Paper Size"
-            value={singleOrder.rowPaperSize || "N/A"}
+            value={singleOrder.rawPaperSize || "N/A"}
             sx={{ flex: 1 }}
             InputProps={{ readOnly: true }}
           />
           <ThemeInput
             labelName="Raw Paper Used"
-            value={singleOrder.rowPaperUser || "N/A"}
+            value={singleOrder.rawPaperUsed || "N/A"}
             sx={{ flex: 1 }}
             InputProps={{ readOnly: true }}
-          /> */}
+          />
         </Box>
         <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={2} mb={2}>
           <ThemeInput
@@ -370,12 +390,17 @@ const BinderTaskView = () => {
             sx={{ flex: 1 }}
             InputProps={{ readOnly: true }}
           />
-          {/* <ThemeInput
+          <ThemeInput
             labelName="Rate / Unit"
-            value={singleOrder.ratePerUnit || "N/A"}
+            // A per-paper ratePerUnit is already editable in the Binder
+            // Papers repeater below; there's no separate order-level rate
+            // field, so this restores the summary the design shows by
+            // surfacing the first binder paper's rate (the common case is
+            // a single paper row) rather than inventing a new backend field.
+            value={binderPapers[0]?.ratePerUnit || "N/A"}
             sx={{ flex: 1 }}
             InputProps={{ readOnly: true }}
-          /> */}
+          />
         </Box>
         <Box mb={2}>
           <ThemeInput
@@ -538,7 +563,7 @@ const BinderTaskView = () => {
               </Stack>
             </Box>
           ))}
-        {/* {canEditBinderTask && (
+        {canEditBinderTask && (
         <Box display="flex" justifyContent="flex-end">
           <ThemeButton
             onClick={handleAddBinderPaper}
@@ -554,7 +579,7 @@ const BinderTaskView = () => {
             Add Binder Paper
           </ThemeButton>
         </Box>
-      )} */}
+      )}
         </Box>
 
         {/* Binder Wasted Sheet */}
@@ -631,20 +656,22 @@ const BinderTaskView = () => {
           </Box>
         )}
 
-        {/* Removed Status Select */}
-        {/* <Box mb={3}>
-          <Typography fontSize={14} fontWeight={500} color="#475467" mb={1}>
-            Status
-          </Typography>
-          <ThemeSelect
-            options={statusOptions}
-            value={binderStatus}
-            onChange={(_, newValue) => setBinderStatus(newValue)}
-            placeholder="Select Status"
-            sx={{ minWidth: 140, width: "auto" }}
-            disabled={!canEditBinderTask}
-          />
-        </Box> */}
+        {/* Status */}
+        <Box mb={3}>
+          <FormControl size="small" sx={{ minWidth: 170 }} disabled={isHeld || binderStatusSaving}>
+            <InputLabel id="binder-status-label">Status</InputLabel>
+            <Select
+              labelId="binder-status-label"
+              label="Status"
+              value={singleOrder.binderStatus || "Pending"}
+              onChange={(e) => handleBinderStatusChange(e.target.value as string)}
+            >
+              <MenuItem value="Pending">Pending</MenuItem>
+              <MenuItem value="In Progress">In Progress</MenuItem>
+              <MenuItem value="Done">Done</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
 
         {/* Submit Button */}
         {singleOrder.binderStatus === "In Progress" && (

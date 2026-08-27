@@ -65,8 +65,8 @@ const BinderForm = () => {
       // there wasn't one either).
       bindergst: "",
       ratePerUnit: "",
-      // rowPaperSize: "",
-      // rowPaperUser: "",
+      rawPaperSize: "",
+      rawPaperUsed: "",
     },
     validationSchema: Yup.object({
       issuedDate: Yup.string().required("Issued Date is required"),
@@ -88,8 +88,6 @@ const BinderForm = () => {
       rateBook: Yup.string().required("Rate / book is required"),
       totalAmount: Yup.string().required("Total Amount is required"),
       gsm: Yup.string().required("GSM is required"),
-      // rowPaperSize: Yup.string().required("Raw Paper Size is required"),
-      // rowPaperUser: Yup.string().required("Raw Paper Used is required"),
       binderPapers: Yup.array().of(
         Yup.object().shape({
           numberOfSheetsUsed: Yup.string().required("Number of Sheets Used is required"),
@@ -143,8 +141,8 @@ const BinderForm = () => {
           gsm: values.gsm,
           bindergst: values.bindergst,
           ratePerUnit: values.ratePerUnit,
-          // rowPaperSize: values.rowPaperSize,
-          // rowPaperUser: values.rowPaperUser,
+          rawPaperSize: values.rawPaperSize,
+          rawPaperUsed: values.rawPaperUsed,
           binderFiles: allBinderFiles,
           binderPapers: binderPapers, // Save binder papers
         }
@@ -197,8 +195,8 @@ const BinderForm = () => {
         gsm: singleOrder.gsm || "",
         bindergst: singleOrder.bindergst || "",
         ratePerUnit: singleOrder.ratePerUnit || "",
-        // rowPaperSize: singleOrder.rowPaperSize || "",
-        // rowPaperUser: singleOrder.rowPaperUser || "",
+        rawPaperSize: singleOrder.rawPaperSize || "",
+        rawPaperUsed: singleOrder.rawPaperUsed || "",
       })
 
       if (singleOrder.binder && singleOrder.binder._id) {
@@ -549,26 +547,26 @@ const BinderForm = () => {
               helperText={formik.touched.bindergst && (formik.errors.bindergst as string)}
               InputProps={{ readOnly: areFieldsReadOnly || !!singleOrder.bindergst }}
             />
-            {/* <ThemeInput
+            <ThemeInput
               labelName="Raw Paper Size"
-              name="rowPaperSize"
-              value={formik.values.rowPaperSize}
+              name="rawPaperSize"
+              value={formik.values.rawPaperSize}
               onChange={formik.handleChange}
               sx={{ flex: 1 }}
-              error={formik.touched.rowPaperSize && Boolean(formik.errors.rowPaperSize)}
-              helperText={formik.touched.rowPaperSize && (formik.errors.rowPaperSize as string)}
-              InputProps={{ readOnly: areFieldsReadOnly || !!singleOrder.rowPaperSize }}
+              error={formik.touched.rawPaperSize && Boolean(formik.errors.rawPaperSize)}
+              helperText={formik.touched.rawPaperSize && (formik.errors.rawPaperSize as string)}
+              InputProps={{ readOnly: areFieldsReadOnly || !!singleOrder.rawPaperSize }}
             />
             <ThemeInput
               labelName="Raw Paper Used"
-              name="rowPaperUser"
-              value={formik.values.rowPaperUser}
+              name="rawPaperUsed"
+              value={formik.values.rawPaperUsed}
               onChange={formik.handleChange}
               sx={{ flex: 1 }}
-              error={formik.touched.rowPaperUser && Boolean(formik.errors.rowPaperUser)}
-              helperText={formik.touched.rowPaperUser && (formik.errors.rowPaperUser as string)}
-              InputProps={{ readOnly: areFieldsReadOnly || !!singleOrder.rowPaperUser }}
-            /> */}
+              error={formik.touched.rawPaperUsed && Boolean(formik.errors.rawPaperUsed)}
+              helperText={formik.touched.rawPaperUsed && (formik.errors.rawPaperUsed as string)}
+              InputProps={{ readOnly: areFieldsReadOnly || !!singleOrder.rawPaperUsed }}
+            />
             {(isBinderStatusDone || isBinderStatusInProgress) && (
               <ThemeInput
                 labelName="Binder Wasted Sheet"

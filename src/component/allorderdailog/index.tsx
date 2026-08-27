@@ -13,6 +13,7 @@ import { useAppDispatch, useAppSelector } from "@/store"
 import { getAccountMasterByCompanyAndPartyThunk } from "@/store/slices/accountMasterSlice"
 import { getAllProductItemsThunk } from "@/store/slices/productItemSlice"
 import { createOrderThunk, clearOrderError, clearOrderSuccessMessage } from "@/store/slices/orderSlice"
+import { getAllMaterialsThunk } from "@/store/slices/materialSlice"
 import { toast } from "react-toastify"
 
 interface OptionType {
@@ -38,6 +39,11 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
   // (below) already fetches this list into state.company -- reused here
   // just to resolve the selected company's name for the Qty/PCS label.
   const { companies } = useAppSelector((state) => state.company)
+  // Box-costing follow-up (2026-08-27): the paper-material picker for the
+  // Kantan-length/estimated-cost calculation below reuses the same
+  // Material Master list already populated elsewhere in the app (e.g.
+  // Purchase) -- no new endpoint needed.
+  const { materials } = useAppSelector((state) => state.materials)
 
   const [formData, setFormData] = useState({
     companyName: "",
@@ -80,6 +86,24 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
     dyeRemark: "",
     godownRemark: "",
     factoryRemarks: "",
+    // Box-costing follow-up (2026-08-27): the QP box-manufacturing/Kantan/
+    // costing audit found no working Kantan-length or box-cost formula
+    // anywhere in the design or code -- both were confirmed directly with
+    // the user: Kantan length (cm) = 2x(length+width); estimated box cost
+    // = surface area(m2) x GSM x ply x the selected paper material's
+    // purchase rate. These three feed both formulas server-side; the
+    // computed values themselves are read-only (see the preview below) and
+    // always come back from the API, never sent by the client.
+    boxLengthCm: "",
+    boxWidthCm: "",
+    boxHeightCm: "",
+    paperMaterial: "",
+    // Figma frame check follow-up (2026-08-27): Order Type, confirmed with
+    // the user as a pre-production readiness state (New Order / New
+    // Pending Order / Ready), manually set by staff -- defaults to "New
+    // Order" to match the design's own starting state for a freshly
+    // placed order (the backend defaults the same way if this is omitted).
+    orderType: "New Order",
   })
 
   const [gstNotApplicable, setGstNotApplicable] = useState(false)
@@ -118,6 +142,16 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
   useEffect(() => {
     if (open) {
       dispatch(getAllProductItemsThunk(formData.companyName ? { companyName: formData.companyName } : undefined))
+    }
+  }, [open, formData.companyName, dispatch])
+
+  // Box-costing follow-up (2026-08-27): fetch the Material Master list once
+  // the dialog opens, scoped to the selected company the same way product
+  // items already are -- the paper-material picker below only needs
+  // materials visible to that company.
+  useEffect(() => {
+    if (open) {
+      dispatch(getAllMaterialsThunk(formData.companyName ? { companyName: formData.companyName } : undefined))
     }
   }, [open, formData.companyName, dispatch])
 
@@ -251,6 +285,11 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
         dyeRemark: isQP && formData.dyeRemark ? formData.dyeRemark : undefined,
         godownRemark: isQP && formData.godownRemark ? formData.godownRemark : undefined,
         factoryRemarks: isQP && formData.factoryRemarks ? formData.factoryRemarks : undefined,
+        boxLengthCm: isQP && formData.boxLengthCm ? Number.parseFloat(formData.boxLengthCm) : undefined,
+        boxWidthCm: isQP && formData.boxWidthCm ? Number.parseFloat(formData.boxWidthCm) : undefined,
+        boxHeightCm: isQP && formData.boxHeightCm ? Number.parseFloat(formData.boxHeightCm) : undefined,
+        paperMaterial: isQP && formData.paperMaterial ? formData.paperMaterial : undefined,
+        orderType: isQP ? formData.orderType : undefined,
       }
 
       await dispatch(createOrderThunk(orderData)).unwrap()
@@ -282,6 +321,7 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
       customerPoNumber: "",
       priority: "Normal",
       expectedDeliveryDate: "",
+      orderType: "New Order",
       ply: "",
       deckal: "",
       gsm: "",
@@ -293,6 +333,10 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
       dyeRemark: "",
       godownRemark: "",
       factoryRemarks: "",
+      boxLengthCm: "",
+      boxWidthCm: "",
+      boxHeightCm: "",
+      paperMaterial: "",
     })
     setGstNotApplicable(false)
     setSelectedFiles([])
@@ -316,6 +360,23 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
   // name rather than a fixed id since company_names has no "type" column
   // to key off instead -- falls back to "Qty" for any other/future company.
   const quantityLabel = isQP ? "PCS" : "Qty"
+
+  // Box-costing follow-up (2026-08-27): a client-side preview only, using
+  // the exact same two formulas order.controller.js computes and stores
+  // server-side (lib/boxCalculations.js) -- purely so the production
+  // manager sees a live estimate while typing box dimensions, before
+  // submitting. The value actually saved always comes back from the create
+  // response, never from this preview.
+  const boxLength = Number.parseFloat(formData.boxLengthCm)
+  const boxWidth = Number.parseFloat(formData.boxWidthCm)
+  const previewKantanLengthCm =
+    boxLength > 0 && boxWidth > 0 ? Number((2 * (boxLength + boxWidth)).toFixed(2)) : null
+  // Estimated box cost also needs the paper material's purchase rate,
+  // which this dialog doesn't load (Purchase, not Material Master, tracks
+  // rate) -- deliberately left out of this live preview rather than
+  // faked from something else, so nothing shown here is ever a fabricated
+  // number. The real figure comes back from the create response once
+  // saved, computed server-side from the actual rate.
 
   return (
     <CustomDialog open={open} onClose={handleClose} maxWidth="md" title="Place New Order">
@@ -440,6 +501,56 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
           </Stack>
         )}
 
+        {isQP && (
+          <>
+            <Stack direction="row" spacing={2} mb={2}>
+              <ThemeInput
+                labelName="Box Length (cm)"
+                placeholder="20"
+                fullWidth
+                type="number"
+                value={formData.boxLengthCm}
+                onChange={(e) => handleChange("boxLengthCm", e.target.value)}
+              />
+              <ThemeInput
+                labelName="Box Width (cm)"
+                placeholder="20"
+                fullWidth
+                type="number"
+                value={formData.boxWidthCm}
+                onChange={(e) => handleChange("boxWidthCm", e.target.value)}
+              />
+              <ThemeInput
+                labelName="Box Height (cm)"
+                placeholder="23"
+                fullWidth
+                type="number"
+                value={formData.boxHeightCm}
+                onChange={(e) => handleChange("boxHeightCm", e.target.value)}
+              />
+              <ThemeSelect
+                label="Paper Material"
+                value={
+                  formData.paperMaterial
+                    ? {
+                        label: materials.find((m) => m._id === formData.paperMaterial)?.materialName || "",
+                        value: formData.paperMaterial,
+                      }
+                    : null
+                }
+                options={materials.map((m) => ({ label: m.materialName, value: m._id }))}
+                onChange={(_, v) => handleChange("paperMaterial", v ? v.value : "")}
+              />
+            </Stack>
+            {previewKantanLengthCm !== null && (
+              <Box sx={{ mb: 2, mt: -1, fontSize: 13, color: "#667085" }}>
+                Estimated Kantan length: <strong>{previewKantanLengthCm} cm</strong> (2 × (length + width)). Estimated
+                cost will be calculated and shown on the order once saved.
+              </Box>
+            )}
+          </>
+        )}
+
         <Stack direction="row" spacing={2} mb={2}>
           <Box sx={{ width: "100%" }}>
             <ThemeInput
@@ -533,6 +644,18 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
             ]}
             onChange={(_, v) => handleChange("priority", v ? v.value : "Normal")}
           />
+          {isQP && (
+            <ThemeSelect
+              label="Order Type"
+              value={{ label: formData.orderType, value: formData.orderType }}
+              options={[
+                { label: "New Order", value: "New Order" },
+                { label: "New Pending Order", value: "New Pending Order" },
+                { label: "Ready", value: "Ready" },
+              ]}
+              onChange={(_, v) => handleChange("orderType", v ? v.value : "New Order")}
+            />
+          )}
         </Stack>
 
         {isQP && (

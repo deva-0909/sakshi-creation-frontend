@@ -150,6 +150,11 @@ export interface Order {
   priority?: "Low" | "Normal" | "High" | "Urgent" | (string & {});
   // Module 14: powers the Delayed Jobs report.
   expectedDeliveryDate?: string;
+  // Binder task-portal Figma restore (2026-08-27): Raw Paper Size / Raw
+  // Paper Used, read/written from the binder task-portal and the
+  // printer/binder assignment forms.
+  rawPaperSize?: string;
+  rawPaperUsed?: string;
 }
 export interface PaperField {
   paperName?: string;
