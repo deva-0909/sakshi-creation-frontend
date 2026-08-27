@@ -31,6 +31,11 @@ const columns = [
   // with the user, shown on every Quality Packaging Order In screen in the
   // design -- same "blank for Sakshi Creation" treatment as Ply/Deckal.
   { id: "orderType", label: "Order Type" },
+  // QP order-to-factory Figma audit (2026-08-27): Delivery destination (TO
+  // CLIENT / SAKSHI OFFICE / TO GODOWN), shown on the Godown "New Order"
+  // screen in the design -- same "blank for Sakshi Creation" treatment as
+  // Ply/Deckal/Order Type above.
+  { id: "deliveryDestination", label: "Delivery Destination" },
   { id: "remarks", label: "Remarks" },
   { id: "orderedBy", label: "Ordered By" },
   // Sakshi Creation order-process audit (2026-08-25): `priority` is a real
@@ -82,6 +87,7 @@ const [filters, setFilters] = useState<{ [key: string]: string[] }>({});
     "Ply": "ply",
     "Deckal": "deckal",
     "Order Type": "orderType",
+    "Delivery Destination": "deliveryDestination",
     "Remarks": "remarks",
     "Ordered By": "createdBy",
     "Order Status": "status"
@@ -123,6 +129,9 @@ const getUniqueValues = useMemo(() => {
         break;
       case "orderType":
         value = (order as any).orderType || undefined;
+        break;
+      case "deliveryDestination":
+        value = (order as any).deliveryDestination || undefined;
         break;
       case "remarks":
         value = order.remarks;
@@ -188,6 +197,9 @@ const filteredOrders = useMemo(() => {
           break;
         case "orderType":
           value = (order as any).orderType || undefined;
+          break;
+        case "deliveryDestination":
+          value = (order as any).deliveryDestination || undefined;
           break;
         case "remarks":
           value = order.remarks;
@@ -428,6 +440,7 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
     { id: "ply", label: "Ply", value: (row: OrderRow) => ((row as any).ply ?? "N/A") },
     { id: "deckal", label: "Deckal", value: (row: OrderRow) => ((row as any).deckal ?? "N/A") },
     { id: "orderType", label: "Order Type", value: (row: OrderRow) => ((row as any).orderType ?? "N/A") },
+    { id: "deliveryDestination", label: "Delivery Destination", value: (row: OrderRow) => ((row as any).deliveryDestination ?? "N/A") },
     { id: "remarks", label: "Remarks", value: (row: OrderRow) => row.remarks || "None" },
     { id: "orderedBy", label: "Ordered By", value: (row: OrderRow) => `${row.createdBy?.firstName || "N/A"} ${row.createdBy?.lastName || "N/A"}` },
     { id: "priority", label: "Priority", value: (row: OrderRow) => (row as any).priority || "Normal" },
@@ -602,6 +615,13 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
               <TableCell>
                 <Typography fontSize="14px" color="#6B7280">
                   {(row as any).orderType ?? "N/A"}
+                </Typography>
+              </TableCell>
+
+              {/* Delivery Destination */}
+              <TableCell>
+                <Typography fontSize="14px" color="#6B7280">
+                  {(row as any).deliveryDestination ?? "N/A"}
                 </Typography>
               </TableCell>
 

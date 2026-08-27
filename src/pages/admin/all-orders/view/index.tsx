@@ -88,6 +88,25 @@
       }
     }
 
+    // QP order-to-factory Figma audit (2026-08-27): Delivery destination
+    // (TO CLIENT / SAKSHI OFFICE / TO GODOWN) -- the Godown "New Order"
+    // screen's Delivery field, confirmed with the user as a real field to
+    // build. Self-contained local state + its own dispatch, same
+    // save-immediately shape as Order Type above.
+    const [deliveryDestinationSaving, setDeliveryDestinationSaving] = useState(false)
+    const handleDeliveryDestinationChange = async (value: string) => {
+      if (!orderId || typeof orderId !== "string") return
+      setDeliveryDestinationSaving(true)
+      try {
+        await dispatch(updateOrderThunk({ id: orderId, data: { deliveryDestination: value } })).unwrap()
+        toast.success("Delivery destination updated")
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to update delivery destination")
+      } finally {
+        setDeliveryDestinationSaving(false)
+      }
+    }
+
     const formik = useFormik<FormValues>({
       initialValues: {
         companyName: "",
@@ -381,6 +400,22 @@
                     <MenuItem value="New Order">New Order</MenuItem>
                     <MenuItem value="New Pending Order">New Pending Order</MenuItem>
                     <MenuItem value="Ready">Ready</MenuItem>
+                  </Select>
+                </FormControl>
+              )}
+              {singleOrder?.companyName?.companyName === "Quality Packaging" && (
+                <FormControl size="small" sx={{ ml: 1.5, minWidth: 170 }}>
+                  <InputLabel id="delivery-destination-label">Delivery Destination</InputLabel>
+                  <Select
+                    labelId="delivery-destination-label"
+                    label="Delivery Destination"
+                    value={singleOrder?.deliveryDestination || "SAKSHI OFFICE"}
+                    disabled={deliveryDestinationSaving}
+                    onChange={(e) => handleDeliveryDestinationChange(e.target.value as string)}
+                  >
+                    <MenuItem value="TO CLIENT">TO CLIENT</MenuItem>
+                    <MenuItem value="SAKSHI OFFICE">SAKSHI OFFICE</MenuItem>
+                    <MenuItem value="TO GODOWN">TO GODOWN</MenuItem>
                   </Select>
                 </FormControl>
               )}

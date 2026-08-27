@@ -104,6 +104,13 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
     // Order" to match the design's own starting state for a freshly
     // placed order (the backend defaults the same way if this is omitted).
     orderType: "New Order",
+    // QP order-to-factory Figma audit (2026-08-27): Delivery destination,
+    // confirmed with the user as a real field to build -- the Godown "New
+    // Order" screen's Delivery field (TO CLIENT / SAKSHI OFFICE / TO
+    // GODOWN), manually set by staff. Defaults to "SAKSHI OFFICE" to match
+    // the backend's own default (the office's own default holding point
+    // before an order is routed onward), same shape as orderType above.
+    deliveryDestination: "SAKSHI OFFICE",
   })
 
   const [gstNotApplicable, setGstNotApplicable] = useState(false)
@@ -290,6 +297,7 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
         boxHeightCm: isQP && formData.boxHeightCm ? Number.parseFloat(formData.boxHeightCm) : undefined,
         paperMaterial: isQP && formData.paperMaterial ? formData.paperMaterial : undefined,
         orderType: isQP ? formData.orderType : undefined,
+        deliveryDestination: isQP ? formData.deliveryDestination : undefined,
       }
 
       await dispatch(createOrderThunk(orderData)).unwrap()
@@ -322,6 +330,7 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
       priority: "Normal",
       expectedDeliveryDate: "",
       orderType: "New Order",
+      deliveryDestination: "SAKSHI OFFICE",
       ply: "",
       deckal: "",
       gsm: "",
@@ -654,6 +663,18 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
                 { label: "Ready", value: "Ready" },
               ]}
               onChange={(_, v) => handleChange("orderType", v ? v.value : "New Order")}
+            />
+          )}
+          {isQP && (
+            <ThemeSelect
+              label="Delivery Destination"
+              value={{ label: formData.deliveryDestination, value: formData.deliveryDestination }}
+              options={[
+                { label: "TO CLIENT", value: "TO CLIENT" },
+                { label: "SAKSHI OFFICE", value: "SAKSHI OFFICE" },
+                { label: "TO GODOWN", value: "TO GODOWN" },
+              ]}
+              onChange={(_, v) => handleChange("deliveryDestination", v ? v.value : "SAKSHI OFFICE")}
             />
           )}
         </Stack>
