@@ -189,7 +189,7 @@ const BomPage = () => {
               startIcon={<Add />}
               onClick={handleAddLine}
               disabled={loading}
-              sx={{ background: "#A409F8", "&:hover": { background: "#7B06C2" }, height: 40 }}
+              sx={{ background: "#7F56D9", "&:hover": { background: "#53389E" }, height: 40 }}
             >
               Add Line
             </ThemeButton>

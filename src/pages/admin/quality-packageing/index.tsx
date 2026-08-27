@@ -115,7 +115,7 @@ const QualityManagerDashboard = () => {
 
       <Grid container spacing={2} mb={3}>
         <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
-          <KpiCard label="Active Orders" value={ordersTotalCount ?? 0} accent="#A409F8" />
+          <KpiCard label="Active Orders" value={ordersTotalCount ?? 0} accent="#7F56D9" />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
           <KpiCard label="Job Cards In Production" value={inProduction} accent="#1976d2" />
@@ -146,7 +146,7 @@ const QualityManagerDashboard = () => {
               <>
                 <TableCell>{idx + 1}</TableCell>
                 <TableCell
-                  sx={{ cursor: "pointer", color: "#A409F8", fontWeight: 600 }}
+                  sx={{ cursor: "pointer", color: "#7F56D9", fontWeight: 600 }}
                   onClick={() => router.push(`/admin/job-card/view/${row._id}`)}
                 >
                   {row.jobCardNumber}
@@ -177,7 +177,7 @@ const QualityManagerDashboard = () => {
               <>
                 <TableCell>{idx + 1}</TableCell>
                 <TableCell
-                  sx={{ cursor: "pointer", color: "#A409F8", fontWeight: 600 }}
+                  sx={{ cursor: "pointer", color: "#7F56D9", fontWeight: 600 }}
                   onClick={() => router.push(`/admin/all-orders/view?id=${row._id}`)}
                 >
                   {row.orderNumber}
@@ -205,7 +205,7 @@ const QualityManagerDashboard = () => {
               <>
                 <TableCell>{idx + 1}</TableCell>
                 <TableCell
-                  sx={{ cursor: "pointer", color: "#A409F8", fontWeight: 600 }}
+                  sx={{ cursor: "pointer", color: "#7F56D9", fontWeight: 600 }}
                   onClick={() => router.push("/admin/complaints")}
                 >
                   {row.complaintNumber}

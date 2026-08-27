@@ -75,7 +75,7 @@ const PurchaseOrderPage = () => {
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
         <Typography variant="h5" fontWeight={600}>
           Purchase Orders
         </Typography>
@@ -83,7 +83,7 @@ const PurchaseOrderPage = () => {
           <ThemeButton
             startIcon={<Add />}
             onClick={() => setOpen(true)}
-            sx={{ background: "#A409F8", "&:hover": { background: "#7B06C2" } }}
+            sx={{ background: "#7F56D9", "&:hover": { background: "#53389E" } }}
           >
             New Purchase Order
           </ThemeButton>

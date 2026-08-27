@@ -270,7 +270,7 @@
               <ThemeButton
                 onClick={handleCreateJobCard}
                 disabled={creatingJobCard}
-                sx={{ background: "#6941C6", "&:hover": { background: "#53389E" } }}
+                sx={{ background: "#7F56D9", "&:hover": { background: "#53389E" } }}
               >
                 {creatingJobCard ? "Creating Job Card..." : "Create Job Card"}
               </ThemeButton>

@@ -37,7 +37,7 @@ const statusColor = (status: string): { bg: string; color: string } => {
     case "Rejected":
       return { bg: "#FEE4E2", color: "#B42318" };
     case "Converted":
-      return { bg: "#E9D7FE", color: "#6941C6" };
+      return { bg: "#E9D7FE", color: "#7F56D9" };
     default:
       return { bg: "#F2F4F7", color: "#344054" };
   }
@@ -122,7 +122,7 @@ const QuotationDetailPage = () => {
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
         <Box display="flex" alignItems="center" gap={2}>
           <Typography variant="h5" fontWeight={600}>
             {q.quotationNumber}
@@ -221,7 +221,7 @@ const QuotationDetailPage = () => {
             {q.status === "Accepted" && permissions?.create && (
               <ThemeButton
                 onClick={() => doAction(() => convertQuotationThunk(q._id))}
-                sx={{ background: "#6941C6" }}
+                sx={{ background: "#7F56D9" }}
               >
                 Convert to Order
               </ThemeButton>

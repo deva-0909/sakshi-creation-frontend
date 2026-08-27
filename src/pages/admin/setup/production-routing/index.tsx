@@ -293,7 +293,7 @@ const ProductionRoutingPage = () => {
                 variant="contained"
                 startIcon={<Add />}
                 onClick={() => handleOpenStageDialog()}
-                sx={{ borderRadius: 2, fontWeight: 600, background: "#A409F8", "&:hover": { background: "#7B06C2" } }}
+                sx={{ borderRadius: 2, fontWeight: 600, background: "#7F56D9", "&:hover": { background: "#53389E" } }}
               >
                 New Stage
               </Button>
@@ -342,7 +342,7 @@ const ProductionRoutingPage = () => {
                 variant="contained"
                 startIcon={<Add />}
                 onClick={() => handleOpenTemplateDialog()}
-                sx={{ borderRadius: 2, fontWeight: 600, background: "#A409F8", "&:hover": { background: "#7B06C2" } }}
+                sx={{ borderRadius: 2, fontWeight: 600, background: "#7F56D9", "&:hover": { background: "#53389E" } }}
               >
                 New Template
               </Button>
@@ -419,10 +419,10 @@ const ProductionRoutingPage = () => {
           />
         </Box>
         <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
-          <Button onClick={() => setStageDialogOpen(false)} variant="outlined" sx={{ borderRadius: 2, borderColor: "#A409F8", color: "#A409F8", "&:hover": { borderColor: "#7B06C2", color: "#7B06C2" } }}>
+          <Button onClick={() => setStageDialogOpen(false)} variant="outlined" sx={{ borderRadius: 2, borderColor: "#7F56D9", color: "#7F56D9", "&:hover": { borderColor: "#53389E", color: "#53389E" } }}>
             Close
           </Button>
-          <Button onClick={handleSaveStage} variant="contained" sx={{ borderRadius: 2, background: "#A409F8", "&:hover": { background: "#7B06C2" } }} disabled={loading}>
+          <Button onClick={handleSaveStage} variant="contained" sx={{ borderRadius: 2, background: "#7F56D9", "&:hover": { background: "#53389E" } }} disabled={loading}>
             Save
           </Button>
         </Box>
@@ -501,10 +501,10 @@ const ProductionRoutingPage = () => {
         )}
 
         <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
-          <Button onClick={() => setTemplateDialogOpen(false)} variant="outlined" sx={{ borderRadius: 2, borderColor: "#A409F8", color: "#A409F8", "&:hover": { borderColor: "#7B06C2", color: "#7B06C2" } }}>
+          <Button onClick={() => setTemplateDialogOpen(false)} variant="outlined" sx={{ borderRadius: 2, borderColor: "#7F56D9", color: "#7F56D9", "&:hover": { borderColor: "#53389E", color: "#53389E" } }}>
             Close
           </Button>
-          <Button onClick={handleSaveTemplate} variant="contained" sx={{ borderRadius: 2, background: "#A409F8", "&:hover": { background: "#7B06C2" } }} disabled={loading}>
+          <Button onClick={handleSaveTemplate} variant="contained" sx={{ borderRadius: 2, background: "#7F56D9", "&:hover": { background: "#53389E" } }} disabled={loading}>
             Save
           </Button>
         </Box>

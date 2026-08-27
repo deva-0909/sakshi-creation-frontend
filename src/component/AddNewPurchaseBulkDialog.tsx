@@ -417,13 +417,13 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
             }
             type="submit"
             sx={{
-              background: '#A409F8',
+              background: '#7F56D9',
               color: '#fff',
               fontWeight: 600,
               fontSize: 16,
               borderRadius: 2,
               py: 1.2,
-              '&:hover': { background: '#7B06C2' },
+              '&:hover': { background: '#53389E' },
             }}
           >
             {isLoading ? 'Uploading...' : 'Upload Bulk File'}

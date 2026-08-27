@@ -31,7 +31,7 @@ const stageColor = (stage: string): { bg: string; color: string } => {
     case "Requirement Gathering":
       return { bg: "#FEDF89", color: "#93370D" };
     case "Proposal Sent":
-      return { bg: "#E9D7FE", color: "#6941C6" };
+      return { bg: "#E9D7FE", color: "#7F56D9" };
     case "Negotiation":
       return { bg: "#FDE7C6", color: "#B93815" };
     case "Won":
@@ -86,7 +86,7 @@ const OpportunitiesPage = () => {
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
         <Typography variant="h5" fontWeight={600}>
           CRM Pipeline
         </Typography>
@@ -94,7 +94,7 @@ const OpportunitiesPage = () => {
           <ThemeButton
             startIcon={<Add />}
             onClick={() => setOpen(true)}
-            sx={{ background: "#A409F8", "&:hover": { background: "#7B06C2" } }}
+            sx={{ background: "#7F56D9", "&:hover": { background: "#53389E" } }}
           >
             New Opportunity
           </ThemeButton>

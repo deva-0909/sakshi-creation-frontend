@@ -71,7 +71,7 @@ const WastageReportPage = () => {
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
         <Typography variant="h5" fontWeight={600}>
           Wastage Report
         </Typography>

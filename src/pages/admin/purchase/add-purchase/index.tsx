@@ -285,7 +285,7 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
         text: isEditMode ? 'You are about to update this purchase record.' : 'You are about to create a new purchase record.',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#A409F8',
+        confirmButtonColor: '#7F56D9',
         cancelButtonColor: '#d33',
         confirmButtonText: isEditMode ? 'Yes, update it!' : 'Yes, create it!'
       });
@@ -487,13 +487,13 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
           <Button
             type="submit"
             sx={{
-              background: '#A409F8',
+              background: '#7F56D9',
               color: '#fff',
               fontWeight: 600,
               fontSize: 16,
               borderRadius: 2,
               py: 1.2,
-              '&:hover': { background: '#7B06C2' },
+              '&:hover': { background: '#53389E' },
             }}
           >
             {isEditMode ? 'Update Purchase' : 'Save Purchase'}

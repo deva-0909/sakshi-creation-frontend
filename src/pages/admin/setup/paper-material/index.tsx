@@ -216,7 +216,7 @@ const MaterialPage = () => {
             variant="contained"
             startIcon={<Add />}
             onClick={() => handleOpenDialog()}
-            sx={{ borderRadius: 2, fontWeight: 600, mr: 2, background: '#A409F8', '&:hover': { background: '#7B06C2' } }}
+            sx={{ borderRadius: 2, fontWeight: 600, mr: 2, background: '#7F56D9', '&:hover': { background: '#53389E' } }}
           >
             New Material
           </Button>
@@ -224,7 +224,7 @@ const MaterialPage = () => {
             variant="contained"
             startIcon={<Add />}
             onClick={() => setBulkDialogOpen(true)}
-            sx={{ borderRadius: 2, fontWeight: 600, background: '#A409F8', '&:hover': { background: '#7B06C2' } }}
+            sx={{ borderRadius: 2, fontWeight: 600, background: '#7F56D9', '&:hover': { background: '#53389E' } }}
           >
             Bulk Upload
           </Button>
@@ -340,14 +340,14 @@ const MaterialPage = () => {
           <Button
             onClick={() => setDialogOpen(false)}
             variant="outlined"
-            sx={{ borderRadius: 2, borderColor: '#A409F8', color: '#A409F8', '&:hover': { borderColor: '#7B06C2', color: '#7B06C2' } }}
+            sx={{ borderRadius: 2, borderColor: '#7F56D9', color: '#7F56D9', '&:hover': { borderColor: '#53389E', color: '#53389E' } }}
           >
             Close
           </Button>
           <Button
             onClick={handleSave}
             variant="contained"
-            sx={{ borderRadius: 2, background: '#A409F8', '&:hover': { background: '#7B06C2' } }}
+            sx={{ borderRadius: 2, background: '#7F56D9', '&:hover': { background: '#53389E' } }}
             disabled={loading}
           >
             Save

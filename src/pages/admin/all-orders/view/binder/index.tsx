@@ -391,7 +391,7 @@ const BinderForm = () => {
               </Typography>
             </Box>
           )}
-          <Box display="flex" gap={2} mb={2} width={"100%"} justifyContent={"space-between"}>
+          <Box display="flex" gap={2} mb={2} width={"100%"} justifyContent={"space-between"} flexWrap="wrap">
             <ThemeInput
               labelName="Company Name"
               value={singleOrder.companyName?.companyName || "N/A"}
@@ -421,7 +421,7 @@ const BinderForm = () => {
               disabled={areFieldsReadOnly || isBinderAssigned}
             />
           </Box>
-          <Box display="flex" gap={2} mb={2} justifyContent={"space-between"}>
+          <Box display="flex" gap={2} mb={2} justifyContent={"space-between"} flexWrap="wrap">
             <ThemeInput
               labelName="Item Name"
               value={singleOrder.productItem?.itemName || "N/A"}
@@ -474,7 +474,7 @@ const BinderForm = () => {
             />
             
           </Box>
-          <Box display="flex" gap={2} mb={2} justifyContent={"space-between"}>
+          <Box display="flex" gap={2} mb={2} justifyContent={"space-between"} flexWrap="wrap">
             <ThemeInput
               labelName="Pages / item"
               name="pagesPerBook"
@@ -526,7 +526,7 @@ const BinderForm = () => {
               InputProps={{ readOnly: areFieldsReadOnly || !!singleOrder.totalAmount }}
             />
           </Box>
-          <Box display="flex" gap={2} mb={2} justifyContent={"space-between"}>
+          <Box display="flex" gap={2} mb={2} justifyContent={"space-between"} flexWrap="wrap">
             <ThemeInput
               labelName="GSM"
               name="gsm"

@@ -276,7 +276,7 @@ const StockMovementsPage = () => {
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
         <Box>
           <Typography variant="h5" fontWeight={600}>
             Stock Movements
@@ -291,7 +291,7 @@ const StockMovementsPage = () => {
             variant="contained"
             startIcon={<Add />}
             onClick={() => setDialogOpen(true)}
-            sx={{ borderRadius: 2, fontWeight: 600, background: "#A409F8", "&:hover": { background: "#7B06C2" } }}
+            sx={{ borderRadius: 2, fontWeight: 600, background: "#7F56D9", "&:hover": { background: "#53389E" } }}
           >
             New
           </Button>
@@ -519,13 +519,13 @@ const StockMovementsPage = () => {
         </Box>
 
         <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
-          <Button onClick={() => setDialogOpen(false)} variant="outlined" sx={{ borderRadius: 2, borderColor: "#A409F8", color: "#A409F8", "&:hover": { borderColor: "#7B06C2", color: "#7B06C2" } }}>
+          <Button onClick={() => setDialogOpen(false)} variant="outlined" sx={{ borderRadius: 2, borderColor: "#7F56D9", color: "#7F56D9", "&:hover": { borderColor: "#53389E", color: "#53389E" } }}>
             Close
           </Button>
           <Button
             onClick={activeTab === MovementTab.TRANSFER ? handleSaveTransfer : activeTab === MovementTab.ADJUSTMENT ? handleSaveAdjustment : handleSaveReservation}
             variant="contained"
-            sx={{ borderRadius: 2, background: "#A409F8", "&:hover": { background: "#7B06C2" } }}
+            sx={{ borderRadius: 2, background: "#7F56D9", "&:hover": { background: "#53389E" } }}
             disabled={loading}
           >
             Save

@@ -92,7 +92,7 @@ const InvoicePage = () => {
           <ThemeButton
             startIcon={<Add />}
             onClick={() => setOpen(true)}
-            sx={{ background: "#A409F8", "&:hover": { background: "#7B06C2" } }}
+            sx={{ background: "#7F56D9", "&:hover": { background: "#53389E" } }}
           >
             New Invoice
           </ThemeButton>

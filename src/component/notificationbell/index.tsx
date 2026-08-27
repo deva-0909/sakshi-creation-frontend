@@ -110,7 +110,7 @@ const NotificationBell: React.FC = () => {
             >
               <Box display="flex" alignItems="flex-start" gap={1}>
                 {!n.isRead && (
-                  <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#A409F8", mt: 0.6, flexShrink: 0 }} />
+                  <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#7F56D9", mt: 0.6, flexShrink: 0 }} />
                 )}
                 <Box flex={1} minWidth={0}>
                   <Typography fontSize={13} fontWeight={n.isRead ? 400 : 600} noWrap>

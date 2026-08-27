@@ -496,7 +496,7 @@ const LeadManagementPage: React.FC = () => {
           variant={row.partyName?.partyTag === "New" ? "filled" : "outlined"}
           sx={{
             background:
-              row.partyName?.partyTag === "New" ? "#F4EBFF" : "#F4F3FF",
+              row.partyName?.partyTag === "New" ? "#F4F3FF" : "#F4F3FF",
             color: "#7F56D9",
             fontWeight: 600,
             fontSize: 13,

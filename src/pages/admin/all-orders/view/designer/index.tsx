@@ -1245,7 +1245,7 @@ const ViewOrderDesigner = () => {
             background: "#fff",
           }}
         >
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
             <Box>
               <Button
                 startIcon={<MdArrowBack />}

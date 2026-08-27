@@ -376,7 +376,7 @@ const DepartmentCompany = () => {
 
       {/* --- Departments Tab --- */}
       <TabPanel value={activeTab} index={0}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
           <Typography variant="h5" fontWeight={600}>
             Departments
           </Typography>
@@ -431,7 +431,7 @@ const DepartmentCompany = () => {
 
       {/* --- Companies Tab --- */}
       <TabPanel value={activeTab} index={1}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
           <Typography variant="h5" fontWeight={600}>
             Companies
           </Typography>

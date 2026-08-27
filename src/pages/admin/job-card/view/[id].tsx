@@ -466,7 +466,7 @@ const JobCardDetailPage = () => {
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
         <Box display="flex" alignItems="center" gap={2}>
           <Typography variant="h5" fontWeight={600}>
             {jc.jobCardNumber}
@@ -896,7 +896,7 @@ const JobCardDetailPage = () => {
       </Stack>
 
       <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mt: 2 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
           <Typography fontWeight={600}>Rework</Typography>
           {reworkPermissions?.create && (
             <ThemeButton onClick={() => setReworkDialogOpen(true)} sx={{ background: "#175CD3" }}>

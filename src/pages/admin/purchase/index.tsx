@@ -54,7 +54,7 @@ const PurchasePage = () => {
       text: "You won't be able to revert this!",
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#A409F8',
+      confirmButtonColor: '#7F56D9',
       cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, delete it!',
     });

@@ -38,7 +38,7 @@ const statusColor = (status: string): { bg: string; color: string } => {
     case "Expired":
       return { bg: "#F2F4F7", color: "#667085" };
     case "Converted":
-      return { bg: "#E9D7FE", color: "#6941C6" };
+      return { bg: "#E9D7FE", color: "#7F56D9" };
     default:
       return { bg: "#F2F4F7", color: "#344054" };
   }
@@ -92,7 +92,7 @@ const QuotationPage = () => {
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
         <Typography variant="h5" fontWeight={600}>
           Quotations
         </Typography>
@@ -100,7 +100,7 @@ const QuotationPage = () => {
           <ThemeButton
             startIcon={<Add />}
             onClick={() => setOpen(true)}
-            sx={{ background: "#A409F8", "&:hover": { background: "#7B06C2" } }}
+            sx={{ background: "#7F56D9", "&:hover": { background: "#53389E" } }}
           >
             New Quotation
           </ThemeButton>

@@ -11,7 +11,7 @@ const STATUS_COLORS: Record<string, string> = {
   Rejected: "#D92D20",
   Sent: "#175CD3",
   Accepted: "#12B76A",
-  Converted: "#7B06C2",
+  Converted: "#53389E",
   Cancelled: "#D92D20",
   "Partially Received": "#B4761F",
   Received: "#12B76A",
@@ -44,7 +44,7 @@ const KpiCard: React.FC<{ label: string; value: React.ReactNode; sub?: string; a
   label,
   value,
   sub,
-  accent = "#7B06C2",
+  accent = "#53389E",
   onClick,
 }) => (
   <Paper

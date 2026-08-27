@@ -39,7 +39,7 @@ const stageColor = (stage: string): { bg: string; color: string } => {
     case "Requirement Gathering":
       return { bg: "#FEDF89", color: "#93370D" };
     case "Proposal Sent":
-      return { bg: "#E9D7FE", color: "#6941C6" };
+      return { bg: "#E9D7FE", color: "#7F56D9" };
     case "Negotiation":
       return { bg: "#FDE7C6", color: "#B93815" };
     case "Won":
@@ -230,7 +230,7 @@ const OpportunityDetailPage = () => {
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
         <Box display="flex" alignItems="center" gap={2}>
           <Typography variant="h5" fontWeight={600}>
             {o.opportunityNumber}
@@ -363,7 +363,7 @@ const OpportunityDetailPage = () => {
               </ThemeButton>
             )}
             {o.stage === "Requirement Gathering" && permissions?.edit && (
-              <ThemeButton onClick={() => doAction(() => markProposalSentThunk(o._id))} sx={{ background: "#6941C6" }}>
+              <ThemeButton onClick={() => doAction(() => markProposalSentThunk(o._id))} sx={{ background: "#7F56D9" }}>
                 Mark Proposal Sent
               </ThemeButton>
             )}

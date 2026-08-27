@@ -71,7 +71,7 @@ const ApprovalsPage = () => {
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={2}>
         <Typography variant="h5" fontWeight={600}>
           Pending My Approval
         </Typography>
@@ -98,14 +98,14 @@ const ApprovalsPage = () => {
               <TableCell>
                 <ThemeChip
                   label={TYPE_LABEL[row.type] || row.type}
-                  sx={{ background: "#F4EBFF", color: "#7B06C2", fontWeight: 600 }}
+                  sx={{ background: "#F4F3FF", color: "#53389E", fontWeight: 600 }}
                 />
               </TableCell>
               <TableCell>
                 <Typography
                   component="a"
                   onClick={() => router.push(row.link)}
-                  sx={{ cursor: "pointer", color: "#7B06C2", fontWeight: 600, "&:hover": { textDecoration: "underline" } }}
+                  sx={{ cursor: "pointer", color: "#53389E", fontWeight: 600, "&:hover": { textDecoration: "underline" } }}
                 >
                   {row.number}
                 </Typography>

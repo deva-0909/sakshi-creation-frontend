@@ -29,7 +29,7 @@ const tableHeader: Column[] = [
 const getBinderStatusColor = (status: string) => {
   switch (status) {
     case "Seen":
-      return { bg: "#E9D7FE", color: "#6941C6" }; // Purple
+      return { bg: "#E9D7FE", color: "#7F56D9" }; // Purple
     case "Working":
       return { bg: "#FEF0C7", color: "#B54708" }; // Orange
     case "Done":

@@ -387,7 +387,7 @@ const PurchaseDialog: React.FC<PurchaseDialogProps> = ({ open, onClose, purchase
         <ThemeButton
           type="submit"
           sx={{
-            background: '#A409F8',
+            background: '#7F56D9',
             color: '#fff',
             fontWeight: 600,
             fontSize: 16,
@@ -395,7 +395,7 @@ const PurchaseDialog: React.FC<PurchaseDialogProps> = ({ open, onClose, purchase
             py: 1.2,
             width: '100%',
             mt: 1,
-            '&:hover': { background: '#7B06C2' },
+            '&:hover': { background: '#53389E' },
           }}
           disabled={isLoading}
         >

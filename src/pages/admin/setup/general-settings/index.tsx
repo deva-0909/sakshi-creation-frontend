@@ -117,7 +117,7 @@ const GeneralSettingsPage = () => {
               onClick={handleSave}
               variant="contained"
               disabled={loading}
-              sx={{ borderRadius: 2, background: "#A409F8", "&:hover": { background: "#7B06C2" } }}
+              sx={{ borderRadius: 2, background: "#7F56D9", "&:hover": { background: "#53389E" } }}
             >
               Save Settings
             </Button>

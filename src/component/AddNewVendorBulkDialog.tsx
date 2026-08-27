@@ -132,7 +132,7 @@ const AddNewVendorBulkDialog: React.FC<AddNewVendorBulkDialogProps> = ({
               transition: 'all 0.3s ease',
               cursor: 'pointer',
               '&:hover': {
-                borderColor: '#A409F8',
+                borderColor: '#7F56D9',
                 backgroundColor: '#f5f5f5',
               },
               ...(file && {
@@ -193,9 +193,9 @@ const AddNewVendorBulkDialog: React.FC<AddNewVendorBulkDialogProps> = ({
             variant="outlined"
             onClick={onClose}
             sx={{
-              borderColor: '#A409F8',
-              color: '#A409F8',
-              '&:hover': { borderColor: '#7B06C2', color: '#7B06C2' },
+              borderColor: '#7F56D9',
+              color: '#7F56D9',
+              '&:hover': { borderColor: '#53389E', color: '#53389E' },
             }}
           >
             {importErrors.length > 0 ? 'Close' : 'Cancel'}
@@ -204,13 +204,13 @@ const AddNewVendorBulkDialog: React.FC<AddNewVendorBulkDialogProps> = ({
             disabled={!file || !companyName || isLoading}
             onClick={handleSubmit}
             sx={{
-              background: '#A409F8',
+              background: '#7F56D9',
               color: '#fff',
               fontWeight: 600,
               fontSize: 16,
               borderRadius: 2,
               py: 1.2,
-              '&:hover': { background: '#7B06C2' },
+              '&:hover': { background: '#53389E' },
             }}
           >
             {isLoading ? 'Uploading...' : 'Upload Bulk File'}
@@ -219,13 +219,13 @@ const AddNewVendorBulkDialog: React.FC<AddNewVendorBulkDialogProps> = ({
             variant="outlined"
             onClick={handleDownloadTemplateClick}
             sx={{
-              borderColor: '#A409F8',
-              color: '#A409F8',
+              borderColor: '#7F56D9',
+              color: '#7F56D9',
               fontWeight: 600,
               fontSize: 16,
               borderRadius: 2,
               py: 1.2,
-              '&:hover': { borderColor: '#7B06C2', color: '#7B06C2' },
+              '&:hover': { borderColor: '#53389E', color: '#53389E' },
             }}
           >
             Download Sample CSV
@@ -234,13 +234,13 @@ const AddNewVendorBulkDialog: React.FC<AddNewVendorBulkDialogProps> = ({
             variant="outlined"
             onClick={() => setHistoryOpen(true)}
             sx={{
-              borderColor: '#A409F8',
-              color: '#A409F8',
+              borderColor: '#7F56D9',
+              color: '#7F56D9',
               fontWeight: 600,
               fontSize: 16,
               borderRadius: 2,
               py: 1.2,
-              '&:hover': { borderColor: '#7B06C2', color: '#7B06C2' },
+              '&:hover': { borderColor: '#53389E', color: '#53389E' },
             }}
           >
             Import History
