@@ -93,6 +93,10 @@ const Endpoint = {
 
   // Order endpoints
   CREATE_ORDER: `${BaseURL}/api/orders/create`,
+  // Order Form batch create (Godown Manager Figma audit, Patch 108): one
+  // "Order Form" (e.g. "QP-001") groups N order rows entered together via
+  // the multi-row inline form.
+  CREATE_ORDER_FORM: `${BaseURL}/api/orders/create-form`,
   GET_ALL_ORDERS: `${BaseURL}/api/orders/all`,
   GET_ORDER_BY_ID: `${BaseURL}/api/orders`,
   UPDATE_ORDER: `${BaseURL}/api/orders/update`,

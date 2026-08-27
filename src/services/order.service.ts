@@ -21,6 +21,44 @@ interface CreateOrderData {
   expectedDeliveryDate?: string;
 }
 
+// Order Form batch create (Godown Manager Figma audit, Patch 108): one row
+// shape, same field set createOrder's own payload accepts minus
+// companyName/createdBy (supplied once for the whole form).
+export interface CreateOrderFormRow {
+  party: string;
+  productItem: string;
+  qty: number;
+  remarks?: string;
+  size?: string;
+  rate?: number;
+  rateType?: string;
+  ply?: number;
+  deckal?: number;
+  gsm?: number;
+  orderFrom?: string;
+  orderDate?: string;
+  dyeNumber?: string;
+  dyeSize?: string;
+  dyeSheetSize?: string;
+  dyeRemark?: string;
+  godownRemark?: string;
+  factoryRemarks?: string;
+  deliveryDestination?: string;
+  orderType?: string;
+}
+
+export interface CreateOrderFormData {
+  companyName: string;
+  createdBy?: string;
+  orders: CreateOrderFormRow[];
+}
+
+export interface OrderFormResult {
+  orderFormId: string;
+  orderFormNumber: string;
+  orders: Order[];
+}
+
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -68,6 +106,41 @@ export const orderService = {
     }
   },
 
+  // Order Form batch create (Godown Manager Figma audit, Patch 108)
+  async createOrderForm(
+    data: CreateOrderFormData
+  ): Promise<ApiResponse<OrderFormResult>> {
+    try {
+      const token = authService.getToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const response: AxiosResponse<ApiResponse<OrderFormResult>> = await axios.post(
+        Endpoint.CREATE_ORDER_FORM,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      return {
+        success: response.data.success,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Service: Create order form error:", error);
+      throw new Error(
+        error.response?.data?.message || "Failed to create order form"
+      );
+    }
+  },
+
   // Get All Orders
   async getAllOrders(params?: {
     page?: number;
@@ -76,6 +149,10 @@ export const orderService = {
     companyName?: string;
     party?: string;
     search?: string;
+    // Order To Factory page (Build 4, 2026-08-27): optional server-side
+    // filter, additive alongside the existing params above -- mirrors
+    // order.controller.js's getAllOrders `orderFrom` query param.
+    orderFrom?: string;
   }): Promise<ApiResponse<Order[]>> {
     try {
       const token = authService.getToken();
@@ -90,6 +167,7 @@ export const orderService = {
       if (params?.companyName) queryParams.companyName = params.companyName;
       if (params?.party) queryParams.party = params.party;
       if (params?.search) queryParams.search = params.search;
+      if (params?.orderFrom) queryParams.orderFrom = params.orderFrom;
 
       const response: AxiosResponse<ApiResponse<Order[]>> = await axios.get(
         Endpoint.GET_ALL_ORDERS,

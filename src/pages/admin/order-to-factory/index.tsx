@@ -4,6 +4,7 @@ import BasicTable from "@/component/common_component/Table/themetable"
 import { useRouter } from "next/router"
 import ThemeButton from "@/component/common_component/themebutton"
 import AddOrderDialog from "@/component/allorderdailog"
+import OrderFormBatchDialog from "@/component/orderformbatchdialog"
 import { useAppDispatch, useAppSelector } from "@/store"
 import { getAllOrdersThunk, type Order } from "@/store/slices/orderSlice"
 import { authService } from "@/services/auth.service"
@@ -32,8 +33,18 @@ const columns = [
   { id: "gsm", label: "GSM" },
   { id: "pcs", label: "PCS" },
   { id: "orderStatus", label: "Status" },
+  // Figma "godown > order from" / "godown > order1" frames (node-ids
+  // 261:9028 / 261:8352): each line item within an Order Form shows a
+  // short status code alongside its full status chip -- "P" for Pending,
+  // etc.
+  { id: "st", label: "ST" },
   { id: "startDate", label: "Start Date" },
   { id: "deliveryDate", label: "Delivery Date" },
+  // Already returned by order.controller.js's ORDER_SELECT (Patch 87/88)
+  // but never surfaced on this list -- the Godown "New Order" / Order Form
+  // Figma frames show both as their own columns.
+  { id: "godownRemark", label: "Godown Remark" },
+  { id: "factoryRemarks", label: "Factory Remarks" },
   // Figma shows an "AMOUNT??" column with no formula behind it anywhere in
   // the design or code (the audit's own note, restated in
   // qp-box-manufacturing-kantan-figma-audit.md) -- rather than reproduce a
@@ -48,12 +59,26 @@ type OrderRow = Order & { id: string }
 
 const OrderToFactoryPage = () => {
   const [open, setOpen] = React.useState(false)
+  // Order Form batch-entry dialog (Godown Manager Figma audit, Patch 108):
+  // separate open state from the existing single "+ Place New Order"
+  // dialog above -- the two are independent entry points onto the same
+  // list.
+  const [batchOpen, setBatchOpen] = React.useState(false)
   const router = useRouter()
   const dispatch = useAppDispatch()
   const { orders, loading, error } = useAppSelector((state) => state.orders)
 
   const { user } = useAppSelector((state) => state.auth)
   const { activeCompanyId } = useAppSelector((state) => state.activeCompany)
+  const { companies } = useAppSelector((state) => state.company)
+  // This page only ever deals in Quality Packaging/Godown orders (see the
+  // orderFrom: "GODOWN" filter below) -- resolve QP's own company id by
+  // name the same way AddOrderDialog's isQP check does, falling back to
+  // whatever company is active in the global toggle.
+  const qpCompanyId =
+    companies.find((c: any) => c.companyName?.trim().toLowerCase() === "quality packaging")?._id ||
+    activeCompanyId ||
+    ""
 
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [startDate, setStartDate] = useState<Date | null>(null)
@@ -208,6 +233,41 @@ const OrderToFactoryPage = () => {
     })
   }, [godownOrders, startDate, endDate, searchQuery, filters])
 
+  // Order Form grouping (Godown Manager Figma audit, Patch 108): the Figma
+  // "godown > order from" frame groups several order rows under one Order
+  // Form (e.g. "QP-001"). Orders with no form (the common case -- this
+  // grouping is Godown/QP-batch-entry-specific) stay flat, exactly where
+  // filteredOrders already puts them. Grouped orders are clustered
+  // together -- even if other ungrouped rows fall between them by date --
+  // under one header row inserted at the position of the group's first
+  // (most recent) member, so a whole form always reads as one block.
+  type GroupedRow = { kind: "header"; id: string; formNumber: string } | { kind: "order"; id: string; order: OrderRow }
+  const groupedRows: GroupedRow[] = useMemo(() => {
+    const seenForms = new Set<string>()
+    const result: GroupedRow[] = []
+    filteredOrders.forEach((order) => {
+      const formId = order.orderForm?.id
+      const formNumber = order.orderForm?.orderFormNumber
+      if (formId && formNumber) {
+        if (!seenForms.has(formId)) {
+          seenForms.add(formId)
+          result.push({ kind: "header", id: `form-header-${formId}`, formNumber })
+          // Pull every member of this form in from the full filtered list,
+          // in their own list order, right after the header -- keeps the
+          // group contiguous regardless of where each member's createdAt
+          // placed it in the overall date-sorted list.
+          filteredOrders
+            .filter((o) => o.orderForm?.id === formId)
+            .forEach((o) => result.push({ kind: "order", id: o._id, order: { ...o, id: o._id } }))
+        }
+        // else: already emitted as part of the group above
+      } else {
+        result.push({ kind: "order", id: order._id, order: { ...order, id: order._id } })
+      }
+    })
+    return result
+  }, [filteredOrders])
+
   const handleRowClick = (row: OrderRow) => {
     router.push(`/admin/all-orders/view?id=${row._id}`)
   }
@@ -242,20 +302,28 @@ const OrderToFactoryPage = () => {
   if (loading) return <Typography>Loading orders...</Typography>
   if (error) return <Typography color="error">Error: {error}</Typography>
 
+  // BasicTable's rowData is now GroupedRow[] (header pseudo-rows + order
+  // rows, see groupedRows above) rather than a flat OrderRow[] -- these
+  // accessors read through `row.order` and blank out header rows so CSV
+  // export still lists one line per real order.
   const csvColumns = [
-    { id: "orderNumber", label: "Order No.", value: (row: OrderRow) => row.orderNumber || "N/A" },
-    { id: "date", label: "Date", value: (row: OrderRow) => formatDate(row.createdAt) },
-    { id: "size", label: "Size", value: (row: OrderRow) => row.size || "N/A" },
-    { id: "ply", label: "Ply", value: (row: OrderRow) => (row as any).ply ?? "N/A" },
-    { id: "party", label: "Party", value: (row: OrderRow) => row.party?.partyName || "N/A" },
-    { id: "deckal", label: "Deckal", value: (row: OrderRow) => (row as any).deckal ?? "N/A" },
-    { id: "rate", label: "Rate", value: (row: OrderRow) => row.rate ?? "N/A" },
-    { id: "gsm", label: "GSM", value: (row: OrderRow) => row.gsm ?? "N/A" },
-    { id: "pcs", label: "PCS", value: (row: OrderRow) => row.qty ?? "N/A" },
-    { id: "orderStatus", label: "Status", value: (row: OrderRow) => displayOrderToFactoryStatus(row.status) },
-    { id: "startDate", label: "Start Date", value: (row: OrderRow) => formatDate((row as any).orderDate) },
-    { id: "deliveryDate", label: "Delivery Date", value: (row: OrderRow) => formatDate(row.expectedDeliveryDate) },
-    { id: "estimatedBoxCost", label: "Est. Box Cost", value: (row: OrderRow) => (row as any).estimatedBoxCost ?? "N/A" },
+    { id: "orderFormNumber", label: "Order Form", value: (row: GroupedRow) => (row.kind === "order" ? row.order.orderForm?.orderFormNumber || "" : "") },
+    { id: "orderNumber", label: "Order No.", value: (row: GroupedRow) => (row.kind === "order" ? row.order.orderNumber || "N/A" : "") },
+    { id: "date", label: "Date", value: (row: GroupedRow) => (row.kind === "order" ? formatDate(row.order.createdAt) : "") },
+    { id: "size", label: "Size", value: (row: GroupedRow) => (row.kind === "order" ? row.order.size || "N/A" : "") },
+    { id: "ply", label: "Ply", value: (row: GroupedRow) => (row.kind === "order" ? (row.order as any).ply ?? "N/A" : "") },
+    { id: "party", label: "Party", value: (row: GroupedRow) => (row.kind === "order" ? row.order.party?.partyName || "N/A" : "") },
+    { id: "deckal", label: "Deckal", value: (row: GroupedRow) => (row.kind === "order" ? (row.order as any).deckal ?? "N/A" : "") },
+    { id: "rate", label: "Rate", value: (row: GroupedRow) => (row.kind === "order" ? row.order.rate ?? "N/A" : "") },
+    { id: "gsm", label: "GSM", value: (row: GroupedRow) => (row.kind === "order" ? row.order.gsm ?? "N/A" : "") },
+    { id: "pcs", label: "PCS", value: (row: GroupedRow) => (row.kind === "order" ? row.order.qty ?? "N/A" : "") },
+    { id: "orderStatus", label: "Status", value: (row: GroupedRow) => (row.kind === "order" ? displayOrderToFactoryStatus(row.order.status) : "") },
+    { id: "st", label: "ST", value: (row: GroupedRow) => (row.kind === "order" && row.order.status ? row.order.status.charAt(0).toUpperCase() : "") },
+    { id: "startDate", label: "Start Date", value: (row: GroupedRow) => (row.kind === "order" ? formatDate((row.order as any).orderDate) : "") },
+    { id: "deliveryDate", label: "Delivery Date", value: (row: GroupedRow) => (row.kind === "order" ? formatDate(row.order.expectedDeliveryDate) : "") },
+    { id: "godownRemark", label: "Godown Remark", value: (row: GroupedRow) => (row.kind === "order" ? row.order.godownRemark || "N/A" : "") },
+    { id: "factoryRemarks", label: "Factory Remarks", value: (row: GroupedRow) => (row.kind === "order" ? row.order.factoryRemarks || "N/A" : "") },
+    { id: "estimatedBoxCost", label: "Est. Box Cost", value: (row: GroupedRow) => (row.kind === "order" ? (row.order as any).estimatedBoxCost ?? "N/A" : "") },
   ]
 
   return (
@@ -328,6 +396,16 @@ const OrderToFactoryPage = () => {
             onFieldSelect={setSelectedFilterField}
           />
           <ThemeButton onClick={() => setOpen(true)}>+ Place New Order</ThemeButton>
+          {/* Order Form batch-entry dialog (Godown Manager Figma audit,
+              Patch 108): a separate entry point from the single-order
+              dialog above -- opens the multi-row inline form that creates
+              one Order Form (e.g. "QP-001") grouping N orders together. */}
+          <ThemeButton
+            onClick={() => setBatchOpen(true)}
+            sx={{ background: "#fff", color: "#12B76A", border: "1px solid #12B76A" }}
+          >
+            + New Order Form
+          </ThemeButton>
         </Box>
       </Box>
 
@@ -337,94 +415,126 @@ const OrderToFactoryPage = () => {
           tableHeader={columns}
           showFillter={false}
           showSearch={false}
-          rowData={filteredOrders.map((order): OrderRow => ({ ...order, id: order._id }))}
+          rowData={groupedRows}
           csvColumns={csvColumns}
           exportFilename="order-to-factory"
-          renderRow={(row: OrderRow) => (
-            <>
-              <TableCell>
-                <Typography
-                  fontWeight={600}
-                  fontSize="14px"
-                  color="#111827"
-                  sx={{ cursor: canViewGlobal ? "pointer" : "default" }}
-                  onClick={canViewGlobal ? () => handleRowClick(row) : undefined}
-                >
-                  {row.orderNumber || "N/A"}
-                </Typography>
-              </TableCell>
+          renderRow={(gRow: GroupedRow) => {
+            if (gRow.kind === "header") {
+              return (
+                <TableCell colSpan={columns.length} sx={{ bgcolor: "#F9FAFB", borderBottom: "1px solid #EAECF0" }}>
+                  <Typography fontWeight={700} fontSize="13px" color="#344054">
+                    Order Form: {gRow.formNumber}
+                  </Typography>
+                </TableCell>
+              )
+            }
 
-              <TableCell>
-                <Typography fontSize="14px" color="#6B7280">
-                  {formatDate(row.createdAt)}
-                </Typography>
-              </TableCell>
+            const row = gRow.order
 
-              <TableCell>
-                <Typography fontSize="14px" color="#6B7280">
-                  {row.size || "N/A"}
-                </Typography>
-              </TableCell>
+            return (
+              <>
+                <TableCell>
+                  <Typography
+                    fontWeight={600}
+                    fontSize="14px"
+                    color="#111827"
+                    sx={{ cursor: canViewGlobal ? "pointer" : "default" }}
+                    onClick={canViewGlobal ? () => handleRowClick(row) : undefined}
+                  >
+                    {row.orderNumber || "N/A"}
+                  </Typography>
+                </TableCell>
 
-              <TableCell>
-                <Typography fontSize="14px" color="#6B7280">
-                  {(row as any).ply ?? "N/A"}
-                </Typography>
-              </TableCell>
+                <TableCell>
+                  <Typography fontSize="14px" color="#6B7280">
+                    {formatDate(row.createdAt)}
+                  </Typography>
+                </TableCell>
 
-              <TableCell>
-                <Typography fontSize="14px" color="#6B7280">
-                  {row.party?.partyName || "N/A"}
-                </Typography>
-              </TableCell>
+                <TableCell>
+                  <Typography fontSize="14px" color="#6B7280">
+                    {row.size || "N/A"}
+                  </Typography>
+                </TableCell>
 
-              <TableCell>
-                <Typography fontSize="14px" color="#6B7280">
-                  {(row as any).deckal ?? "N/A"}
-                </Typography>
-              </TableCell>
+                <TableCell>
+                  <Typography fontSize="14px" color="#6B7280">
+                    {(row as any).ply ?? "N/A"}
+                  </Typography>
+                </TableCell>
 
-              <TableCell>
-                <Typography fontSize="14px" color="#6B7280">
-                  {row.rate ?? "N/A"}
-                </Typography>
-              </TableCell>
+                <TableCell>
+                  <Typography fontSize="14px" color="#6B7280">
+                    {row.party?.partyName || "N/A"}
+                  </Typography>
+                </TableCell>
 
-              <TableCell>
-                <Typography fontSize="14px" color="#6B7280">
-                  {row.gsm ?? "N/A"}
-                </Typography>
-              </TableCell>
+                <TableCell>
+                  <Typography fontSize="14px" color="#6B7280">
+                    {(row as any).deckal ?? "N/A"}
+                  </Typography>
+                </TableCell>
 
-              <TableCell>
-                <Typography fontSize="14px" color="#6B7280">
-                  {row.qty ?? "N/A"}
-                </Typography>
-              </TableCell>
+                <TableCell>
+                  <Typography fontSize="14px" color="#6B7280">
+                    {row.rate ?? "N/A"}
+                  </Typography>
+                </TableCell>
 
-              <TableCell>
-                <StatusChip row={row} />
-              </TableCell>
+                <TableCell>
+                  <Typography fontSize="14px" color="#6B7280">
+                    {row.gsm ?? "N/A"}
+                  </Typography>
+                </TableCell>
 
-              <TableCell>
-                <Typography fontSize="14px" color="#6B7280">
-                  {formatDate((row as any).orderDate)}
-                </Typography>
-              </TableCell>
+                <TableCell>
+                  <Typography fontSize="14px" color="#6B7280">
+                    {row.qty ?? "N/A"}
+                  </Typography>
+                </TableCell>
 
-              <TableCell>
-                <Typography fontSize="14px" color="#6B7280">
-                  {formatDate(row.expectedDeliveryDate)}
-                </Typography>
-              </TableCell>
+                <TableCell>
+                  <StatusChip row={row} />
+                </TableCell>
 
-              <TableCell>
-                <Typography fontSize="14px" color="#6B7280">
-                  {(row as any).estimatedBoxCost ?? "N/A"}
-                </Typography>
-              </TableCell>
-            </>
-          )}
+                <TableCell>
+                  <Typography fontSize="14px" color="#6B7280">
+                    {row.status ? row.status.charAt(0).toUpperCase() : "N/A"}
+                  </Typography>
+                </TableCell>
+
+                <TableCell>
+                  <Typography fontSize="14px" color="#6B7280">
+                    {formatDate((row as any).orderDate)}
+                  </Typography>
+                </TableCell>
+
+                <TableCell>
+                  <Typography fontSize="14px" color="#6B7280">
+                    {formatDate(row.expectedDeliveryDate)}
+                  </Typography>
+                </TableCell>
+
+                <TableCell>
+                  <Typography fontSize="14px" color="#6B7280">
+                    {row.godownRemark || "N/A"}
+                  </Typography>
+                </TableCell>
+
+                <TableCell>
+                  <Typography fontSize="14px" color="#6B7280">
+                    {row.factoryRemarks || "N/A"}
+                  </Typography>
+                </TableCell>
+
+                <TableCell>
+                  <Typography fontSize="14px" color="#6B7280">
+                    {(row as any).estimatedBoxCost ?? "N/A"}
+                  </Typography>
+                </TableCell>
+              </>
+            )
+          }}
         />
       </Box>
 
@@ -432,6 +542,16 @@ const OrderToFactoryPage = () => {
           Order" button opens, just with Order From pre-filled and locked
           to GODOWN (see allorderdailog/index.tsx's defaultOrderFrom prop). */}
       <AddOrderDialog open={open} onClose={() => setOpen(false)} defaultOrderFrom="GODOWN" />
+
+      {/* Order Form batch-entry dialog (Patch 108): groups N order rows
+          entered together into one Order Form, locked to QP/GODOWN same as
+          the single-order dialog above. */}
+      <OrderFormBatchDialog
+        open={batchOpen}
+        onClose={() => setBatchOpen(false)}
+        companyId={qpCompanyId}
+        defaultOrderFrom="GODOWN"
+      />
     </>
   )
 }

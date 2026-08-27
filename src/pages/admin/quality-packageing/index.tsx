@@ -1,5 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Box, Typography, Grid, Paper, TableCell, Chip, Stack } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Grid,
+  Paper,
+  TableCell,
+  Chip,
+  Stack,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useRouter } from "next/router";
 import BasicTable from "@/component/common_component/Table/themetable";
 import { useAppDispatch, useAppSelector } from "@/store";
@@ -53,15 +65,6 @@ const jobCardColumns = [
   { id: "stage", label: "Stage" },
   { id: "status", label: "Status" },
   { id: "assignedTo", label: "Assigned To" },
-];
-
-const orderColumns = [
-  { id: "id", label: "#" },
-  { id: "orderNumber", label: "Order No." },
-  { id: "party", label: "Party" },
-  { id: "item", label: "Item" },
-  { id: "qty", label: "Qty" },
-  { id: "status", label: "Status" },
 ];
 
 const complaintColumns = [
@@ -338,30 +341,91 @@ const QualityManagerDashboard = () => {
 
         <Box>
           <Typography fontWeight={600} mb={1}>
-            Recent Orders
+            Order In
           </Typography>
-          <BasicTable
-            showFillter={false}
-            showDatePicker={false}
-            showSearch={false}
-            tableHeader={orderColumns}
-            rowData={orders.map((o: any) => ({ ...o, id: o._id }))}
-            renderRow={(row: any, idx: number) => (
-              <>
-                <TableCell>{idx + 1}</TableCell>
-                <TableCell
-                  sx={{ cursor: "pointer", color: "#7F56D9", fontWeight: 600 }}
-                  onClick={() => router.push(`/admin/all-orders/view?id=${row._id}`)}
-                >
-                  {row.orderNumber}
-                </TableCell>
-                <TableCell>{row.party?.partyName || "-"}</TableCell>
-                <TableCell>{row.productItem?.itemName || "-"}</TableCell>
-                <TableCell>{row.qty}</TableCell>
-                <TableCell>{row.status}</TableCell>
-              </>
-            )}
-          />
+          <Typography fontSize={13} color="text.secondary" mb={1}>
+            Expand a row for its Factory production-tracking panel (Unit, Start Date,
+            Pasting, Pining, RS For, Kantan, Kantan Deckal, Finish Date) -- read-only
+            here; edit it from the full Job Card page.
+          </Typography>
+          {orders.length === 0 ? (
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+              <Typography fontSize={13} color="text.secondary">
+                No orders yet.
+              </Typography>
+            </Paper>
+          ) : (
+            <Stack spacing={1}>
+              {orders.map((o: any) => (
+                <Accordion key={o._id} disableGutters variant="outlined" sx={{ borderRadius: 2, "&:before": { display: "none" } }}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Grid container spacing={2} alignItems="center" sx={{ width: "100%" }}>
+                      <Grid size={{ xs: 6, sm: 3 }}>
+                        <Typography
+                          fontWeight={600}
+                          sx={{ color: "#7F56D9", cursor: "pointer" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/admin/all-orders/view?id=${o._id}`);
+                          }}
+                        >
+                          {o.orderNumber}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 6, sm: 3 }}>
+                        <Typography fontSize={13}>{o.party?.partyName || "-"}</Typography>
+                      </Grid>
+                      <Grid size={{ xs: 6, sm: 3 }}>
+                        <Typography fontSize={13}>{o.productItem?.itemName || "-"}</Typography>
+                      </Grid>
+                      <Grid size={{ xs: 6, sm: 3 }}>
+                        <Chip size="small" label={o.status} />
+                      </Grid>
+                    </Grid>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    {o.productionPanel ? (
+                      <>
+                        <Grid container spacing={2}>
+                          {[
+                            ["Unit", o.productionPanel.unit ?? "-"],
+                            ["Start Date", o.productionPanel.startDate ? new Date(o.productionPanel.startDate).toLocaleDateString() : "-"],
+                            ["Pasting", o.productionPanel.pasting ?? "-"],
+                            ["Pining", o.productionPanel.pining ?? "-"],
+                            ["RS For", o.productionPanel.rsFor ?? "-"],
+                            ["Kantan", o.productionPanel.kantan ?? "-"],
+                            ["Kantan Deckal", o.productionPanel.kantanDeckal ?? "-"],
+                            ["Finish Date", o.productionPanel.finishDate ? new Date(o.productionPanel.finishDate).toLocaleDateString() : "-"],
+                          ].map(([label, value]) => (
+                            <Grid size={{ xs: 6, sm: 3 }} key={label as string}>
+                              <Typography fontSize={12} color="text.secondary">
+                                {label}
+                              </Typography>
+                              <Typography fontSize={14}>{value as React.ReactNode}</Typography>
+                            </Grid>
+                          ))}
+                        </Grid>
+                        <Box mt={2}>
+                          <Typography
+                            fontSize={13}
+                            fontWeight={600}
+                            sx={{ color: "#7F56D9", cursor: "pointer", display: "inline-block" }}
+                            onClick={() => router.push(`/admin/job-card/view/${o.productionPanel.jobCardId}`)}
+                          >
+                            View / Edit Job Card →
+                          </Typography>
+                        </Box>
+                      </>
+                    ) : (
+                      <Typography fontSize={13} color="text.secondary">
+                        No job card has been created for this order yet -- no production-tracking data to show.
+                      </Typography>
+                    )}
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+            </Stack>
+          )}
         </Box>
 
         <Box>

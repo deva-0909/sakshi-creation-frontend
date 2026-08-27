@@ -4,6 +4,7 @@ import {
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import { orderService } from "@/services/order.service";
+import type { CreateOrderFormData, OrderFormResult } from "@/services/order.service";
 
 export interface OrderFileEntry {
   path: string;
@@ -178,11 +179,43 @@ export interface Order {
   orderDate?: string;
   orderType?: string;
   deliveryDestination?: string;
+  // QP "New Order" Figma match (2026-08-27): already returned by
+  // order.controller.js's ORDER_SELECT but never typed here.
+  dyeNumber?: string;
+  dyeSize?: string;
+  dyeSheetSize?: string;
+  dyeRemark?: string;
+  godownRemark?: string;
+  factoryRemarks?: string;
+  // Order Form grouping (Godown Manager Figma audit, Patch 108): the
+  // Figma "Order Form" concept (e.g. "QP-001") that groups several order
+  // rows entered together via the batch-entry form. Nullable/undefined for
+  // the common case -- most orders don't belong to a form.
+  orderForm?: { id: string; orderFormNumber: string } | null;
   // Order To Factory page follow-up (2026-08-27): exposed on the API
   // response as of this same patch (see order.controller.js ORDER_SELECT),
   // but no formula anywhere in this codebase ever computes or writes it --
   // stays null on every order until that separate calculation is built.
   estimatedBoxCost?: number;
+
+  // Production-tracking-panel Figma audit (2026-08-27): the QP "Order In"
+  // list's expandable per-row panel. Surfaced read-only from the order's
+  // job card's existing Factory job_card_stages row (see order.controller.js
+  // getAllOrders) -- editing still happens on the Job Card detail page via
+  // jobCardId below, this is just an at-a-glance read of the same data.
+  productionPanel?: {
+    jobCardId: string;
+    currentStage?: string;
+    unit?: number | null;
+    startDate?: string | null;
+    pasting?: string | null;
+    pining?: string | null;
+    rsFor?: string | null;
+    kantan?: string | null;
+    kantanDeckal?: string | null;
+    finishDate?: string | null;
+    status?: string | null;
+  } | null;
 }
 export interface PaperField {
   paperName?: string;
@@ -251,6 +284,26 @@ export const createOrderThunk = createAsyncThunk(
     } catch (error: any) {
       console.error("Redux: Create order error:", error);
       return rejectWithValue(error.message || "Failed to create order");
+    }
+  }
+);
+
+// Order Form batch create (Godown Manager Figma audit, Patch 108): creates
+// one order_forms row plus N linked orders in a single request/transaction.
+export const createOrderFormThunk = createAsyncThunk(
+  "order/createForm",
+  async (data: CreateOrderFormData, { rejectWithValue }) => {
+    try {
+      const response = await orderService.createOrderForm(data);
+
+      if (response.success && response.data) {
+        return response.data;
+      } else {
+        return rejectWithValue(response.message || "Failed to create order form");
+      }
+    } catch (error: any) {
+      console.error("Redux: Create order form error:", error);
+      return rejectWithValue(error.message || "Failed to create order form");
     }
   }
 );
@@ -602,6 +655,25 @@ const orderSlice = createSlice({
         }
       )
       .addCase(createOrderThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // Order Form batch create
+      .addCase(createOrderFormThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        createOrderFormThunk.fulfilled,
+        (state, action: PayloadAction<OrderFormResult>) => {
+          state.loading = false;
+          state.orders = [...action.payload.orders, ...state.orders];
+          state.successMessage = `Order form ${action.payload.orderFormNumber} created successfully`;
+          state.error = null;
+        }
+      )
+      .addCase(createOrderFormThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
