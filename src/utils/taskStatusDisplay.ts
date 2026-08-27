@@ -24,3 +24,32 @@ export const TASK_STATUS_DISPLAY: Record<string, string> = {
 
 export const displayTaskStatus = (status?: string | null): string =>
   (status && TASK_STATUS_DISPLAY[status]) || status || "N/A";
+
+// Order To Factory page (Build 4, Godown Manager role, 2026-08-27): the
+// Figma frame for this screen shows a three-value status chip vocabulary --
+// Hold / In-Progress / Order -- distinct from both the model above (task
+// sub-status) and QP_STATUS_LABELS (all-orders/index.tsx's fuller stage
+// labels for the same orders.status column). A sibling to
+// displayTaskStatus rather than a shared function since it reads a
+// different source field (orders.status, not a task/staff sub-status) and
+// buckets a different, smaller set of values.
+//
+// Mapping confirmed against the Figma frame's two unambiguous cases --
+// "Hold" and "Received" (a freshly placed order, not yet worked) map
+// directly to "Hold" and "Order". Every other pipeline stage (Printer,
+// Binder, Booklet Binder, Factory, Godown) is plainly "In-Progress". The
+// one open question is the terminal "Completed" state, which the Figma
+// frame's three values don't have a slot for -- bucketed into
+// "In-Progress" here as the closest of the three confirmed values (an
+// order that reached Completed did, in fact, get all the way through
+// production), not asserted as the one true reading of a state Figma never
+// showed.
+const ORDER_TO_FACTORY_STATUS_DISPLAY: Record<string, "Hold" | "Order"> = {
+  Hold: "Hold",
+  Received: "Order",
+};
+
+export const displayOrderToFactoryStatus = (
+  status?: string | null
+): "Hold" | "Order" | "In-Progress" =>
+  (status && ORDER_TO_FACTORY_STATUS_DISPLAY[status]) || "In-Progress";

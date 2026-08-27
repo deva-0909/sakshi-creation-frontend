@@ -25,9 +25,16 @@ interface AddOrderDialogProps {
   open: boolean
   onClose: () => void
   refreshData?: () => void
+  // Order To Factory page (Build 4, 2026-08-27): lets a QP-only,
+  // Godown-scoped entry point (e.g. the Order To Factory page's own
+  // "+ Place New Order" button) pre-fill and lock the Order From field
+  // rather than leaving it for the production manager to pick every time.
+  // Optional and defaulted to undefined everywhere else so every existing
+  // <AddOrderDialog> caller (view-company, all-orders) is unaffected.
+  defaultOrderFrom?: string
 }
 
-const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshData }) => {
+const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshData, defaultOrderFrom }) => {
   const dispatch = useAppDispatch()
   const fileUploadRef = useRef<FileUploadRef>(null)
 
@@ -126,6 +133,16 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
       setGstNotApplicable(false)
     }
   }, [open, dispatch])
+
+  // Order To Factory page (Build 4, 2026-08-27): pre-fill Order From the
+  // moment the dialog opens with a locked default, so the field already
+  // shows "GODOWN" (or whatever's passed) before the user touches anything
+  // -- handleChange below already prevents editing it away while locked.
+  useEffect(() => {
+    if (open && defaultOrderFrom) {
+      setFormData((prev) => ({ ...prev, orderFrom: defaultOrderFrom }))
+    }
+  }, [open, defaultOrderFrom])
 
   // Handle success message
   useEffect(() => {
@@ -335,7 +352,11 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
       deckal: "",
       gsm: "",
       orderDate: "",
-      orderFrom: "",
+      // Order To Factory page (Build 4): resetForm runs on close/after a
+      // successful submit -- keep the locked value rather than clearing it
+      // back to blank, so reopening the dialog from that page still shows
+      // (and keeps locked) the same Order From.
+      orderFrom: defaultOrderFrom || "",
       dyeNumber: "",
       dyeSize: "",
       dyeSheetSize: "",
@@ -421,6 +442,11 @@ const AddOrderDialog: React.FC<AddOrderDialogProps> = ({ open, onClose, refreshD
                 { label: "GODOWN", value: "GODOWN" },
               ]}
               onChange={(_, v) => handleChange("orderFrom", v ? v.value : "")}
+              // Order To Factory page (Build 4): locked when this dialog was
+              // opened with a pre-selected Order From, so the Godown-scoped
+              // entry point can't be used to place a FACTORY-origin order by
+              // accident.
+              disabled={!!defaultOrderFrom}
             />
           </Stack>
         )}
