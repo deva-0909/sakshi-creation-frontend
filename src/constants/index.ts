@@ -430,4 +430,36 @@ export const permissionsArray = {
     delete: false,
     approve: false,
   },
+  // Patch 130: two module keys the backend already enforces and that live
+  // roles already carry in their `permissions` JSONB (confirmed via
+  // `select distinct jsonb_object_keys(permissions) from roles`), but which
+  // had no template entry -- so the role editor could never grant them, only
+  // silently lose them once granted by hand (see the merge fix in
+  // add-role/index.tsx). Shape (view_global/view_own/create/edit/delete, no
+  // `approve`) matches both the live DB rows and what each route actually
+  // checks.
+  //
+  // "vendor": gated on create/edit/delete via
+  // authorizePermission(["vendor", "setup"], ...) in routes/vendor.routes.js.
+  // Procurement's live role already has this key granted directly via SQL.
+  vendor: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
+  // "order_to_factory": tried as a fallback alongside "all_orders" via
+  // authorizePermission(["all_orders", "order_to_factory"], ...) and
+  // authorizeView(["all_orders", "order_to_factory"], "created_by") in
+  // routes/order.routes.js, so a role can be granted order access through
+  // this key alone. Godown Manager's live role already has this key granted
+  // directly via SQL.
+  order_to_factory: {
+    view_global: false,
+    view_own: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
 }

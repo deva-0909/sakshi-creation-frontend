@@ -85,21 +85,27 @@ const AddRoleForm: React.FC<AddRoleFormProps> = ({ isEditMode = false, roleId })
     if (isEditMode && singleRole) {
       setRoleName(singleRole.roleName);
 
-      // Multi-role audit fix: this used to be `setPermissions(singleRole?.permissions)`,
-      // which replaced the form's state with exactly what the role had stored in the
-      // DB -- so a module/action added to `permissionsArray` after a role was created
-      // (e.g. this fix's own "quotation"/"bom"/"jobcard" additions, or "approve" on
-      // "purchaseorder") would silently never appear when editing that older role,
-      // even though the backend already enforces it. Merge the stored permissions on
-      // top of the current template instead, so every known module/action always
-      // renders (defaulting to false) and edits to older roles can't drift from what
-      // the backend actually checks.
-      const merged: Permission = Object.fromEntries(
-        Object.entries(permissionsArray).map(([module, actions]) => [
-          module,
-          { ...actions, ...(singleRole?.permissions?.[module] || {}) },
-        ])
-      );
+      // Patch 130 fix: the previous merge here iterated
+      // `Object.entries(permissionsArray)` and only pulled the matching module
+      // from `singleRole.permissions` -- so any module key that exists in the
+      // role's real DB record but NOT in the static `permissionsArray`
+      // template (e.g. "vendor", granted to Procurement directly via SQL
+      // before this UI could grant it) was silently dropped from the form
+      // state. Since Save PUTs the full `permissions` object and the backend
+      // does a blind full-column overwrite (no merge -- see
+      // `updateRoleById` in controllers/role.controller.js), reopening that
+      // role here and clicking Save with no changes would silently strip the
+      // grant with zero warning.
+      //
+      // Fix: start from the role's REAL DB permissions (so every key it
+      // already has, template or not, is carried forward untouched) and only
+      // ADD template modules/actions the DB object is missing, defaulting
+      // those to false. This is the union of both key sets, DB object first.
+      const dbPermissions: Permission = singleRole?.permissions || {};
+      const merged: Permission = { ...dbPermissions };
+      Object.entries(permissionsArray).forEach(([module, actions]) => {
+        merged[module] = { ...actions, ...(dbPermissions[module] || {}) };
+      });
       setPermissions(merged);
       setStatus(singleRole?.status || "Active");
     }

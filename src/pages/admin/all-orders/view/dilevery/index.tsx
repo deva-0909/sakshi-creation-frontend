@@ -213,12 +213,12 @@ const DeliveryForm = () => {
               InputProps={{ readOnly: true }}
             />
             <RoleStaffSelect
-              label="Assign Sales Staff"
+              label="Assign to Delivery Staff"
               name="deliveryStaff"
               value={selectedDeliveryStaff}
               onChange={handleDeliveryStaffChange}
               onStaffChange={handleDeliveryStaffChange}
-              roleFilter="Sales Staff"
+              roleFilter="Delivery"
               showStaff={true}
               disabled={!!singleOrder.deliveryStaff || loading} // Disable if already assigned or loading
             />
