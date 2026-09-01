@@ -4,8 +4,16 @@ import React from "react";
 import { Box, Button } from "@mui/material";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import logoImage2 from "../../public/images/Sakshi Creation Mini Logo (1).png"; // First logo
-import logoImage1 from "../../public/images/Sakshi Creation Logo (1).png"; // Second logo
+// Patch 135: swapped to the pre-existing/newly-generated "-min" compressed
+// copies. The PDF only ever renders these at 40mm x 30mm (see LOGO_WIDTH/
+// LOGO_HEIGHT below), so the multi-megapixel originals (10875x10875 and
+// 10875x4194) were massive overkill -- and, at 7.6MB/3.1MB, both were over
+// the PWA service worker's precache size limit, so they were always
+// network-fetched instead of cached for offline use. The 340x340 and
+// 1200x462 "-min" versions are visually identical at this print size and
+// small enough to precache normally.
+import logoImage2 from "../../public/images/Sakshi Creation Mini Logo (1)-min.png"; // First logo
+import logoImage1 from "../../public/images/Sakshi Creation Logo (1)-min.png"; // Second logo
 
 interface InvoicePDFGeneratorProps {
   formData: {
