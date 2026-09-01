@@ -11,6 +11,7 @@ import { getAllVendorsThunk } from '@/store/slices/vendorSlice';
 import { getPartiesByCompanyThunk } from '@/store/slices/partySlice';
 import Swal from 'sweetalert2';
 import { useRouter } from 'next/router';
+import { QUALITY_PACKAGING_NAME } from '@/constants/companies';
 
 interface NewPurchaseProps {
   isEditMode?: boolean;
@@ -101,7 +102,7 @@ const NewPurchase: React.FC<NewPurchaseProps> = ({ isEditMode = false, purchaseI
   // scope for it.
   const selectedCompanyName = companies.find(company => company._id === formData.companyName)?.companyName;
   const allowedRoleNames =
-    selectedCompanyName === 'Quality Packaging'
+    selectedCompanyName === QUALITY_PACKAGING_NAME
       ? ['Printer', 'Binder', 'Booklet Binder', 'Factory', 'Godown']
       : ['Booklet & Folder Binder', 'Printer', 'Binder'];
   const roleOptions = roles

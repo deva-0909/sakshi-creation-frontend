@@ -107,6 +107,8 @@ const VendorPage = () => {
   // Mobile/toggle/seed audit (2026-08-26), Phase D: the Vendor master list
   // never read the company toggle -- always mixed both companies' vendors.
   const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
+  const { user } = useAppSelector((state) => state.auth);
+  const permissions = user?.role?.permissions?.vendor;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -295,24 +297,26 @@ const VendorPage = () => {
         <Typography variant="h5" fontWeight={600}>
           Vendors
         </Typography>
-        <Box>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => handleOpenDialog()}
-            sx={{ borderRadius: 2, fontWeight: 600, mr: 2, background: '#7F56D9', '&:hover': { background: '#53389E' } }}
-          >
-            New Vendor
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => setBulkDialogOpen(true)}
-            sx={{ borderRadius: 2, fontWeight: 600, background: '#7F56D9', '&:hover': { background: '#53389E' } }}
-          >
-            Bulk Upload
-          </Button>
-        </Box>
+        {permissions?.create && (
+          <Box>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => handleOpenDialog()}
+              sx={{ borderRadius: 2, fontWeight: 600, mr: 2, background: '#7F56D9', '&:hover': { background: '#53389E' } }}
+            >
+              New Vendor
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => setBulkDialogOpen(true)}
+              sx={{ borderRadius: 2, fontWeight: 600, background: '#7F56D9', '&:hover': { background: '#53389E' } }}
+            >
+              Bulk Upload
+            </Button>
+          </Box>
+        )}
       </Box>
       <BasicTable
         showFillter={false}
@@ -336,15 +340,19 @@ const VendorPage = () => {
               <ThemeChip label={row.status || 'Active'} sx={{ background: statusColor[row.status || 'Active']?.bg, color: statusColor[row.status || 'Active']?.color, fontWeight: 600 }} />
             </TableCell>
             <TableCell>
-              <IconButton color="primary" onClick={() => handleOpenDialog(row)}>
-                <Edit />
-              </IconButton>
-              <IconButton
-                color="error"
-                onClick={() => handleDelete(row._id, row.name)}
-              >
-                <Delete />
-              </IconButton>
+              {permissions?.edit && (
+                <IconButton color="primary" onClick={() => handleOpenDialog(row)}>
+                  <Edit />
+                </IconButton>
+              )}
+              {permissions?.delete && (
+                <IconButton
+                  color="error"
+                  onClick={() => handleDelete(row._id, row.name)}
+                >
+                  <Delete />
+                </IconButton>
+              )}
               <IconButton
                 onClick={() => handleOpenHistory(row)}
                 title="Rate History & Performance"

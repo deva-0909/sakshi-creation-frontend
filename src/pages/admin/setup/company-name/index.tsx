@@ -68,6 +68,8 @@ const csvColumns = [
 const CompanyNamePage = () => {
   const dispatch = useAppDispatch()
   const { companyNames, loading, error, successMessage } = useAppSelector((state: RootState) => state.companyNames)
+  const { user } = useAppSelector((state: RootState) => state.auth)
+  const permissions = user?.role?.permissions?.["setup.company-name"]
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
@@ -219,9 +221,11 @@ const CompanyNamePage = () => {
         <Typography variant="h5" fontWeight={600}>
           Company Names
         </Typography>
-        <Button variant="contained" startIcon={<Add />} onClick={() => handleOpenDialog()} disabled={loading}>
-          New Company
-        </Button>
+        {permissions?.create && (
+          <Button variant="contained" startIcon={<Add />} onClick={() => handleOpenDialog()} disabled={loading}>
+            New Company
+          </Button>
+        )}
       </Box>
       <BasicTable
         tableHeader={columns}
@@ -247,12 +251,16 @@ const CompanyNamePage = () => {
               <ThemeChip label={row.status || "Active"} sx={{ background: statusColor[row.status || "Active"]?.bg, color: statusColor[row.status || "Active"]?.color, fontWeight: 600 }} />
             </TableCell>
             <TableCell>
-              <IconButton color="primary" onClick={() => handleOpenDialog(row)} disabled={loading}>
-                <Edit />
-              </IconButton>
-              <IconButton color="error" onClick={() => handleDelete(row._id)} disabled={loading}>
-                <Delete />
-              </IconButton>
+              {permissions?.edit && (
+                <IconButton color="primary" onClick={() => handleOpenDialog(row)} disabled={loading}>
+                  <Edit />
+                </IconButton>
+              )}
+              {permissions?.delete && (
+                <IconButton color="error" onClick={() => handleDelete(row._id)} disabled={loading}>
+                  <Delete />
+                </IconButton>
+              )}
             </TableCell>
           </>
         )}

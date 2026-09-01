@@ -15,6 +15,7 @@
   import { toast } from "react-toastify"
   import { useFormik } from "formik"
   import * as Yup from "yup"
+  import { QUALITY_PACKAGING_NAME } from "@/constants/companies"
 
   const activeStep = 0
 
@@ -104,6 +105,42 @@
         toast.error(error?.message || "Failed to update delivery destination")
       } finally {
         setDeliveryDestinationSaving(false)
+      }
+    }
+
+    // QA-M7: estimated_box_cost is only ever recomputed when the order's own
+    // box-cost input fields (box dims/gsm/ply/paperMaterial) are present in
+    // an updateOrder request body (order.controller.js) -- it never
+    // recomputes automatically when a new purchase rate is logged later for
+    // the same material, so a long-untouched order's shown figure can go
+    // stale relative to current rates. Deliberately NOT auto-recomputed on
+    // every rate change -- that could silently change a quoted/committed
+    // order's cost after the fact. Instead this button re-submits the
+    // order's own existing paper-material selection unchanged through the
+    // same update endpoint used everywhere else on this page; that alone is
+    // enough for the backend to re-read the current rate and recompute, with
+    // no other field touched.
+    const [recalculatingCost, setRecalculatingCost] = useState(false)
+    const handleRecalculateBoxCost = async () => {
+      if (!orderId || typeof orderId !== "string") return
+      setRecalculatingCost(true)
+      try {
+        await dispatch(
+          updateOrderThunk({
+            id: orderId,
+            // paperMaterial isn't part of the frontend Order/CreateOrderData
+            // types (box-costing fields are only wired up in the order-create
+            // dialog), but the backend already accepts and re-reads it on
+            // update -- see BOX_COST_INPUT_FIELDS in order.controller.js.
+            data: { paperMaterial: singleOrder?.paperMaterial?._id ?? null } as any,
+          })
+        ).unwrap()
+        await dispatch(getOrderByIdThunk(orderId)).unwrap()
+        toast.success("Box cost recalculated using current material rates")
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to recalculate box cost")
+      } finally {
+        setRecalculatingCost(false)
       }
     }
 
@@ -318,7 +355,7 @@
               </ThemeButton>
             </Box>
           )}
-          {singleOrder?.companyName?.companyName === "Quality Packaging" ? (
+          {singleOrder?.companyName?.companyName === QUALITY_PACKAGING_NAME ? (
             <StepperProgress
               activeStep={qpActiveStep(singleOrder?.status)}
               orderStatus={singleOrder?.status}
@@ -344,7 +381,7 @@
               self-contained (fetches/dispatches its own data) and the
               backend's createDeliveryChallan has no company or stage gate,
               so this needed no backend change, only exposing it here. */}
-          {singleOrder?.companyName?.companyName === "Quality Packaging" && typeof orderId === "string" && (
+          {singleOrder?.companyName?.companyName === QUALITY_PACKAGING_NAME && typeof orderId === "string" && (
             <DeliveryChallanPanel orderId={orderId} orderQty={Number(singleOrder?.qty) || 0} />
           )}
           <Paper
@@ -387,7 +424,7 @@
                   Customer PO: {singleOrder.customerPoNumber}
                 </Typography>
               )}
-              {singleOrder?.companyName?.companyName === "Quality Packaging" && (
+              {singleOrder?.companyName?.companyName === QUALITY_PACKAGING_NAME && (
                 <FormControl size="small" sx={{ ml: 1.5, minWidth: 170 }}>
                   <InputLabel id="order-type-label">Order Type</InputLabel>
                   <Select
@@ -403,7 +440,7 @@
                   </Select>
                 </FormControl>
               )}
-              {singleOrder?.companyName?.companyName === "Quality Packaging" && (
+              {singleOrder?.companyName?.companyName === QUALITY_PACKAGING_NAME && (
                 <FormControl size="small" sx={{ ml: 1.5, minWidth: 170 }}>
                   <InputLabel id="delivery-destination-label">Delivery Destination</InputLabel>
                   <Select
@@ -420,6 +457,41 @@
                 </FormControl>
               )}
             </Box>
+
+            {singleOrder?.companyName?.companyName === QUALITY_PACKAGING_NAME && (
+              <Box
+                display="flex"
+                alignItems="center"
+                flexWrap="wrap"
+                gap={1.5}
+                mb={2}
+                p={1.5}
+                sx={{ background: "#F9FAFB", borderRadius: 1.5 }}
+              >
+                <Typography fontWeight={600} fontSize={14}>
+                  Estimated Box Cost: {singleOrder?.estimatedBoxCost != null ? `₹${singleOrder.estimatedBoxCost}` : "N/A"}
+                </Typography>
+                {/* QA-M7: this is a point-in-time estimate computed from the
+                    paper material's rate as of the order's last save -- it is
+                    NOT a live figure and does not update automatically when a
+                    new purchase rate is logged for that material afterward.
+                    The "as of" date and Recalculate button make that explicit
+                    instead of leaving the figure looking current when it may
+                    not be. */}
+                <Typography fontSize={12} color="text.secondary">
+                  as of {singleOrder?.updatedAt ? new Date(singleOrder.updatedAt).toLocaleString() : "Unknown"}
+                </Typography>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={handleRecalculateBoxCost}
+                  disabled={recalculatingCost}
+                  sx={{ textTransform: "none", ml: "auto" }}
+                >
+                  {recalculatingCost ? "Recalculating..." : "Recalculate"}
+                </Button>
+              </Box>
+            )}
 
             <Box component="form" noValidate onSubmit={formik.handleSubmit}>
               <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={2} mb={3}>

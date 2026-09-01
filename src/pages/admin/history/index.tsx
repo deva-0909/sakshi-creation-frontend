@@ -59,7 +59,6 @@ const Index = () => {
   // live roles table (Admin, Sales, Procurement, Production, Accounts,
   // Store, Viewer, Godown Manager) except "admin" -- they're kept as-is.
   const TAILORED_ROLES = ["designer", "printer", "binder", "booklet & folder binder", "admin"];
-  const isTailoredRole = !!role && TAILORED_ROLES.includes(role);
   const canViewGlobalHistory = !!user?.role?.permissions?.history?.view_global;
   const canViewOwnHistory = !!user?.role?.permissions?.history?.view_own;
 
@@ -78,15 +77,26 @@ const Index = () => {
   // permission-scoped fetch -- global orders for view_global (same as
   // Admin already got), or just-their-own orders for view_own-only,
   // mirroring the view_global/view_own split all-orders/index.tsx already
-  // uses for the same `orders` slice. The five tailored role cases keep
-  // their original unconditional global fetch untouched.
+  // uses for the same `orders` slice.
+  //
+  // QA-R1 fix (2026-09-01): the five TAILORED_ROLES used to get an
+  // unconditional global fetch here regardless of their live permission
+  // grant. Designer/Printer/Binder/Booklet & Folder Binder were only ever
+  // granted `view_own: true, view_global: false` on the `history` module
+  // (confirmed live in the roles table), so they were pulling every
+  // company-wide order instead of just their own -- a scope bypass, not a
+  // display quirk (getRoleSpecificTasks below filters by pipeline stage,
+  // not by ownership). Dropping isTailoredRole from this condition makes
+  // every role -- tailored or not -- go through the same
+  // view_global/view_own gate as all-orders/index.tsx. Admin keeps getting
+  // everything because its `history.view_global` grant is true.
   useEffect(() => {
-    if (isTailoredRole || canViewGlobalHistory) {
+    if (canViewGlobalHistory) {
       dispatch(getAllOrdersThunk({ limit: 1000, companyName: activeCompanyId || undefined }));
     } else if (canViewOwnHistory && user?.id) {
       dispatch(getOrdersByStaffIdThunk(user.id));
     }
-  }, [dispatch, activeCompanyId, isTailoredRole, canViewGlobalHistory, canViewOwnHistory, user?.id]);
+  }, [dispatch, activeCompanyId, canViewGlobalHistory, canViewOwnHistory, user?.id]);
 
   const getRoleSpecificTasks = () => {
     if (!orders || orders.length === 0) return [];

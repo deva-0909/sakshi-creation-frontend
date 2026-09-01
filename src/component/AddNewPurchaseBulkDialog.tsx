@@ -21,6 +21,7 @@ import {
 } from '@/store/slices/purchaseSlice';
 import { getAllMaterialsThunk } from '@/store/slices/materialSlice';
 import { getAllVendorsThunk } from '@/store/slices/vendorSlice';
+import { QUALITY_PACKAGING_NAME } from '@/constants/companies';
 
 interface FormData {
   vendorName: string;
@@ -136,7 +137,7 @@ const AddNewPurchaseBulkDialog: React.FC<AddNewPurchaseBulkDialogProps> = ({
   // the full rationale.
   const selectedCompanyName = companies.find((company) => company._id === formik.values.companyName)?.companyName;
   const allowedRoleNames =
-    selectedCompanyName === 'Quality Packaging'
+    selectedCompanyName === QUALITY_PACKAGING_NAME
       ? ['Printer', 'Binder', 'Booklet Binder', 'Factory', 'Godown']
       : ['Booklet & Folder Binder', 'Printer', 'Binder'];
   const roleOptions: Option[] = roles

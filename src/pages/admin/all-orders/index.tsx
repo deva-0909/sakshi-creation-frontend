@@ -12,6 +12,7 @@ import FilterDropdown from "@/component/fillter"
 import DateRangePicker from "@/component/daterangepicker"
 import { FiSearch } from "react-icons/fi"
 import { InputBase } from "@mui/material"
+import { QUALITY_PACKAGING_NAME } from "@/constants/companies"
 
 const columns = [
   { id: "company", label: "Company" },
@@ -309,7 +310,7 @@ const filteredOrders = useMemo(() => {
     // populate (QP's real progress lives in job_cards/job_card_stages
     // instead). Every QP order goes to the base order-view page, regardless
     // of its status string.
-    if (row.companyName?.companyName === "Quality Packaging") {
+    if (row.companyName?.companyName === QUALITY_PACKAGING_NAME) {
       return `/admin/all-orders/view?id=${row._id}`;
     }
     switch (status) {
@@ -372,7 +373,7 @@ const getDisplayStatus = (row: Order): { text: string; isHold: boolean } => {
   // no designerStatus/printerStatus/etc. sub-status or staff data to show,
   // so it needs its own display mapping entirely rather than falling
   // through into logic built for the legacy per-stage fields.
-  if (row.companyName?.companyName === "Quality Packaging") {
+  if (row.companyName?.companyName === QUALITY_PACKAGING_NAME) {
     return { text: QP_STATUS_LABELS[status] || status || "Order Received", isHold: status === "Hold" };
   }
 

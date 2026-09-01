@@ -163,6 +163,11 @@ const GodownBoxReceiptPage = () => {
       return;
     }
 
+    if ((form.qty && Number(form.qty) < 0) || (form.gsm && Number(form.gsm) < 0) || (form.receivedPcs && Number(form.receivedPcs) < 0)) {
+      toast.error("Qty, GSM, and Received Pcs cannot be negative");
+      return;
+    }
+
     const payload = {
       boxLabel: form.boxLabel,
       boxType: form.boxType || undefined,
@@ -300,6 +305,7 @@ const GodownBoxReceiptPage = () => {
           value={form.qty}
           onChange={(e: any) => setForm((f) => ({ ...f, qty: e.target.value }))}
           type="number"
+          inputProps={{ min: 0 }}
           fullWidth
           sx={{ mb: 2 }}
         />
@@ -308,6 +314,7 @@ const GodownBoxReceiptPage = () => {
           value={form.gsm}
           onChange={(e: any) => setForm((f) => ({ ...f, gsm: e.target.value }))}
           type="number"
+          inputProps={{ min: 0 }}
           fullWidth
           sx={{ mb: 2 }}
         />
@@ -342,6 +349,7 @@ const GodownBoxReceiptPage = () => {
           value={form.receivedPcs}
           onChange={(e: any) => setForm((f) => ({ ...f, receivedPcs: e.target.value }))}
           type="number"
+          inputProps={{ min: 0 }}
           fullWidth
           sx={{ mb: 2 }}
         />

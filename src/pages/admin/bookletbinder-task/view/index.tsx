@@ -935,6 +935,7 @@ const BookletBinderTaskView = () => {
             value={bookletBinderWastedSheet}
             onChange={(e) => setBookletBinderWastedSheet(e.target.value)}
             type="number"
+            inputProps={{ min: 0 }}
             sx={{ width: "100%" }}
             InputProps={{ readOnly: !canEditBookletBinderTask }}
           />

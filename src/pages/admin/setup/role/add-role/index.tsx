@@ -12,6 +12,7 @@ import {
   Typography,
   Autocomplete,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
@@ -284,11 +285,21 @@ const AddRoleForm: React.FC<AddRoleFormProps> = ({ isEditMode = false, roleId })
                               const isViewOwn = action === "view_own";
                               const isViewGlobal = action === "view_global";
 
+                              // Purchase returns are posted financial movements: once
+                              // created they cannot be edited, deleted, or approved --
+                              // no backend route or UI ever uses those grants for this
+                              // module, so keep the toggles visible (for role-record
+                              // parity) but disabled with an explanation.
+                              const isDeadPurchaseReturnAction =
+                                module === "purchasereturn" &&
+                                ["edit", "delete", "approve"].includes(action);
+
                               const isDisabled =
                                 (isViewOwn && actions.view_global) ||
-                                (isViewGlobal && actions.view_own);
+                                (isViewGlobal && actions.view_own) ||
+                                isDeadPurchaseReturnAction;
 
-                              return (
+                              const checkboxControl = (
                                 <FormControlLabel
                                   key={action}
                                   control={
@@ -301,6 +312,18 @@ const AddRoleForm: React.FC<AddRoleFormProps> = ({ isEditMode = false, roleId })
                                   }
                                   label={toTitleCase(action.replace(/_/g, " "))}
                                 />
+                              );
+
+                              return isDeadPurchaseReturnAction ? (
+                                <Tooltip
+                                  key={action}
+                                  title="Not available -- purchase returns cannot be edited, deleted, or require approval once posted"
+                                  arrow
+                                >
+                                  <span>{checkboxControl}</span>
+                                </Tooltip>
+                              ) : (
+                                checkboxControl
                               );
                             })}
                           </Box>

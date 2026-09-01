@@ -380,7 +380,9 @@ const ViewCompanyPage: React.FC = () => {
   const { id } = router.query;
 
   // Redux state selectors
-  const { singleAccountMaster, loading: accountLoading } = useSelector((state: any) => state.accountMasters);
+  const { singleAccountMaster, accountMasters, loading: accountLoading } = useSelector(
+    (state: any) => state.accountMasters,
+  );
   const { assignTasks, loading: taskLoading } = useSelector((state: any) => state.assignTasks);
   const { leads, loading: leadLoading } = useSelector((state: any) => state.leads);
   // Tier 1 security audit fix (2026-09-01), Fix 3: this page's staff picker
@@ -499,8 +501,33 @@ const ViewCompanyPage: React.FC = () => {
       dispatch(getAllAssignTasksThunk());
       dispatch(getAllLeadsThunk());
       dispatch(getStaffListLiteThunk());
+      // QA-M4 fix (2026-09-01): getAccountMasterById's response only ever
+      // carries the account_masters row's own id (mirrored into `_id` by
+      // withMongoId) -- it never included the linked parties.id. This page
+      // used to treat singleAccountMaster._id as if it were the party id,
+      // but account_masters and parties are two disjoint tables (0
+      // overlapping ids, live-verified) linked only by
+      // account_masters.party_id -> parties.id. getAllAccountMasters
+      // already resolves that join server-side (AM_SELECT's
+      // `party:party_id(...)`), the same way the Module 15 party-360 panel
+      // resolves a real parties.id from this same URL account_master id --
+      // so fetch that list here too and look up this account master's
+      // real party id from it (see resolvedPartyId below), instead of
+      // repeating the account_masters.id-as-party-id mistake.
+      dispatch(getAllAccountMastersThunk());
     }
   }, [dispatch, id]);
+
+  // Real parties.id for this account master, resolved from the
+  // account_masters list (each entry's `.party._id` is the joined
+  // parties.id -- see AM_SELECT on the backend). Shared by both the
+  // "Assign task" dialog and the Opportunity History fetch below so the
+  // resolution logic lives in exactly one place on this page.
+  const resolvedPartyId: string = React.useMemo(() => {
+    if (!id || !Array.isArray(accountMasters)) return '';
+    const match = accountMasters.find((am: any) => am._id === id);
+    return match?.party?._id || '';
+  }, [accountMasters, id]);
 
   useEffect(() => {
     if (singleAccountMaster) {
@@ -516,14 +543,19 @@ const ViewCompanyPage: React.FC = () => {
       if (singleAccountMaster.reasonToVisit) {
         setReasons([{ label: singleAccountMaster.reasonToVisit, value: singleAccountMaster.reasonToVisit }]);
       }
-
-      // Same partyId convention already used above for AssignTaskDialog's
-      // selectedParties -- singleAccountMaster._id is treated as the party's id.
-      if (singleAccountMaster._id) {
-        dispatch(getAllOpportunitiesThunk({ partyId: singleAccountMaster._id }));
-      }
     }
   }, [singleAccountMaster, dispatch]);
+
+  // QA-M4 fix (2026-09-01): opportunities.party_id is a real parties.id,
+  // not an account_masters.id, so this filter needs resolvedPartyId (see
+  // above) rather than singleAccountMaster._id -- previously this always
+  // filtered by the wrong id, so a real account master with a real
+  // opportunity showed an empty "no opportunities" state.
+  useEffect(() => {
+    if (resolvedPartyId) {
+      dispatch(getAllOpportunitiesThunk({ partyId: resolvedPartyId }));
+    }
+  }, [resolvedPartyId, dispatch]);
 
   useEffect(() => {
     if (staffList.length > 0) {
@@ -583,9 +615,12 @@ const ViewCompanyPage: React.FC = () => {
   </Box>
 
   {/* Right side: Assign button */}
+  {/* QA-M4 fix (2026-09-01): this used to navigate to the generic
+      /admin/assign-task page instead of opening this page's own
+      already-built AssignTaskDialog below (pre-filled with this party). */}
   <ThemeButton
     onClick={() => {
-      router.push("/admin/assign-task");
+      setOpenAssignTaskDialog(true);
     }}
   >
     + Assign New task
@@ -670,14 +705,18 @@ const ViewCompanyPage: React.FC = () => {
               <Typography component="div" fontWeight={600} color="primary" mb={2}>
                 Pending Task{pendingTasks.length > 1 ? 's' : ''}
               </Typography>
-              {/* <ThemeButton
+              {/* QA-M4 fix (2026-09-01): this AssignTaskDialog trigger was
+                  dead JSX (commented out) -- re-enabled. It already wires
+                  the same open/close state (openAssignTaskDialog) as the
+                  header's "+ Assign New task" button above. */}
+              <ThemeButton
                 variant="outlined"
                 onClick={() => setOpenAssignTaskDialog(true)}
                 sx={{ py: 0.6, mb: 2 }}
                 startIcon={<MdTurnLeft style={{ fontSize: 18, color: '#98A2B3' }} />}
               >
                 Re-Schedule
-              </ThemeButton> */}
+              </ThemeButton>
             </Box>
 
             {pendingTasks.map((task: Task, idx: number) => (
@@ -778,10 +817,17 @@ const ViewCompanyPage: React.FC = () => {
         open={openAssignTaskDialog}
         onClose={() => setOpenAssignTaskDialog(false)}
         selectedParties={
-          singleAccountMaster
+          // QA-M4 fix (2026-09-01): AssignTaskDialog sends this partyId
+          // straight through as assign_tasks.party_name_id, which is an FK
+          // to parties.id -- singleAccountMaster._id is an account_masters
+          // id (a genuinely different table, 0 overlapping ids
+          // live-verified) and would throw a Postgres FK violation on
+          // submit. resolvedPartyId (above) is the real parties.id for
+          // this account master.
+          singleAccountMaster && resolvedPartyId
             ? [
                 {
-                  partyId: singleAccountMaster._id || '',
+                  partyId: resolvedPartyId,
                   companyId: singleAccountMaster.companyName || '',
                 },
               ]

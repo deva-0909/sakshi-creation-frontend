@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Box, Typography, TableCell, Pagination } from "@mui/material";
 import BasicTable from "@/component/common_component/Table/themetable";
 import ThemeChip from "@/component/common_component/themechip";
+import Select from "@/component/common_component/themeselect";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { getLoginHistoryThunk } from "@/store/slices/loginHistorySlice";
+import { getStaffListLiteThunk } from "@/store/slices/staffSlice";
 
 const columns = [
   { id: "id", label: "#" },
@@ -35,13 +37,33 @@ const LoginHistoryPage = () => {
   const dispatch = useAppDispatch();
   const { entries, pagination, loading } = useAppSelector((state) => state.loginHistory);
   const { user } = useAppSelector((state) => state.auth);
-  const permissions = user?.role?.permissions?.staff;
+  const { staffListLite } = useAppSelector((state) => state.staff);
+  const permissions = user?.role?.permissions?.["setup.staff"];
 
   const [page, setPage] = useState(1);
+  const [staffFilter, setStaffFilter] = useState<{ label: string; value: string } | null>(null);
+  const [successFilter, setSuccessFilter] = useState<{ label: string; value: string } | null>(null);
+
+  const staffOptions = staffListLite.map((s) => ({ label: s.name, value: s.id }));
+  const successOptions = [
+    { label: "Success", value: "true" },
+    { label: "Failed", value: "false" },
+  ];
 
   useEffect(() => {
-    dispatch(getLoginHistoryThunk({ page, limit: 25 }));
-  }, [dispatch, page]);
+    dispatch(getStaffListLiteThunk());
+  }, [dispatch]);
+
+  useEffect(() => {
+    dispatch(
+      getLoginHistoryThunk({
+        page,
+        limit: 25,
+        staffId: staffFilter?.value || undefined,
+        success: successFilter ? successFilter.value === "true" : undefined,
+      })
+    );
+  }, [dispatch, page, staffFilter, successFilter]);
 
   if (!permissions?.view_global) {
     return (
@@ -60,6 +82,31 @@ const LoginHistoryPage = () => {
         <Typography fontSize={14} color="text.secondary">
           Every login attempt, successful or failed, across all staff accounts.
         </Typography>
+      </Box>
+
+      <Box display="flex" flexWrap="wrap" gap={2} mb={2} maxWidth={500}>
+        <Box flex={1} minWidth={200}>
+          <Select
+            label="Staff"
+            options={staffOptions}
+            value={staffFilter}
+            onChange={(_, v) => {
+              setStaffFilter(v ? { label: v.label, value: String(v.value) } : null);
+              setPage(1);
+            }}
+          />
+        </Box>
+        <Box flex={1} minWidth={200}>
+          <Select
+            label="Result"
+            options={successOptions}
+            value={successFilter}
+            onChange={(_, v) => {
+              setSuccessFilter(v ? { label: v.label, value: String(v.value) } : null);
+              setPage(1);
+            }}
+          />
+        </Box>
       </Box>
 
       <BasicTable

@@ -41,6 +41,7 @@ import {
   clearReworks,
 } from "@/store/slices/jobCardReworkSlice";
 import { toast } from "react-toastify";
+import { QUALITY_PACKAGING_NAME } from "@/constants/companies";
 
 // Module 8: QC slots in as a real stage of its own -- advisory only, so a
 // Failed result is recorded but never blocks the card from moving on to
@@ -56,7 +57,7 @@ const SAKSHI_CREATION_STAGES = ["Designer", "Printer", "Binder", "Booklet Binder
 // change in jobCard.controller.js's stageOrderForCompany. Sakshi Creation's
 // real 6-stage pipeline is untouched.
 const QUALITY_PACKAGING_STAGES = ["Production"];
-const stagesForCompany = (companyName?: string) => (companyName === "Quality Packaging" ? QUALITY_PACKAGING_STAGES : SAKSHI_CREATION_STAGES);
+const stagesForCompany = (companyName?: string) => (companyName === QUALITY_PACKAGING_NAME ? QUALITY_PACKAGING_STAGES : SAKSHI_CREATION_STAGES);
 const STAGE_STATUSES = ["Pending", "In Progress", "Done"];
 // Patch 112: QP's own status vocabulary reuses job_cards_status_check's
 // existing values (Pending/In Progress/On Hold/Completed) rather than
@@ -268,7 +269,7 @@ const JobCardDetailPage = () => {
   // named "Factory"; now every QP job card has exactly one stage row to
   // read from.
   useEffect(() => {
-    if (jc && jc.order?.companyName?.companyName === "Quality Packaging") {
+    if (jc && jc.order?.companyName?.companyName === QUALITY_PACKAGING_NAME) {
       const productionStage: any = stageHistory.find((h: any) => h.stage === "Production");
       setFactoryUnitNumber(productionStage?.unitNumber != null ? String(productionStage.unitNumber) : "");
       setPasteingStatus(productionStage?.pasteingStatus || "");
@@ -537,7 +538,7 @@ const JobCardDetailPage = () => {
 
   if (!jc) return null;
 
-  const isQP = jc.order?.companyName?.companyName === "Quality Packaging";
+  const isQP = jc.order?.companyName?.companyName === QUALITY_PACKAGING_NAME;
   const STAGES = stagesForCompany(jc.order?.companyName?.companyName);
   const activeStepIndex = jc.currentStage === "Done" ? STAGES.length : STAGES.indexOf(jc.currentStage);
   const sColor = isQP ? qpStatusColor[jc.status] || qpStatusColor.Pending : statusColor[jc.status] || statusColor.Pending;

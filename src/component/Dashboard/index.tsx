@@ -56,6 +56,7 @@ import Slide from "@mui/material/Slide";
 import NotificationBell from "@/component/notificationbell";
 import CompanyToggle from "@/component/reusablecomponents/CompanyToggle";
 import { getAllCompanyNamesThunk } from "@/store/slices/companyNameSlice";
+import { QUALITY_PACKAGING_NAME } from "@/constants/companies";
 
 const permissionMapping: { [key: string]: string | string[] } = {
   "Account Master": "account_master",
@@ -484,7 +485,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           // (activeCompanyId === "" or not yet resolved), same as today.
           if (QP_SCOPED_HIDDEN_TASK_LABELS.includes(item.label)) {
             const activeCompany = companyNames.find((c) => c._id === activeCompanyId);
-            const isQpOnlyScope = activeCompany?.companyName === "Quality Packaging";
+            const isQpOnlyScope = activeCompany?.companyName === QUALITY_PACKAGING_NAME;
             if (isQpOnlyScope) return null;
           }
 
