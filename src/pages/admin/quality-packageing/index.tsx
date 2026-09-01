@@ -162,8 +162,23 @@ const QualityManagerDashboard = () => {
   }, [dispatch, activeCompanyId]);
 
   const inProduction = jobCards.filter((jc: any) => jc.status !== "Completed" && jc.status !== "Cancelled").length;
-  const atFactory = jobCards.filter((jc: any) => jc.currentStage === "Factory").length;
-  const atGodown = jobCards.filter((jc: any) => jc.currentStage === "Godown").length;
+  // Patch 117: QP job cards no longer have distinct "Factory"/"Godown"
+  // stages (Patch 112 collapsed them all into one "Production" stage), so
+  // these two tiles' original stage-based filters would always read 0 now.
+  // Reworked to keep both tiles meaningful under the new model rather than
+  // just deleting them:
+  // - "At Factory" -> job cards actively being worked (status "In
+  //   Progress"), as distinct from "Job Cards In Production" above (which
+  //   also counts queued/"Pending" and "On Hold" ones) and from "Hold"
+  //   (its own tile below).
+  // - "At Godown" -> real physical Godown inventory, from the same
+  //   existing godown_box_receipts ledger the Store-side cartoon-inventory
+  //   count below already uses (net inward - outward, all sizes combined)
+  //   -- this is a more accurate source for "how many boxes are actually
+  //   at the Godown right now" than a job-card stage ever was, since a
+  //   job card's stage was never really "where is this physically."
+  const atFactory = jobCards.filter((jc: any) => jc.status === "In Progress").length;
+  const atGodown = (boxReceipts as any[]).reduce((sum, r) => sum + (r.type === "outward" ? -(Number(r.qty) || 0) : Number(r.qty) || 0), 0);
   const openComplaints = complaints.filter((c: any) => c.status === "Open" || c.status === "In Progress").length;
 
   // Build 5, sub-item 1: "today" = local calendar day, matching the
@@ -178,14 +193,18 @@ const QualityManagerDashboard = () => {
 
   // Build 5, sub-item 2 -- cartoon/box inventory by size, Factory vs Store.
   // Store side: net (inward - outward) from the existing Godown box/
-  // cartoon receiving manifest, grouped by size. Factory side: job cards
-  // currently sitting at the Factory stage (finished, not yet moved to
-  // Godown), grouped by their order's box size -- both are real existing
-  // data, no new table.
+  // cartoon receiving manifest, grouped by size. Factory side (updated by
+  // Patch 117): originally job cards sitting at a "Factory" stage
+  // (finished, not yet moved to Godown); QP job cards no longer have that
+  // stage (Patch 112 collapsed the pipeline to one "Production" stage), so
+  // this now uses job cards whose simplified status is "Completed" --
+  // production finished -- as the same "not yet moved to Godown" proxy,
+  // translated onto the new status vocabulary instead of the removed stage
+  // name. Still a proxy, not a purpose-built count, same caveat as before.
   const cartonInventory = useMemo(() => {
     const bySize: Record<string, { factory: number; store: number }> = {};
     for (const jc of jobCards as any[]) {
-      if (jc.currentStage !== "Factory") continue;
+      if (jc.status !== "Completed") continue;
       const size = jc.order?.size || "Unspecified";
       bySize[size] = bySize[size] || { factory: 0, store: 0 };
       bySize[size].factory += Number(jc.qty) || 0;
