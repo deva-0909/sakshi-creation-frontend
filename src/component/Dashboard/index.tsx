@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Box,
   Avatar,
@@ -120,6 +120,65 @@ const permissionMapping: { [key: string]: string | string[] } = {
   "Vendor Ageing": "vendorpayment",
   "Credit Notes": "creditnote",
   "Debit Notes": "debitnote",
+};
+
+// Setup submenu (functional audit Fix 1): a dedicated label->key map for
+// Setup's ~17 sub-items, kept separate from `permissionMapping` above
+// because some setup item labels collide with unrelated entries already in
+// that map -- e.g. "Staff" there means Reports > Staff ("reports.staff"),
+// not this Setup > Staff item, which is really "setup.staff". Values may be
+// a single key or an array of alternate keys (same OR semantics Patch 116
+// already gave permissionMapping above -- see permKeys in the filter
+// effect). Every value here was checked against the live permissions
+// schema (all roles' JSONB keys via a Supabase query) so it points at a key
+// that actually exists; where a role's permissions object simply lacks
+// that key, hasModulePermission's optional chaining treats the missing key
+// as `undefined` -> falsy, i.e. denied, not a crash or an accidental allow.
+type PermKeyOrKeys = string | string[];
+
+const setupPermissionMapping: { [label: string]: PermKeyOrKeys } = {
+  "Add Role": "setup.role",
+  Staff: "setup.staff",
+  Products: "setup.products",
+  "Paper Material": "setup.paper-material",
+  // Schema has a top-level "bom" key on every role (no "setup.bom" key
+  // exists yet) -- kept both as an OR so a future "setup.bom" sub-key, if
+  // one is ever added the way role/staff/products/paper-material/
+  // company-name already were, keeps working without another code change.
+  "Bill of Materials": ["setup.bom", "bom"],
+  Machines: "machine",
+  "Dye / Punch": "dye_punch",
+  "Godown Box Receipt": "godown_box_receipt",
+  "Company Name": "setup.company-name",
+  // Fix 4: no "vendor" permission key existed anywhere in the schema before
+  // this patch (confirmed via a live query across every role's permissions
+  // JSONB) -- Vendor Name previously had no gate of its own and would have
+  // leaked to every role with any Setup access once this per-item filter
+  // landed. Wired to a new "vendor" key here, matched by
+  // authorizePermission(["vendor", "setup"], ...) added to the backend
+  // vendor routes in the same patch set. This patch does NOT grant "vendor"
+  // to any role's live permissions row -- that is being done separately --
+  // so the item stays hidden (missing key -> undefined -> falsy) until a
+  // role is actually granted it.
+  "Vendor Name": "vendor",
+  "Units of Measure": "uom",
+  "Tax Rates": "taxrate",
+  Branches: "branch",
+  Warehouses: "warehouse",
+  Designations: "designation",
+  "Production Routing": "routing",
+  "General Settings": "appsettings",
+  "Numbering Configuration": "numberingconfig",
+  // "Login History" has no dedicated key anywhere in the schema (distinct
+  // from the unrelated top-level "history" key, which gates the separate
+  // order-activity History page) -- deliberately absent here so it falls
+  // through to the generic "setup" flag fallback below, same as any future
+  // item added without its own key.
+};
+
+const hasModulePermission = (permissions: any, keyOrKeys: PermKeyOrKeys): boolean => {
+  const keys = Array.isArray(keyOrKeys) ? keyOrKeys : [keyOrKeys];
+  return keys.some((key) => Boolean(permissions?.[key]?.view_global || permissions?.[key]?.view_own));
 };
 
 const menuItems = [
@@ -342,8 +401,22 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           const permKeys = ([] as string[]).concat(permissionMapping[item.label] || item.label.toLowerCase().replace(/\s+/g, "_"));
           const hasPermission = permKeys.some((k) => permissions[k]?.view_global || permissions[k]?.view_own);
 
-          if (item.label === "Reports" || item.label === "Setup") {
+          if (item.label === "Reports") {
             return hasPermission ? item : null;
+          }
+
+          // Fix 1: the "Setup" parent nav item used to require the generic
+          // "setup" flag alone, so a role with real per-item permission on a
+          // setup sub-page (e.g. Store has full CRUD on warehouse/dye_punch/
+          // godown_box_receipt) but setup=false could never reach the parent
+          // nav item at all, even after the submenu itself is filtered
+          // per-item below. Visible if the role has EITHER the generic
+          // "setup" flag OR any one of the granular setup.* sub-permissions.
+          if (item.label === "Setup") {
+            const hasAnySetupSubPermission = Object.values(setupPermissionMapping).some((key) =>
+              hasModulePermission(permissions, key)
+            );
+            return hasPermission || hasAnySetupSubPermission ? item : null;
           }
 
           if (item.children) {
@@ -408,7 +481,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
     if (drawerOpen) setDrawerOpen(false);
   };
 
-  const setupSubMenuItems = [
+  const allSetupSubMenuItems = [
     {
       label: "Add Role",
       path: "/admin/setup/role",
@@ -510,6 +583,29 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
       icon: <MdHistory size={18} />,
     },
   ];
+
+  // Fix 1: per-item permission filtering for the Setup submenu, mirroring
+  // the filter `menuItems` already applies above. Previously every one of
+  // these ~17 items rendered unconditionally once the parent "Setup" nav
+  // item was visible -- so a role like Viewer (blanket view_global=true
+  // everywhere) saw internal-only items like Staff/Add Role it has no
+  // business reaching, and a role like Store (setup=false but real CRUD on
+  // warehouse/dye_punch/godown_box_receipt) previously couldn't see those
+  // items via nav at all even though its own permissions allow them.
+  const setupPermissions = user?.role?.permissions;
+  const setupSubMenuItems = useMemo(
+    () =>
+      allSetupSubMenuItems.filter((item) => {
+        const key = setupPermissionMapping[item.label];
+        // Items with no dedicated key (e.g. Login History) fall back to the
+        // generic "setup" flag -- same gate the parent nav item used before
+        // this fix, so such an item still shows for anyone who could reach
+        // Setup at all previously.
+        return hasModulePermission(setupPermissions, key ?? "setup");
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [setupPermissions]
+  );
 
   return (
     <Box display="flex" fontFamily="Inter, sans-serif" minHeight="100vh" bgcolor={theme.palette.background.default} p={1}>

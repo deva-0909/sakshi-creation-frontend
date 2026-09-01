@@ -95,6 +95,12 @@ const OrderToFactoryPage = () => {
     user?.role?.permissions?.all_orders?.view_global || user?.role?.permissions?.order_to_factory?.view_global
   const canViewOwn =
     user?.role?.permissions?.all_orders?.view_own || user?.role?.permissions?.order_to_factory?.view_own
+  // Functional audit fix: "+ Place New Order" had no permission check at
+  // all (unlike canViewGlobal/canViewOwn just above), so any staff member
+  // who could merely view this list could also create orders through it.
+  // Mirrors the same all_orders/order_to_factory OR pattern used above.
+  const canCreate =
+    user?.role?.permissions?.all_orders?.create || user?.role?.permissions?.order_to_factory?.create
 
   const filterFieldToKey: { [key: string]: string } = {
     "Order No.": "orderNumber",
@@ -402,17 +408,21 @@ const OrderToFactoryPage = () => {
             selectedField={selectedFilterField}
             onFieldSelect={setSelectedFilterField}
           />
-          <ThemeButton onClick={() => setOpen(true)}>+ Place New Order</ThemeButton>
+          {canCreate && <ThemeButton onClick={() => setOpen(true)}>+ Place New Order</ThemeButton>}
           {/* Order Form batch-entry dialog (Godown Manager Figma audit,
               Patch 108): a separate entry point from the single-order
               dialog above -- opens the multi-row inline form that creates
-              one Order Form (e.g. "QP-001") grouping N orders together. */}
-          <ThemeButton
-            onClick={() => setBatchOpen(true)}
-            sx={{ background: "#fff", color: "#12B76A", border: "1px solid #12B76A" }}
-          >
-            + New Order Form
-          </ThemeButton>
+              one Order Form (e.g. "QP-001") grouping N orders together.
+              Also gated on canCreate -- it creates orders the same as the
+              button above, so it had the same missing-permission-check gap. */}
+          {canCreate && (
+            <ThemeButton
+              onClick={() => setBatchOpen(true)}
+              sx={{ background: "#fff", color: "#12B76A", border: "1px solid #12B76A" }}
+            >
+              + New Order Form
+            </ThemeButton>
+          )}
         </Box>
       </Box>
 

@@ -58,6 +58,14 @@ interface DeliveryChallanPanelProps {
 const DeliveryChallanPanel: React.FC<DeliveryChallanPanelProps> = ({ orderId, orderQty }) => {
   const dispatch = useAppDispatch();
   const { deliveryChallans, loading, error, successMessage } = useAppSelector((state) => state.deliveryChallans);
+  const { user } = useAppSelector((state) => state.auth);
+  // Functional audit fix: the equivalent invoice/credit-note/receipt panels
+  // all gate their own "create" form on permissions[<module>]?.create (see
+  // src/pages/admin/accounting/invoices/index.tsx's canCreate) -- this panel
+  // never had that check, so "Create Challan" rendered for any staff member
+  // who could reach an order's detail page at all, regardless of their role's
+  // deliverychallan permission.
+  const canCreate = user?.role?.permissions?.deliverychallan?.create;
 
   const [form, setForm] = useState({
     quantityDelivered: "",
@@ -284,7 +292,7 @@ const DeliveryChallanPanel: React.FC<DeliveryChallanPanelProps> = ({ orderId, or
 
       <Divider sx={{ mb: 2 }} />
 
-      {remaining > 0 ? (
+      {remaining > 0 && canCreate ? (
         <>
           <Typography fontWeight={600} fontSize={14} mb={1.5}>
             Create Challan
@@ -367,6 +375,13 @@ const DeliveryChallanPanel: React.FC<DeliveryChallanPanelProps> = ({ orderId, or
             </ThemeButton>
           </Stack>
         </>
+      ) : remaining > 0 ? (
+        // remaining > 0 but canCreate is false -- distinct from the
+        // "fully delivered" case below, so this doesn't misreport a
+        // permission gap as order completion.
+        <Typography fontSize={13} color="#667085" fontWeight={600}>
+          You don&apos;t have permission to create delivery challans.
+        </Typography>
       ) : (
         <Typography fontSize={13} color="#027A48" fontWeight={600}>
           Full order quantity has been delivered.

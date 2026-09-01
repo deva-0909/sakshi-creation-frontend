@@ -20,7 +20,7 @@ import {
   clearSuccessMessage,
   getAccountMasterByStaffIdThunk,
 } from "@/store/slices/accountMasterSlice";
-import { getAllOrdersThunk } from "@/store/slices/orderSlice";
+import { getAllOrdersThunk, getOrdersByStaffIdThunk } from "@/store/slices/orderSlice";
 import BasicTable from "@/component/common_component/Table/themetable";
 import ThemeButton from "@/component/common_component/themebutton";
 import ThemeChip from "@/component/common_component/themechip";
@@ -52,15 +52,41 @@ const Index = () => {
   const { orders } = useAppSelector((state) => state.orders);
   const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
 
+  // Get role name in lowercase for consistent comparison
+  const role = user?.role?.roleName?.toLowerCase();
+  // Roles with a bespoke, stage-filtered view below (getRoleSpecificTasks /
+  // renderRoleSpecificComponent). None of these correspond to a row in the
+  // live roles table (Admin, Sales, Procurement, Production, Accounts,
+  // Store, Viewer, Godown Manager) except "admin" -- they're kept as-is.
+  const TAILORED_ROLES = ["designer", "printer", "binder", "booklet & folder binder", "admin"];
+  const isTailoredRole = !!role && TAILORED_ROLES.includes(role);
+  const canViewGlobalHistory = !!user?.role?.permissions?.history?.view_global;
+  const canViewOwnHistory = !!user?.role?.permissions?.history?.view_own;
+
   // Mobile/toggle/seed audit (2026-08-26), Phase G: this page filtered
   // `orders` from Redux for every role's task list below, but never once
   // dispatched anything to populate it -- `orders` was whatever another
   // page happened to have already fetched (usually empty), so this page
   // silently showed no tasks for everyone, not just the missing "admin"
   // role case fixed below.
+  //
+  // Two-company gap analysis follow-up (2026-09-01): every role besides
+  // "admin" hit the unhandled-role fallback below regardless of its actual
+  // `history` permission grant. Sales/Procurement/Production/Accounts/
+  // Store/Godown Manager all hold real `history.view_global` or
+  // `history.view_own` grants per the roles table, so they now get a
+  // permission-scoped fetch -- global orders for view_global (same as
+  // Admin already got), or just-their-own orders for view_own-only,
+  // mirroring the view_global/view_own split all-orders/index.tsx already
+  // uses for the same `orders` slice. The five tailored role cases keep
+  // their original unconditional global fetch untouched.
   useEffect(() => {
-    dispatch(getAllOrdersThunk({ limit: 1000, companyName: activeCompanyId || undefined }));
-  }, [dispatch, activeCompanyId]);
+    if (isTailoredRole || canViewGlobalHistory) {
+      dispatch(getAllOrdersThunk({ limit: 1000, companyName: activeCompanyId || undefined }));
+    } else if (canViewOwnHistory && user?.id) {
+      dispatch(getOrdersByStaffIdThunk(user.id));
+    }
+  }, [dispatch, activeCompanyId, isTailoredRole, canViewGlobalHistory, canViewOwnHistory, user?.id]);
 
   const getRoleSpecificTasks = () => {
     if (!orders || orders.length === 0) return [];
@@ -91,14 +117,15 @@ const Index = () => {
       case "admin":
         return orders; // Admin sees all tasks
       default:
-        return [];
+        // Any other role that reaches this page only does so with a real
+        // `history` permission grant (view_global or view_own, checked
+        // above) -- `orders` was already fetched scoped to that grant, so
+        // it doesn't need further client-side filtering here.
+        return canViewGlobalHistory || canViewOwnHistory ? orders : [];
     }
   };
 
   // const designerStatus = orders[0]?.designerStatus;
-
-  // Get role name in lowercase for consistent comparison
-  const role = user?.role?.roleName?.toLowerCase();
 
   // Render different components based on role
   const renderRoleSpecificComponent = () => {
@@ -119,7 +146,20 @@ const Index = () => {
         return <AdminOverviewTask tasks={tasks as any} />;
       // Add more cases as needed
       default:
-        return <div>No component available for your role: {role}</div>;
+        // Two-company gap analysis follow-up (2026-09-01): the roles table
+        // grants `history` access (view_global or view_own) to several
+        // roles -- Sales, Procurement, Production, Accounts, Store, Godown
+        // Manager -- that have no bespoke stage-filtered view here. Their
+        // underlying data is the same order/job history Admin already
+        // sees via AdminOverviewTask, just scoped by the fetch above, so
+        // reuse that same generic component instead of adding near-
+        // duplicate per-role branches. Roles with no `history` grant at
+        // all keep the explicit "no access" message.
+        return canViewGlobalHistory || canViewOwnHistory ? (
+          <AdminOverviewTask tasks={tasks as any} />
+        ) : (
+          <div>No component available for your role: {role}</div>
+        );
     }
   };
 
