@@ -86,8 +86,15 @@ const OrderToFactoryPage = () => {
   const [selectedFilterField, setSelectedFilterField] = useState<string | null>(null)
   const [filters, setFilters] = useState<{ [key: string]: string[] }>({})
 
-  const canViewGlobal = user?.role?.permissions?.all_orders?.view_global
-  const canViewOwn = user?.role?.permissions?.all_orders?.view_own
+  // Patch 116: the Godown Manager role is scoped to only "order_to_factory"
+  // (not "all_orders" itself, which would also surface the separate "All
+  // Orders" nav item) -- see Dashboard/index.tsx's matching permissionMapping
+  // comment and Patch 115's backend authorizeView widening. Checks either
+  // key so every existing caller relying on "all_orders" is unaffected.
+  const canViewGlobal =
+    user?.role?.permissions?.all_orders?.view_global || user?.role?.permissions?.order_to_factory?.view_global
+  const canViewOwn =
+    user?.role?.permissions?.all_orders?.view_own || user?.role?.permissions?.order_to_factory?.view_own
 
   const filterFieldToKey: { [key: string]: string } = {
     "Order No.": "orderNumber",

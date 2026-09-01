@@ -56,17 +56,22 @@ import Slide from "@mui/material/Slide";
 import NotificationBell from "@/component/notificationbell";
 import CompanyToggle from "@/component/reusablecomponents/CompanyToggle";
 
-const permissionMapping: { [key: string]: string } = {
+const permissionMapping: { [key: string]: string | string[] } = {
   "Account Master": "account_master",
   "Assign Task": "assign_task",
   "Party call": "party_call",
   "All Orders": "all_orders",
-  // Order To Factory page (Build 4, Godown Manager role, 2026-08-27): a
-  // filtered view of the same All Orders data (orderFrom === "GODOWN"),
-  // not a separate module with its own permission category yet -- gated on
-  // the same "all_orders" permission so it's visible to exactly whoever
-  // can already see All Orders, same as this list's own row-level scoping.
-  "Order To Factory": "all_orders",
+  // Order To Factory page (Build 4, Godown Manager role, 2026-08-27; widened
+  // by Patch 116): originally gated on just "all_orders" so it's visible to
+  // whoever can already see All Orders. The new Godown Manager role
+  // (task-portals-godown-quality-manager-build-log.md) is deliberately
+  // scoped to ONLY a dedicated "order_to_factory" permission key -- not
+  // "all_orders" itself, since that would also surface the separate "All
+  // Orders" nav item this role must not have -- so this now checks either
+  // key. Backend's authorizeView on GET /orders/all already accepts both
+  // (Patch 115); everyone who already saw this via "all_orders" keeps
+  // seeing it exactly as before.
+  "Order To Factory": ["all_orders", "order_to_factory"],
   "Quality Packaging": "quality_packaging",
   // Two-company Phase 3 Part A: "All Complains" top-level nav item, per the
   // Figma reference's confirmed-differences table (two-company-gap-analysis.md).
@@ -330,8 +335,12 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
             return canApprove ? item : null;
           }
 
-          const permKey = permissionMapping[item.label] || item.label.toLowerCase().replace(/\s+/g, "_");
-          const hasPermission = permissions[permKey]?.view_global || permissions[permKey]?.view_own;
+          // Patch 116: permissionMapping entries can now be a single key or
+          // an array of alternate keys (see the "Order To Factory" entry
+          // above) -- hasPermission/child filtering below check ANY of them,
+          // same OR semantics as the backend's authorizeView([...keys]).
+          const permKeys = ([] as string[]).concat(permissionMapping[item.label] || item.label.toLowerCase().replace(/\s+/g, "_"));
+          const hasPermission = permKeys.some((k) => permissions[k]?.view_global || permissions[k]?.view_own);
 
           if (item.label === "Reports" || item.label === "Setup") {
             return hasPermission ? item : null;
@@ -339,8 +348,8 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
 
           if (item.children) {
             const filteredChildren = item.children.filter((child) => {
-              const childPermKey = permissionMapping[child.label] || child.label.toLowerCase().replace(/\s+/g, "_");
-              return permissions[childPermKey]?.view_global || permissions[childPermKey]?.view_own;
+              const childPermKeys = ([] as string[]).concat(permissionMapping[child.label] || child.label.toLowerCase().replace(/\s+/g, "_"));
+              return childPermKeys.some((k) => permissions[k]?.view_global || permissions[k]?.view_own);
             });
 
             if (hasPermission || filteredChildren.length > 0) {
