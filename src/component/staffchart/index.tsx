@@ -11,8 +11,9 @@ import { getAllLeadsThunk } from '@/store/slices/leadSlice'
 // changed no matter what was in the database, plus a mini "bar chart" of 5
 // literally-invented numbers ([80, 60, 100, 70, 90]) with no relationship
 // to the stats above them. Rebuilt from real data, scoped per company by
-// tab (0 = Sakshi Creation, 1 = Quality Packaging, matching the parent
-// Reports > Staff page's own tabs).
+// tab index into the real company list (companyNames[tab]), matching the
+// parent Reports > Staff / Setup > Staff pages' own tabs -- not a
+// hardcoded two-company array, so a third company's tab keeps working.
 //
 // Metric mapping decisions (no dedicated "dashboard stats" endpoint exists,
 // so this derives each figure from the same list endpoints other pages
@@ -29,8 +30,6 @@ import { getAllLeadsThunk } from '@/store/slices/leadSlice'
 // The single bar under each number is proportional to that stat's own
 // share of the largest of the four count-based stats (Amount of Business
 // is a different unit and is excluded from that scale).
-
-const tabLabels = ['Sakshi Creation', 'Quality Packaging'];
 
 const STAT_META = [
   { key: 'newVisit', label: 'New Visit', color: '#8B5CF6' },
@@ -49,7 +48,7 @@ const StaffChart = ({ tab = 0 }: { tab?: number }) => {
   const { leads } = useAppSelector((state) => state.leads);
 
   const companyId = useMemo(
-    () => companyNames.find((c) => c.companyName === tabLabels[tab])?._id,
+    () => companyNames[tab]?._id,
     [companyNames, tab]
   );
 

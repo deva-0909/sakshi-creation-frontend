@@ -12,7 +12,13 @@ import CompanySelect from "@/component/reusablecomponents/CompanyWithPartyName"
 import { useAppDispatch, useAppSelector } from "@/store"
 import { getAllOrdersThunk } from "@/store/slices/orderSlice"
 import { getAllQuotationsThunk } from "@/store/slices/quotationSlice"
-import { createInvoiceThunk, clearInvoiceError, clearInvoiceSuccessMessage } from "@/store/slices/invoiceSlice"
+import {
+  createInvoiceThunk,
+  clearInvoiceError,
+  clearInvoiceSuccessMessage,
+  getRemainingQuantityForOrderThunk,
+  clearRemainingQuantity,
+} from "@/store/slices/invoiceSlice"
 import { toast } from "react-toastify"
 
 interface OptionType {
@@ -41,7 +47,13 @@ const AddInvoiceDialog: React.FC<AddInvoiceDialogProps> = ({ open, onClose, refr
 
   const { orders, loading: ordersLoading } = useAppSelector((state) => state.orders)
   const { quotations, loading: quotationsLoading } = useAppSelector((state) => state.quotations)
-  const { loading: invoiceLoading, error: invoiceError, successMessage } = useAppSelector((state) => state.invoices)
+  const {
+    loading: invoiceLoading,
+    error: invoiceError,
+    successMessage,
+    remainingQuantity,
+    remainingQuantityLoading,
+  } = useAppSelector((state) => state.invoices)
 
   const [companyName, setCompanyName] = useState<OptionType | null>(null)
   const [partyName, setPartyName] = useState<OptionType | null>(null)
@@ -76,6 +88,21 @@ const AddInvoiceDialog: React.FC<AddInvoiceDialogProps> = ({ open, onClose, refr
     }
   }, [invoiceError, dispatch])
 
+  // Patch 132 (invoice/delivery linkage): pull the remaining un-invoiced
+  // quantity for whichever order is selected, so the user sees it before
+  // submitting rather than only finding out from the backend's rejection.
+  useEffect(() => {
+    if (orderId?.value) {
+      dispatch(getRemainingQuantityForOrderThunk(orderId.value))
+    } else {
+      dispatch(clearRemainingQuantity())
+    }
+  }, [orderId, dispatch])
+
+  const requestedQty = items.reduce((sum, it) => sum + (Number(it.quantity) || 0), 0)
+  const exceedsRemaining =
+    !!orderId && !!remainingQuantity && remainingQuantity.orderId === orderId.value && requestedQty > remainingQuantity.remainingQty
+
   const orderOptions: OptionType[] = orders.map((o: any) => ({ label: o.orderNumber, value: o._id }))
   const quotationOptions: OptionType[] = quotations.map((q: any) => ({ label: q.quotationNumber, value: q._id }))
 
@@ -88,6 +115,7 @@ const AddInvoiceDialog: React.FC<AddInvoiceDialogProps> = ({ open, onClose, refr
     setDueDate("")
     setNotes("")
     setItems([{ ...emptyItem }])
+    dispatch(clearRemainingQuantity())
   }
 
   const handleClose = () => {
@@ -127,6 +155,15 @@ const AddInvoiceDialog: React.FC<AddInvoiceDialogProps> = ({ open, onClose, refr
     if (validItems.length === 0) {
       toast.error("Add at least one line item with a description, quantity, and unit price")
       return
+    }
+    // Patch 132 (invoice/delivery linkage): warn, don't silently block -- the
+    // backend is the final enforcement (createInvoice rejects this same
+    // case), but let the user decide whether to adjust quantities first.
+    if (exceedsRemaining && remainingQuantity) {
+      const proceed = window.confirm(
+        `This invoice's line items total ${requestedQty} unit(s), but only ${remainingQuantity.remainingQty} unit(s) of this order remain un-invoiced. The server will reject this. Submit anyway?`
+      )
+      if (!proceed) return
     }
 
     setIsSubmitting(true)
@@ -199,6 +236,18 @@ const AddInvoiceDialog: React.FC<AddInvoiceDialogProps> = ({ open, onClose, refr
             />
           </Box>
         </Stack>
+
+        {orderId && (
+          <Typography fontSize={12} mb={2} mt={-1.5} color={exceedsRemaining ? "error.main" : "text.secondary"}>
+            {remainingQuantityLoading
+              ? "Checking remaining un-invoiced quantity for this order..."
+              : remainingQuantity && remainingQuantity.orderId === orderId.value
+              ? `Order total: ${remainingQuantity.orderQty} · Delivered so far: ${remainingQuantity.deliveredQty} · Already invoiced: ${remainingQuantity.invoicedQty} · Remaining un-invoiced: ${remainingQuantity.remainingQty}${
+                  exceedsRemaining ? ` — your line items total ${requestedQty}, which exceeds this` : ""
+                }`
+              : null}
+          </Typography>
+        )}
 
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
           <ThemeInput

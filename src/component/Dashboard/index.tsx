@@ -55,6 +55,7 @@ import { authService } from "@/services/auth.service";
 import Slide from "@mui/material/Slide";
 import NotificationBell from "@/component/notificationbell";
 import CompanyToggle from "@/component/reusablecomponents/CompanyToggle";
+import { getAllCompanyNamesThunk } from "@/store/slices/companyNameSlice";
 
 const permissionMapping: { [key: string]: string | string[] } = {
   "Account Master": "account_master",
@@ -174,6 +175,17 @@ const setupPermissionMapping: { [label: string]: PermKeyOrKeys } = {
   // order-activity History page) -- deliberately absent here so it falls
   // through to the generic "setup" flag fallback below, same as any future
   // item added without its own key.
+  //
+  // Should-Fix item 6: "Department Company" (roleDepartment /
+  // roleDepartmentCompany records) has no dedicated permission key in the
+  // schema either (confirmed via a live query across every role's
+  // permissions JSONB -- no "department"-named key exists anywhere) --
+  // wired to the same ["setup.role", "setup"] compound key the backend's
+  // own roleDepartment.routes.js / roleDepartmentCompany.routes.js already
+  // use to gate these exact records (see their delete routes), rather than
+  // the bare "setup" fallback Login History uses, since a more specific
+  // match already exists on the backend side for this one.
+  "Department Company": ["setup.role", "setup"],
 };
 
 const hasModulePermission = (permissions: any, keyOrKeys: PermKeyOrKeys): boolean => {
@@ -247,6 +259,22 @@ const menuItems = [
     ],
   },
   { label: "Task", icon: <MdShoppingCart size={18} />, path: "/admin/task" },
+  // Should-Fix item 4 (client-readiness audit, 2026-09-01): these 4 standalone
+  // task-portal pages and their designer_task/printer_task/blinder_task/
+  // booklet_blinder_task permission keys already existed (Production role
+  // is granted all four live in Supabase) but had no menuItems entry to
+  // wire them into the sidebar at all -- permissionMapping above already
+  // had the matching label->key entries waiting unused. Company-scoped via
+  // QP_SCOPED_HIDDEN_TASK_LABELS below: QP order intake never populates the
+  // legacy printer_status/designer_status/etc. fields these portals key off
+  // (job cards are QP's real tracking mechanism -- see
+  // qp-order-received-to-delivery-flow.md), so they're hidden whenever the
+  // viewer's active company scope is Quality Packaging specifically, same
+  // as today for Sakshi Creation / All companies.
+  { label: "Designer-Task", icon: <MdWork size={18} />, path: "/admin/designer-task" },
+  { label: "Printer-Task", icon: <MdWork size={18} />, path: "/admin/printer-task" },
+  { label: "Binder-Task", icon: <MdWork size={18} />, path: "/admin/binder-task" },
+  { label: "Booklet-Binder-Task", icon: <MdWork size={18} />, path: "/admin/bookletbinder-task" },
   { label: "History", icon: <MdShoppingCart size={18} />, path: "/admin/history" },
   // Full Figma slide scan Phase 6 (Theme 10, Slide 87): "my own orders" --
   // exempted from the permission-key filter below the same way Dashboard
@@ -266,11 +294,27 @@ const menuItems = [
   },
 ];
 
+// Should-Fix item 4: labels hidden from the sidebar when the viewer's active
+// company scope is Quality Packaging specifically (not Sakshi Creation, and
+// not "All companies"/unscoped) -- see the menuItems comment above these 4
+// entries for why.
+const QP_SCOPED_HIDDEN_TASK_LABELS = ["Designer-Task", "Printer-Task", "Binder-Task", "Booklet-Binder-Task"];
+
 const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const { user, loading, error } = useAppSelector((state) => state.auth);
+  const { activeCompanyId } = useAppSelector((state) => state.activeCompany);
+  const { companyNames, loading: companyNamesLoading } = useAppSelector((state) => state.companyNames);
+  useEffect(() => {
+    // Needed here (not just via the CompanyToggle child below) so the QP
+    // scope check in the permission-filtering effect below has real data on
+    // first render rather than waiting on CompanyToggle's own mount.
+    if (companyNames.length === 0 && !companyNamesLoading) {
+      dispatch(getAllCompanyNamesThunk());
+    }
+  }, [companyNames.length, companyNamesLoading, dispatch]);
   const [selectedItem, setSelectedItem] = useState("");
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const [pageLoading, setPageLoading] = useState(false);
@@ -431,6 +475,19 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
             return null;
           }
 
+          // Should-Fix item 4: legacy printer_status/designer_status/etc.
+          // fields these 4 portals key off are never populated by QP order
+          // intake (QP tracking is job cards, not these fields -- see
+          // qp-order-received-to-delivery-flow.md) -- so hide them once the
+          // viewer has scoped down to Quality Packaging specifically. Left
+          // visible for Sakshi Creation and for "All companies"/unscoped
+          // (activeCompanyId === "" or not yet resolved), same as today.
+          if (QP_SCOPED_HIDDEN_TASK_LABELS.includes(item.label)) {
+            const activeCompany = companyNames.find((c) => c._id === activeCompanyId);
+            const isQpOnlyScope = activeCompany?.companyName === "Quality Packaging";
+            if (isQpOnlyScope) return null;
+          }
+
           return hasPermission ? item : null;
         })
         .filter((item): item is NonNullable<typeof item> => item !== null);
@@ -441,7 +498,7 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
     const interval = setInterval(() => setDateTime(new Date()), 1000);
     setDateTime(new Date());
     return () => clearInterval(interval);
-  }, [router, user, loading, dispatch]);
+  }, [router, user, loading, dispatch, activeCompanyId, companyNames]);
 
   const handleNavigation = async (path: string) => {
     if (path === selectedItem) return;
@@ -522,11 +579,11 @@ const Dashboard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
       path: "/admin/setup/godown-box-receipt",
       icon: <MdBuild size={18} />,
     },
-    // {
-    //   label: "Department Company",
-    //   path: "/admin/setup/department-company",
-    //   icon: <MdGroup size={18} />,
-    // },
+    {
+      label: "Department Company",
+      path: "/admin/setup/department-company",
+      icon: <MdGroup size={18} />,
+    },
     {
       label: "Company Name",
       path: "/admin/setup/company-name",

@@ -46,6 +46,14 @@ export interface Invoice {
   updatedAt?: string;
 }
 
+export interface RemainingQuantity {
+  orderId: string;
+  orderQty: number;
+  deliveredQty: number;
+  invoicedQty: number;
+  remainingQty: number;
+}
+
 interface CreateInvoiceData {
   companyName: string;
   partyId: string;
@@ -152,6 +160,18 @@ export const invoiceService = {
       return { success: response.data.success, data: response.data.data || [], message: response.data.message };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Failed to fetch invoice history");
+    }
+  },
+
+  async getRemainingQuantityForOrder(orderId: string): Promise<ApiResponse<RemainingQuantity>> {
+    try {
+      const response: AxiosResponse<ApiResponse<RemainingQuantity>> = await axios.get(`${Endpoint.GET_INVOICE_REMAINING_QUANTITY}/${orderId}`, {
+        headers: authHeaders(),
+        withCredentials: true,
+      });
+      return { success: response.data.success, data: response.data.data, message: response.data.message };
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Failed to fetch remaining invoiceable quantity");
     }
   },
 

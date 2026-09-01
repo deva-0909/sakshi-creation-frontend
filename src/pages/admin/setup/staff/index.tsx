@@ -7,13 +7,13 @@ import StaffChart from "@/component/staffchart" // Assuming this is a valid impo
 import { useRouter } from "next/router"
 import { useAppDispatch, useAppSelector } from "@/store"
 import { getAllStaffThunk, deleteStaffThunk } from "@/store/slices/staffSlice"
+import { getAllCompanyNamesThunk } from "@/store/slices/companyNameSlice"
 import Swal from "sweetalert2"
 import { toast } from "react-toastify"
 import FileViewerModal from "@/component/FileViewerModal"
 import AddNewStaffBulkDialog from '@/component/AddNewStaffBulkDialog';
 import PasswordUpdateDialog from "@/component/PasswordUpdateDialog"
 import { withAuthToken } from "@/utills/utills"
-const tabLabels = ["Sakshi Creation", "Quality Packaging"]
 const columns = [
   { id: "name", label: "Staff" },
   { id: "role", label: "Role" },
@@ -45,6 +45,7 @@ const StaffPage = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const { staffList, loading, error } = useAppSelector((state) => state.staff)
+  const { companyNames } = useAppSelector((state) => state.companyNames)
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<{ id: string; name: string } | null>(null);
 
@@ -61,7 +62,10 @@ const StaffPage = () => {
       .catch((err) => {
         toast.error(err.message || "Failed to fetch staff")
       })
+    dispatch(getAllCompanyNamesThunk())
   }, [dispatch])
+
+  const tabLabels = companyNames.map((c) => c.companyName)
 
   // Handle edit action
   const handleEdit = (id: string) => {
@@ -131,8 +135,17 @@ const StaffPage = () => {
     setCurrentFileType(null)
   }
 
+  // Filter staffList by the selected company tab, matching StaffChart's
+  // per-tab scoping above (Should-Fix item 3: the roster table used to
+  // ignore the tab selector entirely and always show every company's staff).
+  const companyOf = (s: (typeof staffList)[number]) =>
+    typeof s.companyName === "string" ? s.companyName : s.companyName?.companyName
+
+  const tabFilteredStaffList =
+    tabLabels.length > 0 ? staffList.filter((s) => companyOf(s) === tabLabels[tab]) : staffList
+
   // Format staffList for table display
-  const formattedStaffList = staffList.map((staff) => ({
+  const formattedStaffList = tabFilteredStaffList.map((staff) => ({
     id: staff.id,
     name: staff.name || `${staff.firstName} ${staff.lastName}`,
     role: staff.role?.roleName || "N/A", // Use roleName from populated role

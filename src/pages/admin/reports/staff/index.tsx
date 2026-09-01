@@ -5,6 +5,7 @@ import StaffChart from '@/component/staffchart';
 import { useRouter } from 'next/router';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getAllStaffThunk } from '@/store/slices/staffSlice';
+import { getAllCompanyNamesThunk } from '@/store/slices/companyNameSlice';
 
 // Mobile/toggle/seed audit (2026-08-26), Phase G: this page previously
 // rendered 6 hardcoded mock rows (Staff 1-3 / Staff A-C) split across the
@@ -30,8 +31,6 @@ import { getAllStaffThunk } from '@/store/slices/staffSlice';
 // company/role fields at all -- it never worked). See mobile-toggle-seed-
 // audit.md Phase G for the reasoning.
 
-const tabLabels = ['Sakshi Creation', 'Quality Packaging'];
-
 const columns = [
   { id: 'name', label: 'Staff' },
   { id: 'department', label: 'Department' },
@@ -46,10 +45,14 @@ const StaffPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { staffList, loading } = useAppSelector((state) => state.staff);
+  const { companyNames } = useAppSelector((state) => state.companyNames);
 
   useEffect(() => {
     dispatch(getAllStaffThunk());
+    dispatch(getAllCompanyNamesThunk());
   }, [dispatch]);
+
+  const tabLabels = companyNames.map((c) => c.companyName);
 
   const companyOf = (s: (typeof staffList)[number]) =>
     typeof s.companyName === 'string' ? s.companyName : s.companyName?.companyName;

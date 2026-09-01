@@ -316,6 +316,9 @@ const Endpoint = {
   CANCEL_INVOICE: `${BaseURL}/api/invoices`,
   GET_INVOICE_HISTORY: `${BaseURL}/api/invoices`,
   GET_INVOICE_PDF: `${BaseURL}/api/invoices`,
+  // Patch 132 (invoice/delivery linkage): remaining un-invoiced quantity for
+  // an order, shown in the invoice dialog once an order is selected.
+  GET_INVOICE_REMAINING_QUANTITY: `${BaseURL}/api/invoices/remaining-quantity`,
 
   // Delivery Challan endpoints (Module 12)
   CREATE_DELIVERY_CHALLAN: `${BaseURL}/api/delivery-challans`,

@@ -93,7 +93,7 @@ const DesignerTask : React.FC<DesignerTaskProps> = ({ tasks }) => {
   }
 
   const handleRowClick = (orderId: string) => {
-    router.push(`/admin/designer-task//view?id=${orderId}`);
+    router.push(`/admin/designer-task/view?id=${orderId}`);
   };
 
 

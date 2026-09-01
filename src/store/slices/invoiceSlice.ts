@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, isAnyOf, type PayloadAction } from "@reduxjs/toolkit";
-import { invoiceService, Invoice, InvoiceHistoryEntry } from "@/services/invoice.service";
+import { invoiceService, Invoice, InvoiceHistoryEntry, RemainingQuantity } from "@/services/invoice.service";
 
 interface InvoiceState {
   invoices: Invoice[];
@@ -9,6 +9,11 @@ interface InvoiceState {
   error: string | null;
   successMessage: string | null;
   totalCount: number;
+  // Patch 132 (invoice/delivery linkage): remaining un-invoiced quantity for
+  // whichever order is currently selected in the invoice dialog.
+  remainingQuantity: RemainingQuantity | null;
+  remainingQuantityLoading: boolean;
+  remainingQuantityError: string | null;
 }
 
 const initialState: InvoiceState = {
@@ -19,6 +24,9 @@ const initialState: InvoiceState = {
   error: null,
   successMessage: null,
   totalCount: 0,
+  remainingQuantity: null,
+  remainingQuantityLoading: false,
+  remainingQuantityError: null,
 };
 
 interface CreateInvoiceData {
@@ -100,6 +108,21 @@ export const cancelInvoiceThunk = createAsyncThunk(
   }
 );
 
+// Patch 132 (invoice/delivery linkage): drives the "remaining un-invoiced
+// quantity" hint in the invoice dialog once an order is selected.
+export const getRemainingQuantityForOrderThunk = createAsyncThunk(
+  "invoice/getRemainingQuantity",
+  async (orderId: string, { rejectWithValue }) => {
+    try {
+      const response = await invoiceService.getRemainingQuantityForOrder(orderId);
+      if (response.success && response.data) return response.data;
+      return rejectWithValue(response.message || "Failed to fetch remaining invoiceable quantity");
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to fetch remaining invoiceable quantity");
+    }
+  }
+);
+
 export const getInvoiceHistoryThunk = createAsyncThunk("invoice/getHistory", async (id: string, { rejectWithValue }) => {
   try {
     const response = await invoiceService.getInvoiceHistory(id);
@@ -124,6 +147,10 @@ const invoiceSlice = createSlice({
       state.singleInvoice = null;
       state.history = [];
     },
+    clearRemainingQuantity(state) {
+      state.remainingQuantity = null;
+      state.remainingQuantityError = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -131,6 +158,19 @@ const invoiceSlice = createSlice({
         state.loading = false;
         state.invoices = [action.payload, ...state.invoices];
         state.successMessage = "Invoice created successfully";
+      })
+      .addCase(getRemainingQuantityForOrderThunk.pending, (state) => {
+        state.remainingQuantityLoading = true;
+        state.remainingQuantityError = null;
+      })
+      .addCase(getRemainingQuantityForOrderThunk.fulfilled, (state, action: PayloadAction<RemainingQuantity>) => {
+        state.remainingQuantityLoading = false;
+        state.remainingQuantity = action.payload;
+      })
+      .addCase(getRemainingQuantityForOrderThunk.rejected, (state, action) => {
+        state.remainingQuantityLoading = false;
+        state.remainingQuantity = null;
+        state.remainingQuantityError = action.payload as string;
       })
       .addCase(getAllInvoicesThunk.pending, (state) => {
         state.loading = true;
@@ -189,5 +229,5 @@ const invoiceSlice = createSlice({
   },
 });
 
-export const { clearInvoiceError, clearInvoiceSuccessMessage, clearSingleInvoice } = invoiceSlice.actions;
+export const { clearInvoiceError, clearInvoiceSuccessMessage, clearSingleInvoice, clearRemainingQuantity } = invoiceSlice.actions;
 export default invoiceSlice.reducer;
