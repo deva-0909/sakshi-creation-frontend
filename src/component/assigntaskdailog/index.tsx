@@ -19,7 +19,7 @@ import {
   clearError,
 } from "@/store/slices/assignTaskSlice";
 import { getAllAccountMastersThunk } from "@/store/slices/accountMasterSlice";
-import { getAllStaffThunk } from "@/store/slices/staffSlice";
+import { getStaffListLiteThunk } from "@/store/slices/staffSlice";
 import type { CreateAssignTask, UpdateAssignTask } from "@/services/assignTask.service";
 import Swal from "sweetalert2";
 import CompanySelect from "../reusablecomponents/CompanyWithPartyName";
@@ -94,7 +94,11 @@ const AssignTaskDialog: React.FC<AssignTaskDialogProps> = ({
     loading: accountLoading,
     error: accountError,
   } = useAppSelector((state) => state.accountMasters || {});
-  const { staffList = [], loading: staffLoading, error: staffError } = useAppSelector(
+  // Tier 1 security audit fix (2026-09-01), Fix 3: this dialog's staff
+  // picker only ever needed id/name/roleName (to filter to "Sales Staff"),
+  // so it uses staffListLite (no setup.staff view permission required)
+  // instead of the full staff roster.
+  const { staffListLite: staffList = [], staffListLiteLoading: staffLoading, error: staffError } = useAppSelector(
     (state) => state.staff || {}
   );
   const {
@@ -218,10 +222,10 @@ const AssignTaskDialog: React.FC<AssignTaskDialogProps> = ({
 
   const staffOptions = useMemo(() => {
     return staffList
-      .filter((staff) => staff.role?.roleName === "Sales Staff")
+      .filter((staff) => staff.roleName === "Sales Staff")
       .map((staff) => ({
-        label: `${staff.firstName} ${staff.lastName}`,
-        value: (staff as any)._id,
+        label: staff.name,
+        value: staff.id,
       }));
   }, [staffList]);
 
@@ -262,7 +266,7 @@ const AssignTaskDialog: React.FC<AssignTaskDialogProps> = ({
     const createdById = selectedParty?.createdBy?._id || "";
     if (createdById) {
       const isSalesStaff = staffList.find(
-        (staff) => (staff as any)._id === createdById && staff.role?.roleName === "Sales Staff"
+        (staff) => staff.id === createdById && staff.roleName === "Sales Staff"
       );
       if (isSalesStaff) {
         formik.setFieldValue("assignTo", createdById, false);
@@ -287,7 +291,7 @@ const AssignTaskDialog: React.FC<AssignTaskDialogProps> = ({
         dispatch(getAllAccountMastersThunk());
       }
       if (!staffList?.length) {
-        dispatch(getAllStaffThunk());
+        dispatch(getStaffListLiteThunk());
       }
       if (isEditMode && taskId && singleAssignTask?._id !== taskId) {
         dispatch(getAssignTaskByIdThunk(taskId));

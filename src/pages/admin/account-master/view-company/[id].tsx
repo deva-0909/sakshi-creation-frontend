@@ -23,7 +23,7 @@ import {
   updateAssignTaskThunk,
 } from '@/store/slices/assignTaskSlice';
 import { getAllLeadsThunk } from '@/store/slices/leadSlice';
-import { getAllStaffThunk } from '@/store/slices/staffSlice';
+import { getStaffListLiteThunk } from '@/store/slices/staffSlice';
 import { getAllOpportunitiesThunk } from '@/store/slices/opportunitySlice';
 import { format } from 'date-fns';
 import Loader from '@/component/common_component/loader';
@@ -383,7 +383,10 @@ const ViewCompanyPage: React.FC = () => {
   const { singleAccountMaster, loading: accountLoading } = useSelector((state: any) => state.accountMasters);
   const { assignTasks, loading: taskLoading } = useSelector((state: any) => state.assignTasks);
   const { leads, loading: leadLoading } = useSelector((state: any) => state.leads);
-  const { staffList, loading: staffLoading } = useSelector((state: any) => state.staff);
+  // Tier 1 security audit fix (2026-09-01), Fix 3: this page's staff picker
+  // only ever needed id + name, so it uses staffListLite (no setup.staff
+  // view permission required) instead of the full staff roster.
+  const { staffListLite: staffList, staffListLiteLoading: staffLoading } = useSelector((state: any) => state.staff);
   const { opportunities, loading: opportunitiesLoading } = useSelector((state: any) => state.opportunities);
 
   // Local state
@@ -495,7 +498,7 @@ const ViewCompanyPage: React.FC = () => {
       dispatch(getAccountMasterByIdThunk(id as string));
       dispatch(getAllAssignTasksThunk());
       dispatch(getAllLeadsThunk());
-      dispatch(getAllStaffThunk());
+      dispatch(getStaffListLiteThunk());
     }
   }, [dispatch, id]);
 
@@ -525,8 +528,8 @@ const ViewCompanyPage: React.FC = () => {
   useEffect(() => {
     if (staffList.length > 0) {
       setStaff({
-        label: `${staffList[0].firstName} ${staffList[0].lastName}`,
-        value: staffList[0]._id,
+        label: staffList[0].name,
+        value: staffList[0].id,
       });
     }
   }, [staffList]);

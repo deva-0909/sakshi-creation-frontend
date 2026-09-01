@@ -14,7 +14,7 @@ import { MdSwapHoriz, MdTune, MdLock } from "react-icons/md";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { getAllMaterialsThunk } from "@/store/slices/materialSlice";
 import { getAllWarehousesThunk } from "@/store/slices/warehouseSlice";
-import { getAllRolesThunk } from "@/store/slices/roleSlice";
+import { getRolesListLiteThunk } from "@/store/slices/roleSlice";
 import {
   getAllStockTransfersThunk,
   createStockTransferThunk,
@@ -63,7 +63,10 @@ const StockMovementsPage = () => {
   const dispatch = useAppDispatch();
   const { materials } = useAppSelector((state) => state.materials);
   const { warehouses } = useAppSelector((state) => state.warehouses);
-  const { roles } = useAppSelector((state) => state.roles);
+    // Tier 1 security audit fix (2026-09-01), Fix 3: role picker only needs
+  // id + roleName, so it uses rolesLite (no setup.role view permission
+  // required) instead of the full role roster.
+  const { rolesLite: roles } = useAppSelector((state) => state.roles);
   const { user } = useAppSelector((state) => state.auth);
   const { transfers, adjustments, reservations, loading, error, successMessage } = useAppSelector((state) => state.stockMovements);
   // Mobile/toggle/seed audit (2026-08-26), Phase D: the thunks/controller
@@ -106,7 +109,7 @@ const StockMovementsPage = () => {
   useEffect(() => {
     dispatch(getAllMaterialsThunk({ companyName: activeCompanyId || undefined }));
     dispatch(getAllWarehousesThunk(undefined));
-    dispatch(getAllRolesThunk());
+    dispatch(getRolesListLiteThunk());
   }, [dispatch, activeCompanyId]);
 
   useEffect(() => {
@@ -154,7 +157,7 @@ const StockMovementsPage = () => {
     value: m._id,
   }));
   const warehouseOptions = warehouses.map((w: any) => ({ label: w.warehouseName, value: w._id }));
-  const roleOptions = roles.map((r: any) => ({ label: r.roleName, value: r._id }));
+  const roleOptions = roles.map((r: any) => ({ label: r.roleName, value: r.id }));
 
   const commonReady = company && rolePick && staffPick && material && category && Number(quantity) > 0;
 

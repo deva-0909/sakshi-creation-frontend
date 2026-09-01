@@ -9,7 +9,7 @@ import ThemeSelect from "@/component/common_component/themeselect"
 import ThemeButton from "@/component/common_component/themebutton"
 import CompanySelect from "@/component/reusablecomponents/CompanyWithPartyName"
 import { useAppDispatch, useAppSelector } from "@/store"
-import { getAllStaffThunk } from "@/store/slices/staffSlice"
+import { getStaffListLiteThunk } from "@/store/slices/staffSlice"
 import { createOpportunityThunk, clearOpportunityError, clearOpportunitySuccessMessage } from "@/store/slices/opportunitySlice"
 import { toast } from "react-toastify"
 
@@ -36,7 +36,11 @@ const SOURCE_OPTIONS: OptionType[] = [
 const AddOpportunityDialog: React.FC<AddOpportunityDialogProps> = ({ open, onClose, refreshData }) => {
   const dispatch = useAppDispatch()
 
-  const { staffList = [], loading: staffLoading } = useAppSelector((state) => state.staff || {})
+  // Tier 1 security audit fix (2026-09-01), Fix 3: this dialog's staff
+  // picker only ever needed id/name/roleName (to filter to "Sales Staff"),
+  // so it uses staffListLite (no setup.staff view permission required)
+  // instead of the full staff roster.
+  const { staffListLite: staffList = [], staffListLiteLoading: staffLoading } = useAppSelector((state) => state.staff || {})
   const { loading: opportunityLoading, error: opportunityError, successMessage } = useAppSelector((state) => state.opportunities)
 
   const [companyName, setCompanyName] = useState<OptionType | null>(null)
@@ -55,7 +59,7 @@ const AddOpportunityDialog: React.FC<AddOpportunityDialogProps> = ({ open, onClo
     if (open) {
       dispatch(clearOpportunityError())
       dispatch(clearOpportunitySuccessMessage())
-      if (!staffList?.length) dispatch(getAllStaffThunk())
+      if (!staffList?.length) dispatch(getStaffListLiteThunk())
     }
   }, [open, dispatch, staffList?.length])
 
@@ -75,10 +79,10 @@ const AddOpportunityDialog: React.FC<AddOpportunityDialogProps> = ({ open, onClo
 
   const staffOptions: OptionType[] = useMemo(() => {
     return staffList
-      .filter((staff: any) => staff.role?.roleName === "Sales Staff")
+      .filter((staff: any) => staff.roleName === "Sales Staff")
       .map((staff: any) => ({
-        label: `${staff.firstName} ${staff.lastName}`,
-        value: staff._id,
+        label: staff.name,
+        value: staff.id,
       }))
   }, [staffList])
 

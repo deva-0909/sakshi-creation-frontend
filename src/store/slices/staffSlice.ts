@@ -34,6 +34,12 @@ interface RoleDetails {
 
 interface StaffState {
   staffList: Staff[];
+  // Tier 1 security audit fix (2026-09-01), Fix 3: id+name(+roleName)-only
+  // roster for picker/dropdown use, populated by getStaffListLiteThunk.
+  // Kept separate from staffList (which needs setup.staff view permission
+  // to populate now) so dropdown consumers never depend on that permission.
+  staffListLite: StaffLite[];
+  staffListLiteLoading: boolean;
   roleDetails: RoleDetails | null;
   loading: boolean;
   error: string | null;
@@ -58,6 +64,8 @@ export interface BulkImportResponse<T> {
 
 const initialState: StaffState = {
   staffList: [],
+  staffListLite: [],
+  staffListLiteLoading: false,
   roleDetails: null,
   currentStaff: null,
   loading: false,
@@ -130,6 +138,40 @@ export const getAllStaffThunk = createAsyncThunk("staff/getAll", async (_, { rej
     return rejectWithValue(error.message || "Failed to fetch staff list")
   }
 })
+
+export interface StaffLite {
+  id: string;
+  name: string;
+  roleName: string | null;
+}
+
+// Tier 1 security audit fix (2026-09-01), Fix 3: lightweight companion to
+// getAllStaffThunk above, for picker/dropdown call sites (AssignLeadDialog,
+// opportunity dialog, party dialog, assign-task dialog) that only ever
+// needed an id + display name (plus roleName, for the few pickers that
+// filter down to "Sales Staff" only). Hits /staff/list-lite, which doesn't
+// require setup.staff view permission the way /staff/getall now does, so
+// these dropdowns keep working for roles that were never meant to see the
+// full staff roster.
+export const getStaffListLiteThunk = createAsyncThunk("staff/getListLite", async (_, { rejectWithValue }) => {
+  try {
+    const token = authService.getToken();
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+    const response = await axios.get(Endpoint.GET_STAFF_LIST_LITE, {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+
+    if (response.data.success && Array.isArray(response.data.data)) {
+      return response.data.data as StaffLite[];
+    }
+    return rejectWithValue("Invalid staff response format");
+  } catch (error: any) {
+    return rejectWithValue(error.message || "Failed to fetch staff list");
+  }
+});
 
 export const getRoleThunk = createAsyncThunk("staff/getRole", async (roleName: string, { rejectWithValue }) => {
   try {
@@ -340,6 +382,17 @@ const staffSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
         state.staffList = [];
+      })
+      .addCase(getStaffListLiteThunk.pending, (state) => {
+        state.staffListLiteLoading = true;
+      })
+      .addCase(getStaffListLiteThunk.fulfilled, (state, action: PayloadAction<StaffLite[]>) => {
+        state.staffListLiteLoading = false;
+        state.staffListLite = action.payload;
+      })
+      .addCase(getStaffListLiteThunk.rejected, (state) => {
+        state.staffListLiteLoading = false;
+        state.staffListLite = [];
       })
       .addCase(getRoleThunk.pending, (state) => {
         state.loading = true;

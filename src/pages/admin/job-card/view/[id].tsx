@@ -9,7 +9,7 @@ import RoleStaffSelect from "@/component/reusablecomponents/RoleStaffSelect";
 import CustomDialog from "@/component/customdialog";
 import BackButton from "@/component/common_component/BackButton";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { getAllRolesThunk } from "@/store/slices/roleSlice";
+import { getRolesListLiteThunk } from "@/store/slices/roleSlice";
 import { getAllMaterialsThunk } from "@/store/slices/materialSlice";
 import { getAllMachinesThunk } from "@/store/slices/machineSlice";
 import { getSuggestedRoutingTemplateThunk } from "@/store/slices/routingSlice";
@@ -126,7 +126,10 @@ const JobCardDetailPage = () => {
   const { id } = router.query;
   const { singleJobCard: jc, stageHistory, loading, error, successMessage } = useAppSelector((state) => state.jobCards);
   const { suggestedTemplate } = useAppSelector((state) => state.routing);
-  const { roles } = useAppSelector((state) => state.roles);
+  // Tier 1 security audit fix (2026-09-01), Fix 3: role picker only needs
+  // id + roleName, so it uses rolesLite (no setup.role view permission
+  // required) instead of the full role roster.
+  const { rolesLite: roles } = useAppSelector((state) => state.roles);
   const { materials } = useAppSelector((state) => state.materials);
   const { machines } = useAppSelector((state) => state.machines);
   const { user } = useAppSelector((state) => state.auth);
@@ -222,7 +225,7 @@ const JobCardDetailPage = () => {
       dispatch(getCostingByJobCardThunk(id));
       dispatch(getReworksForJobCardThunk(id));
     }
-    dispatch(getAllRolesThunk());
+    dispatch(getRolesListLiteThunk());
     dispatch(getAllMaterialsThunk());
     return () => {
       dispatch(clearSingleJobCard());
@@ -329,7 +332,7 @@ const JobCardDetailPage = () => {
     }
   }, [reworkSuccessMessage, reworkError, dispatch]);
 
-  const roleOptions = roles.map((r: any) => ({ label: r.roleName, value: r._id }));
+  const roleOptions = roles.map((r: any) => ({ label: r.roleName, value: r.id }));
   const materialOptions = materials.map((m: any) => ({
     label: `${m.materialName}${m.materialSize ? ` - ${m.materialSize}` : ""}${m.materialGSM ? ` (${m.materialGSM}gsm)` : ""}`,
     value: m._id,

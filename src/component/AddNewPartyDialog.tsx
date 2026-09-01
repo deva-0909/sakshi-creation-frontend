@@ -25,7 +25,7 @@ import {
   getAccountMasterByCompanyAndPartyThunk,
   bulkCreateAccountMastersThunk,
 } from "@/store/slices/accountMasterSlice";
-import { getAllStaffThunk } from "@/store/slices/staffSlice";
+import { getStaffListLiteThunk } from "@/store/slices/staffSlice";
 import CompanySelect from "./reusablecomponents/CompanyWithPartyName";
 import type { PartySuggestion } from "@/services/accountMaster.service" // Import PartySuggestion type
 import { authService } from "@/services/auth.service";
@@ -110,7 +110,11 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
   isBulkUpload = false,
 }) => {
   const dispatch = useAppDispatch();
-  const { staffList, loading: staffLoading, error: staffError } = useAppSelector(
+  // Tier 1 security audit fix (2026-09-01), Fix 3: this dialog's staff
+  // picker only ever needed id/name/roleName (to filter to "Sales Staff"),
+  // so it uses staffListLite (no setup.staff view permission required)
+  // instead of the full staff roster.
+  const { staffListLite: staffList, staffListLiteLoading: staffLoading, error: staffError } = useAppSelector(
     (state) => state.staff
   );
   const {
@@ -243,7 +247,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        await dispatch(getAllStaffThunk());
+        await dispatch(getStaffListLiteThunk());
 
         if (isEditMode && accountId) {
           const result = await dispatch(getAccountMasterByIdThunk(accountId)).unwrap();
@@ -321,7 +325,7 @@ const AddNewPartyDialog: React.FC<AddNewPartyDialogProps> = ({
   const staffOptions = isRequestMode
     ? []
     : staffList
-        .filter((staff) => staff.role?.roleName === "Sales Staff")
+        .filter((staff) => staff.roleName === "Sales Staff")
         .map((staff) => ({
           label: staff.name,
           value: staff.id,

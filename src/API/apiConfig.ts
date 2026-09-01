@@ -3,6 +3,10 @@ const Endpoint = {
   LOGIN: `${BaseURL}/api/staff/login`,
   CREATE_STAFF: `${BaseURL}/api/staff/create`,
   GET_ALL_STAFF: `${BaseURL}/api/staff/getall`,
+  // Tier 1 security audit fix (2026-09-01), Fix 3: id+name-only listing for
+  // picker/dropdown use, so those call sites don't need setup.staff view
+  // permission the way GET_ALL_STAFF now requires.
+  GET_STAFF_LIST_LITE: `${BaseURL}/api/staff/list-lite`,
   GET_STAFF_BY_ID: `${BaseURL}/api/staff/getbyid`,
   UPDATE_STAFF: `${BaseURL}/api/staff/update`,
   UPDATE_STAFF_STATUS: `${BaseURL}/api/staff/updatestatus`,
@@ -121,6 +125,11 @@ const Endpoint = {
   // Role endpoints
   CREATE_ROLE: `${BaseURL}/api/role/create`,
   GET_ALL_ROLES: `${BaseURL}/api/role/getall`,
+  // Tier 1 security audit fix (2026-09-01), Fix 3: id+roleName-only listing
+  // for picker/dropdown use, so those call sites don't need setup.role view
+  // permission (and never see the permissions JSON) the way GET_ALL_ROLES
+  // now requires.
+  GET_ROLES_LIST_LITE: `${BaseURL}/api/role/list-lite`,
   GET_ROLE_BY_ID: `${BaseURL}/api/role/getbyid`,
   UPDATE_ROLE: `${BaseURL}/api/role/updatebyid`,
   DELETE_ROLE: `${BaseURL}/api/role/delete`,

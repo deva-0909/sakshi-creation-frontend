@@ -12,7 +12,7 @@ import { downloadBulkTemplate } from "@/utils/downloadTemplate";
 import Endpoint from "@/API/apiConfig";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { bulkCreateStaffThunk, clearError, clearSuccessMessage } from "@/store/slices/staffSlice";
-import { getAllRolesThunk } from "@/store/slices/roleSlice";
+import { getRolesListLiteThunk } from "@/store/slices/roleSlice";
 
 interface AddNewStaffBulkDialogProps {
   open: boolean;
@@ -28,7 +28,10 @@ interface RoleOption {
 const AddNewStaffBulkDialog: React.FC<AddNewStaffBulkDialogProps> = ({ open, onClose, refreshData }) => {
   const dispatch = useAppDispatch();
   const { loading, error, successMessage } = useAppSelector((state) => state.staff);
-  const { roles, loading: rolesLoading } = useAppSelector((state) => state.roles);
+  // Tier 1 security audit fix (2026-09-01), Fix 3: role picker only needs
+  // id + roleName, so it uses rolesLite (no setup.role view permission
+  // required) instead of the full role roster.
+  const { rolesLite: roles, rolesLiteLoading: rolesLoading } = useAppSelector((state) => state.roles);
   const [isLoading, setIsLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [selectedRole, setSelectedRole] = useState<RoleOption | null>(null);
@@ -39,14 +42,14 @@ const AddNewStaffBulkDialog: React.FC<AddNewStaffBulkDialogProps> = ({ open, onC
   const [historyOpen, setHistoryOpen] = useState(false);
 
   useEffect(() => {
-    dispatch(getAllRolesThunk());
+    dispatch(getRolesListLiteThunk());
   }, [dispatch]);
 
   useEffect(() => {
     if (roles.length > 0) {
       const options = roles.map((role) => ({
         label: role.roleName,
-        value: role._id,
+        value: role.id,
       }));
       setRoleOptions(options);
     }

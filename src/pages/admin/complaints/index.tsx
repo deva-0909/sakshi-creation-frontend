@@ -9,7 +9,7 @@ import CustomDialog from "@/component/customdialog";
 import CompanySelect from "@/component/reusablecomponents/CompanyWithPartyName";
 import RoleStaffSelect from "@/component/reusablecomponents/RoleStaffSelect";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { getAllRolesThunk } from "@/store/slices/roleSlice";
+import { getRolesListLiteThunk } from "@/store/slices/roleSlice";
 import {
   getAllComplaintsThunk,
   createComplaintThunk,
@@ -107,7 +107,10 @@ const csvColumns = [
 const ComplaintsPage = () => {
   const dispatch = useAppDispatch();
   const { complaints, loading, error, successMessage } = useAppSelector((state) => state.complaints);
-  const { roles } = useAppSelector((state) => state.roles);
+    // Tier 1 security audit fix (2026-09-01), Fix 3: role picker only needs
+  // id + roleName, so it uses rolesLite (no setup.role view permission
+  // required) instead of the full role roster.
+  const { rolesLite: roles } = useAppSelector((state) => state.roles);
   const { user } = useAppSelector((state) => state.auth);
   // Full Figma slide scan Phase 1 (claude/full-figma-slide-scan.md, Theme
   // 8/9): this list never respected the global company toggle every other
@@ -122,11 +125,11 @@ const ComplaintsPage = () => {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<ComplaintForm>(emptyForm);
 
-  const roleOptions = roles.map((r: any) => ({ label: r.roleName, value: r._id }));
+  const roleOptions = roles.map((r: any) => ({ label: r.roleName, value: r.id }));
 
   useEffect(() => {
     dispatch(getAllComplaintsThunk(activeCompanyId ? { companyName: activeCompanyId } : undefined));
-    dispatch(getAllRolesThunk());
+    dispatch(getRolesListLiteThunk());
   }, [dispatch, activeCompanyId]);
 
   useEffect(() => {

@@ -21,7 +21,7 @@ import CustomDialog from "@/component/customdialog";
 import RoleStaffSelect from "@/component/reusablecomponents/RoleStaffSelect";
 import BackButton from "@/component/common_component/BackButton";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { getAllRolesThunk } from "@/store/slices/roleSlice";
+import { getRolesListLiteThunk } from "@/store/slices/roleSlice";
 import {
   getPurchaseOrderByIdThunk,
   getPurchaseOrderHistoryThunk,
@@ -92,7 +92,10 @@ const PurchaseOrderDetailPage = () => {
     error: returnError,
     successMessage: returnSuccessMessage,
   } = useAppSelector((state) => state.purchaseReturns);
-  const { roles } = useAppSelector((state) => state.roles);
+    // Tier 1 security audit fix (2026-09-01), Fix 3: role picker only needs
+  // id + roleName, so it uses rolesLite (no setup.role view permission
+  // required) instead of the full role roster.
+  const { rolesLite: roles } = useAppSelector((state) => state.roles);
   const { user } = useAppSelector((state) => state.auth);
 
   const permissions = user?.role?.permissions?.purchaseorder;
@@ -129,7 +132,7 @@ const PurchaseOrderDetailPage = () => {
 
   useEffect(() => {
     load();
-    dispatch(getAllRolesThunk());
+    dispatch(getRolesListLiteThunk());
     return () => {
       dispatch(clearSinglePurchaseOrder());
     };
@@ -192,7 +195,7 @@ const PurchaseOrderDetailPage = () => {
   if (!po) return null;
 
   const { bg, color } = statusColor(po.status);
-  const roleOptions = roles.map((r: any) => ({ label: r.roleName, value: r._id }));
+  const roleOptions = roles.map((r: any) => ({ label: r.roleName, value: r.id }));
 
   const doAction = async (action: any) => {
     await dispatch(action);

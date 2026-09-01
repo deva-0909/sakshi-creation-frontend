@@ -11,7 +11,7 @@ import InputReasonDialog from '@/component/assigntaskdailog/InputReasonDialog';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { createLeadThunk, updateLeadThunk, bulkCreateLeadsThunk, clearSuccessMessage, clearError } from '@/store/slices/leadSlice';
 import { getAllAccountMastersThunk } from '@/store/slices/accountMasterSlice';
-import { getAllStaffThunk } from '@/store/slices/staffSlice';
+import { getStaffListLiteThunk } from '@/store/slices/staffSlice';
 import { Lead, OptionType } from '@/services/types';
 import Swal from 'sweetalert2';
 import CompanySelect from "./reusablecomponents/CompanyWithPartyName"
@@ -29,7 +29,11 @@ const AssignLeadDialog: React.FC<AssignLeadDialogProps> = ({ open, onClose, lead
   const { accountMasters, loading: accountLoading, error: accountError } = useAppSelector(
     (state) => state.accountMasters || {}
   );
-  const { staffList, loading: staffLoading, error: staffError } = useAppSelector(
+  // Tier 1 security audit fix (2026-09-01), Fix 3: this dialog's staff
+  // picker only ever needed id/name/roleName (to filter to "Sales Staff"),
+  // so it uses staffListLite (no setup.staff view permission required)
+  // instead of the full staff roster.
+  const { staffListLite: staffList, staffListLiteLoading: staffLoading, error: staffError } = useAppSelector(
     (state) => state.staff || {}
   );
   const { loading: leadLoading, error: leadError, successMessage } = useAppSelector(
@@ -180,18 +184,18 @@ const AssignLeadDialog: React.FC<AssignLeadDialogProps> = ({ open, onClose, lead
 
         const staffOptions = useMemo(() => {
         const currentAssignedTo = lead?._id && formik.values.assignedTo
-            ? staffList.find((staff) => (staff as any)._id === formik.values.assignedTo)
+            ? staffList.find((staff) => staff.id === formik.values.assignedTo)
             : null;
 
         const filteredStaff = staffList.filter((staff) => {
-            const isSalesStaff = staff.role?.roleName === 'Sales Staff';
-            const isCurrentAssignedTo = currentAssignedTo && (staff as any)._id === (currentAssignedTo as any)._id;
+            const isSalesStaff = staff.roleName === 'Sales Staff';
+            const isCurrentAssignedTo = currentAssignedTo && staff.id === currentAssignedTo.id;
             return isSalesStaff || isCurrentAssignedTo;
         });
 
         return filteredStaff.map((staff) => ({
             label: staff.name,
-            value: (staff as any)._id,
+            value: staff.id,
         }));
     }, [staffList, lead?._id, formik.values.assignedTo]);
 
@@ -223,7 +227,7 @@ const AssignLeadDialog: React.FC<AssignLeadDialogProps> = ({ open, onClose, lead
             dispatch(clearSuccessMessage());
             dispatch(clearError());
             dispatch(getAllAccountMastersThunk());
-            dispatch(getAllStaffThunk());
+            dispatch(getStaffListLiteThunk());
             if (!lead) {
                 formik.resetForm();
                 setCustomReason('');
@@ -326,7 +330,7 @@ const AssignLeadDialog: React.FC<AssignLeadDialogProps> = ({ open, onClose, lead
         const createdById = selectedParty?.createdBy?._id || "";
         if (createdById) {
             const isSalesStaff = staffList.find(
-                (staff) => (staff as any)._id === createdById && staff.role?.roleName === "Sales Staff"
+                (staff) => staff.id === createdById && staff.roleName === "Sales Staff"
             );
             if (isSalesStaff) {
                 formik.setFieldValue('assignedTo', createdById);

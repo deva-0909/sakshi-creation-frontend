@@ -37,6 +37,13 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+// Tier 1 security audit fix (2026-09-01), Fix 3: id+roleName only -- no
+// permissions payload -- for picker/dropdown use.
+export interface RoleLite {
+  id: string;
+  roleName: string;
+}
+
 export const roleService = {
   async getAllRoles(): Promise<ApiResponse<Role[]>> {
     try {
@@ -46,6 +53,32 @@ export const roleService = {
       }
       const response: AxiosResponse<ApiResponse<Role[]>> = await axios.get(
         Endpoint.GET_ALL_ROLES,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Failed to fetch roles");
+    }
+  },
+
+  // Tier 1 security audit fix (2026-09-01), Fix 3: lightweight companion to
+  // getAllRoles() above, for role picker/dropdown call sites (job-card view,
+  // complaints, stock-movements, purchase-order view, etc.) that only ever
+  // needed an id + role name. Hits /role/list-lite, which doesn't require
+  // setup.role view permission the way /role/getall now does, so these
+  // dropdowns keep working for roles that were never meant to see every
+  // role's full permissions JSON.
+  async getRolesListLite(): Promise<ApiResponse<RoleLite[]>> {
+    try {
+      const token = authService.getToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response: AxiosResponse<ApiResponse<RoleLite[]>> = await axios.get(
+        Endpoint.GET_ROLES_LIST_LITE,
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,

@@ -1,11 +1,29 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { roleService, Role, CreateRole, UpdateRole } from "@/services/role.service";
+import { roleService, Role, RoleLite, CreateRole, UpdateRole } from "@/services/role.service";
 
 export const getAllRolesThunk = createAsyncThunk(
   "roles/getAll",
   async (_, { rejectWithValue }) => {
     try {
       const response = await roleService.getAllRoles();
+      if (response.success && Array.isArray(response.data)) {
+        return response.data;
+      } else {
+        return rejectWithValue("Invalid response format: data array not found");
+      }
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to fetch roles");
+    }
+  }
+);
+
+// Tier 1 security audit fix (2026-09-01), Fix 3: lightweight companion to
+// getAllRolesThunk above -- see roleService.getRolesListLite for why.
+export const getRolesListLiteThunk = createAsyncThunk(
+  "roles/getListLite",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await roleService.getRolesListLite();
       if (response.success && Array.isArray(response.data)) {
         return response.data;
       } else {
@@ -73,6 +91,12 @@ export const deleteRoleThunk = createAsyncThunk(
 
 interface RoleState {
   roles: Role[];
+  // Tier 1 security audit fix (2026-09-01), Fix 3: id+roleName-only roster
+  // for picker/dropdown use, populated by getRolesListLiteThunk. Kept
+  // separate from `roles` (which needs setup.role view permission to
+  // populate now) so dropdown consumers never depend on that permission.
+  rolesLite: RoleLite[];
+  rolesLiteLoading: boolean;
   singleRole: Role | null;
   loading: boolean;
   error: string | null;
@@ -81,6 +105,8 @@ interface RoleState {
 
 const initialState: RoleState = {
   roles: [],
+  rolesLite: [],
+  rolesLiteLoading: false,
   singleRole: null,
   loading: false,
   error: null,
@@ -119,6 +145,21 @@ const roleSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
         state.roles = [];
+      })
+      // Get All Roles (lite)
+      .addCase(getRolesListLiteThunk.pending, (state) => {
+        state.rolesLiteLoading = true;
+      })
+      .addCase(
+        getRolesListLiteThunk.fulfilled,
+        (state, action: PayloadAction<RoleLite[]>) => {
+          state.rolesLiteLoading = false;
+          state.rolesLite = action.payload;
+        }
+      )
+      .addCase(getRolesListLiteThunk.rejected, (state) => {
+        state.rolesLiteLoading = false;
+        state.rolesLite = [];
       })
       // Get Single Role
       .addCase(getRoleByIdThunk.pending, (state) => {
