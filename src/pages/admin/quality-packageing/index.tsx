@@ -41,6 +41,11 @@ import { getStockSummaryThunk } from "@/store/slices/stockLedgerSlice";
 // can be computed client-side -- fine at this app's data volume, and it
 // avoids inventing a dedicated stats endpoint for numbers this cheap to
 // derive from data already being fetched for the tables below.
+// Patch 112: "Production" added -- QP job cards now carry this single
+// internal stage instead of cycling through Printer/Binder/Booklet Binder/
+// Factory/Godown (see jobCard.controller.js's stage-simplification
+// comment). The old stage names stay mapped here only for any historical
+// rows created before this patch.
 const STAGE_COLORS: Record<string, "default" | "info" | "warning" | "success"> = {
   Printer: "info",
   Binder: "info",
@@ -48,6 +53,7 @@ const STAGE_COLORS: Record<string, "default" | "info" | "warning" | "success"> =
   Factory: "warning",
   Godown: "success",
   Done: "success",
+  Production: "info",
 };
 
 const COMPLAINT_STATUS_COLORS: Record<string, "default" | "warning" | "info" | "success"> = {

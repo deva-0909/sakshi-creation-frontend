@@ -46,12 +46,37 @@ import { toast } from "react-toastify";
 // Failed result is recorded but never blocks the card from moving on to
 // Delivery (see the design plan's Q1 answer).
 const SAKSHI_CREATION_STAGES = ["Designer", "Printer", "Binder", "Booklet Binder", "QC", "Delivery"];
-// Phase 2 Part B (two-company): Quality Packaging's pipeline has no
-// Designer/QC/Delivery stages and adds Factory + Godown at the end,
-// matching the backend's stageOrderForCompany (jobCard.controller.js).
-const QUALITY_PACKAGING_STAGES = ["Printer", "Binder", "Booklet Binder", "Factory", "Godown"];
+// Patch 112 (correcting an earlier architectural mistake): Quality
+// Packaging is a box/carton manufacturer, not a book/booklet printer -- the
+// 5-step Printer/Binder/Booklet Binder/Factory/Godown pipeline it was
+// previously given was copied from Sakshi Creation's book-production model
+// (confirmed against a real "Mono Carton Small" job card screenshot, which
+// shows a single production-tracking panel, not a stepper). A QP job card
+// now has exactly one internal stage, "Production" -- see the matching
+// change in jobCard.controller.js's stageOrderForCompany. Sakshi Creation's
+// real 6-stage pipeline is untouched.
+const QUALITY_PACKAGING_STAGES = ["Production"];
 const stagesForCompany = (companyName?: string) => (companyName === "Quality Packaging" ? QUALITY_PACKAGING_STAGES : SAKSHI_CREATION_STAGES);
 const STAGE_STATUSES = ["Pending", "In Progress", "Done"];
+// Patch 112: QP's own status vocabulary reuses job_cards_status_check's
+// existing values (Pending/In Progress/On Hold/Completed) rather than
+// inventing new ones -- "Pending" reads as "Order" and "On Hold" reads as
+// "Hold" here, matching the confirmed screenshot's green "ORDER" and purple
+// "IN-PROGRESS" chips; "In Progress" and "Completed" already read the same
+// on both sides.
+const QP_STATUS_LABELS: Record<string, string> = { Pending: "Order", "In Progress": "In Progress", Completed: "Completed", "On Hold": "Hold" };
+const QP_STATUS_OPTIONS = [
+  { label: "Order", value: "Pending" },
+  { label: "In Progress", value: "In Progress" },
+  { label: "Completed", value: "Completed" },
+  { label: "Hold", value: "On Hold" },
+];
+const qpStatusColor: Record<string, { bg: string; color: string }> = {
+  Pending: { bg: "#D1FADF", color: "#027A48" },
+  "In Progress": { bg: "#F4EBFF", color: "#6941C6" },
+  Completed: { bg: "#D1E9FF", color: "#175CD3" },
+  "On Hold": { bg: "#FEE4E2", color: "#B42318" },
+};
 // Only these 3 stages run on physical equipment -- see machine.validator.js's
 // category enum, which the backend also uses to reject a mismatched machine.
 // Shared by both companies' pipelines; Factory/Godown have no equipment of
@@ -148,6 +173,9 @@ const JobCardDetailPage = () => {
   const [kantan, setKantan] = useState("");
   const [kantanDeckal, setKantanDeckal] = useState("");
   const [factoryDeliveryDate, setFactoryDeliveryDate] = useState("");
+  // Patch 112: QP's own single Status dropdown (Order/In Progress/
+  // Completed/Hold), separate from SC's per-stage `stageStatus` above.
+  const [qpStatus, setQpStatus] = useState("Pending");
   // Module 8: wastage now needs a material + Role/Staff, same as Record
   // Material Usage, so it can write a real stock movement.
   const [wastedSheet, setWastedSheet] = useState("");
@@ -229,6 +257,26 @@ const JobCardDetailPage = () => {
       setStage(jc.currentStage === "Done" ? stages[stages.length - 1] : jc.currentStage);
     }
   }, [jc]);
+
+  // Patch 112: prefill the QP production panel from the job card's own
+  // status and its single "Production" stage row (found in stage history,
+  // fetched alongside the job card) -- both the checklist fields and the
+  // Unit/Pasting/etc. fields used to only ever prefill for a stage literally
+  // named "Factory"; now every QP job card has exactly one stage row to
+  // read from.
+  useEffect(() => {
+    if (jc && jc.order?.companyName?.companyName === "Quality Packaging") {
+      const productionStage: any = stageHistory.find((h: any) => h.stage === "Production");
+      setFactoryUnitNumber(productionStage?.unitNumber != null ? String(productionStage.unitNumber) : "");
+      setPasteingStatus(productionStage?.pasteingStatus || "");
+      setPiningStatus(productionStage?.piningStatus || "");
+      setRsFor(productionStage?.rsFor || "");
+      setKantan(productionStage?.kantan || "");
+      setKantanDeckal(productionStage?.kantanDeckal || "");
+      setFactoryDeliveryDate(productionStage?.factoryDeliveryDate ? String(productionStage.factoryDeliveryDate).slice(0, 10) : "");
+      setQpStatus(jc.status || "Pending");
+    }
+  }, [jc, stageHistory]);
 
   useEffect(() => {
     if (costing) {
@@ -370,6 +418,31 @@ const JobCardDetailPage = () => {
     setWastageStaff(null);
   };
 
+  // Patch 112: QP's single-panel "Update Production" action -- replaces
+  // handleAdvanceStage's SC-oriented stage-cycling call. Always sends
+  // stage: "Production" (QP's only stage) and the simplified status
+  // dropdown value, alongside the same checklist fields the old Factory-
+  // gated form used to send.
+  const handleUpdateProduction = () => {
+    if (typeof id !== "string") return;
+    dispatch(
+      advanceJobCardStageThunk({
+        id,
+        data: {
+          stage: "Production",
+          status: qpStatus,
+          unitNumber: factoryUnitNumber ? Number(factoryUnitNumber) : undefined,
+          pasteingStatus: pasteingStatus || undefined,
+          piningStatus: piningStatus || undefined,
+          rsFor: rsFor || undefined,
+          kantan: kantan || undefined,
+          kantanDeckal: kantanDeckal || undefined,
+          factoryDeliveryDate: factoryDeliveryDate || undefined,
+        },
+      })
+    );
+  };
+
   const handleCreateRework = () => {
     if (!reworkReason.trim()) {
       toast.error("A reason is required");
@@ -461,9 +534,11 @@ const JobCardDetailPage = () => {
 
   if (!jc) return null;
 
+  const isQP = jc.order?.companyName?.companyName === "Quality Packaging";
   const STAGES = stagesForCompany(jc.order?.companyName?.companyName);
   const activeStepIndex = jc.currentStage === "Done" ? STAGES.length : STAGES.indexOf(jc.currentStage);
-  const sColor = statusColor[jc.status] || statusColor.Pending;
+  const sColor = isQP ? qpStatusColor[jc.status] || qpStatusColor.Pending : statusColor[jc.status] || statusColor.Pending;
+  const statusLabel = isQP ? QP_STATUS_LABELS[jc.status] || jc.status : jc.status;
 
   return (
     <Box p={3}>
@@ -473,55 +548,31 @@ const JobCardDetailPage = () => {
           <Typography variant="h5" fontWeight={600}>
             {jc.jobCardNumber}
           </Typography>
-          <ThemeChip label={jc.status} sx={{ background: sColor.bg, color: sColor.color, fontWeight: 600 }} />
+          <ThemeChip label={statusLabel} sx={{ background: sColor.bg, color: sColor.color, fontWeight: 600 }} />
         </Box>
         <Box display="flex" alignItems="center" gap={2}>
-          {/* Build 5, sub-item 4 -- "Printer -> Return to Factory" module.
-              No directly analogous existing Sakshi Creation flow was found
-              after searching both repos for "return to factory"/"printer
-              return" -- the generic Advance Stage panel below already lets
-              any stage be selected out of sequence (advanceStage only
-              checks the target stage is *in* this company's pipeline, not
-              that it's next), so a Quality Packaging box job card at
-              Printer could already be moved straight to Factory today.
-              This button is a conservative, best-guess convenience layer
-              on top of that: a single-purpose quick action (matching the
-              existing "Assign To Printer ->"/"Assign to Binder ->" style
-              buttons on Sakshi Creation's own per-stage pages) rather than
-              a new workflow or backend endpoint. Flagged in the build
-              report as best-guess and worth a user review. */}
-          {jc.order?.companyName?.companyName === "Quality Packaging" &&
-            jc.currentStage === "Printer" &&
-            permissions?.edit && (
-              <ThemeButton
-                onClick={() => {
-                  if (typeof id !== "string") return;
-                  dispatch(
-                    advanceJobCardStageThunk({
-                      id,
-                      data: { stage: "Factory", status: "Pending" },
-                    })
-                  );
-                }}
-              >
-                Return to Factory
-              </ThemeButton>
-            )}
           <ThemeButton variant="outlined" onClick={() => router.push("/admin/job-card")}>
             Back to list
           </ThemeButton>
         </Box>
       </Box>
 
-      <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 2 }}>
-        <Stepper activeStep={activeStepIndex} alternativeLabel={!isMobile} orientation={isMobile ? "vertical" : "horizontal"}>
-          {STAGES.map((s) => (
-            <Step key={s}>
-              <StepLabel>{s}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-      </Paper>
+      {/* Patch 112: Quality Packaging is box/carton manufacturing, not a
+          book/booklet production line -- it no longer has a multi-step
+          pipeline to show a stepper for (see the stage-simplification
+          comment above QUALITY_PACKAGING_STAGES). Sakshi Creation's real
+          6-stage stepper is untouched. */}
+      {!isQP && (
+        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 2 }}>
+          <Stepper activeStep={activeStepIndex} alternativeLabel={!isMobile} orientation={isMobile ? "vertical" : "horizontal"}>
+            {STAGES.map((s) => (
+              <Step key={s}>
+                <StepLabel>{s}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+        </Paper>
+      )}
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, flex: 1 }}>
@@ -570,7 +621,7 @@ const JobCardDetailPage = () => {
                     {h.defectReason ? ` (${h.defectReason})` : ""}
                   </Typography>
                 )}
-                {h.stage === "Factory" && (h.kantan || h.kantanDeckal || h.pasteingStatus || h.piningStatus || h.rsFor || h.unitNumber != null) && (
+                {h.stage === "Production" && (h.kantan || h.kantanDeckal || h.pasteingStatus || h.piningStatus || h.rsFor || h.unitNumber != null) && (
                   <Typography fontSize={12} color="text.secondary">
                     {h.unitNumber != null ? `Unit ${h.unitNumber} · ` : ""}
                     {h.pasteingStatus ? `Pasteing: ${h.pasteingStatus} · ` : ""}
@@ -630,117 +681,19 @@ const JobCardDetailPage = () => {
         </Paper>
 
         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, flex: 1 }}>
-          <Typography fontWeight={600} mb={2}>
-            Advance Stage
-          </Typography>
-          <Stack spacing={2}>
-            <ThemeSelect
-              label="Stage"
-              options={STAGES.map((s) => ({ label: s, value: s }))}
-              value={stage ? { label: stage, value: stage } : null}
-              onChange={(_, v) => handleStageChange(v)}
-              disabled={!permissions?.edit}
-              required
-            />
-            <ThemeSelect
-              label="Status"
-              options={STAGE_STATUSES.map((s) => ({ label: s, value: s }))}
-              value={stageStatus ? { label: stageStatus, value: stageStatus } : null}
-              onChange={(_, v) => setStageStatus(v ? String(v.value) : "")}
-              disabled={!permissions?.edit}
-              required
-            />
-            {MACHINE_STAGES.includes(stage) && (
-              <ThemeSelect
-                label="Machine (optional)"
-                options={machineOptions}
-                value={selectedMachine}
-                onChange={(_, v) => setSelectedMachine(v)}
-                disabled={!permissions?.edit}
-                placeholder={machineOptions.length ? "Select a machine" : `No ${stage} machines set up`}
-              />
-            )}
-            <RoleStaffSelect
-              label="Assign To"
-              name="assignedTo"
-              value={assignedTo}
-              onChange={(_, v) => setAssignedTo(v)}
-              roleFilter={stage}
-              disabled={!permissions?.edit}
-            />
-
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <ThemeInput
-                labelName="Completed Qty"
-                type="number"
-                fullWidth
-                value={completedQty}
-                onChange={(e) => setCompletedQty(e.target.value)}
-                disabled={!permissions?.edit}
-              />
-              <ThemeInput
-                labelName="Rejected Qty"
-                type="number"
-                fullWidth
-                value={rejectedQty}
-                onChange={(e) => setRejectedQty(e.target.value)}
-                disabled={!permissions?.edit}
-              />
-              <ThemeInput
-                labelName="Rework Qty"
-                type="number"
-                fullWidth
-                value={reworkQty}
-                onChange={(e) => setReworkQty(e.target.value)}
-                disabled={!permissions?.edit}
-              />
-            </Stack>
-
-            {stage === "QC" && (
-              <>
-                <Typography fontSize={12} color="text.secondary" mt={-1}>
-                  QC is advisory: a Failed result is recorded here but does not block the card from moving to
-                  Delivery.
-                </Typography>
-                <ThemeSelect
-                  label="QC Result"
-                  options={[
-                    { label: "Passed", value: "Passed" },
-                    { label: "Failed", value: "Failed" },
-                  ]}
-                  value={qcResult}
-                  onChange={(_, v) => setQcResult(v)}
-                  disabled={!permissions?.edit}
-                />
-                {qcResult?.value === "Failed" && (
-                  <>
-                    <ThemeSelect
-                      label="Defect Category"
-                      options={DEFECT_CATEGORIES.map((c) => ({ label: c, value: c }))}
-                      value={defectCategory}
-                      onChange={(_, v) => setDefectCategory(v)}
-                      disabled={!permissions?.edit}
-                    />
-                    <ThemeInput
-                      labelName="Defect Reason"
-                      fullWidth
-                      value={defectReason}
-                      onChange={(e) => setDefectReason(e.target.value)}
-                      disabled={!permissions?.edit}
-                    />
-                  </>
-                )}
-              </>
-            )}
-
-            {stage === "Factory" && (
-              <>
-                <Typography fontSize={12} color="text.secondary" mt={-1}>
-                  QP box-manufacturing Figma audit (2026-08-25): this is the Order-In screen's Factory checklist
-                  (Unit / Pasteing / Pining / Rs For / Kantan / Kantan Deckal / Delivery Date). No formula backs
-                  Kantan anywhere in the design either -- these are plain manual fields, recorded the same way
-                  staff already write them down.
-                </Typography>
+          {isQP ? (
+            <>
+              {/* Patch 112: QP's simplified single-panel production form --
+                  replaces the Printer/Binder/Booklet Binder/Factory/Godown
+                  Advance Stage stepper below (SC path, unchanged), which was
+                  mistakenly copied from Sakshi Creation's book-production
+                  model. A box/carton job card just has one production-
+                  tracking panel: Unit/Start Date/Pasting/Pining/RS For/
+                  Kantan/Kantan Deckal/Finish Date, plus an overall status. */}
+              <Typography fontWeight={600} mb={2}>
+                Production Details
+              </Typography>
+              <Stack spacing={2}>
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                   <ThemeInput
                     labelName="Unit"
@@ -751,18 +704,19 @@ const JobCardDetailPage = () => {
                     disabled={!permissions?.edit}
                   />
                   <ThemeInput
-                    labelName="Delivery Date"
-                    type="date"
+                    labelName="Start Date"
                     fullWidth
-                    InputLabelProps={{ shrink: true }}
-                    value={factoryDeliveryDate}
-                    onChange={(e) => setFactoryDeliveryDate(e.target.value)}
-                    disabled={!permissions?.edit}
+                    value={
+                      (stageHistory.find((h: any) => h.stage === "Production") as any)?.startedAt
+                        ? new Date((stageHistory.find((h: any) => h.stage === "Production") as any).startedAt).toLocaleDateString()
+                        : "-"
+                    }
+                    disabled
                   />
                 </Stack>
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                   <ThemeInput
-                    labelName="Pasteing"
+                    labelName="Pasting"
                     fullWidth
                     value={pasteingStatus}
                     onChange={(e) => setPasteingStatus(e.target.value)}
@@ -799,80 +753,208 @@ const JobCardDetailPage = () => {
                     disabled={!permissions?.edit}
                   />
                 </Stack>
-              </>
-            )}
-
-            {NON_MATERIAL_STAGES.includes(stage) && (
-              <Typography fontSize={12} color="text.secondary" mt={-1}>
-                {stage} isn't a material-consuming stage -- leave this at 0 unless something genuinely was used or
-                spoiled here.
-              </Typography>
-            )}
-            <ThemeInput
-              labelName="Wasted Sheets"
-              type="number"
-              fullWidth
-              value={wastedSheet}
-              onChange={(e) => setWastedSheet(e.target.value)}
-              disabled={!permissions?.edit}
-            />
-            {Number(wastedSheet) > 0 && (
-              <>
-                <Typography fontSize={12} color="text.secondary" mt={-1}>
-                  Recording wastage writes a real inventory movement, so it needs the material and who's
-                  responsible.
-                </Typography>
-                <ThemeSelect
-                  label="Wasted Material"
-                  options={materialOptions}
-                  value={wastageMaterial}
-                  onChange={(_, v) => setWastageMaterial(v)}
-                  disabled={!permissions?.edit}
-                  required
-                />
-                <ThemeSelect
-                  label="Wastage Role"
-                  options={roleOptions}
-                  value={wastageRole}
-                  onChange={(_, v) => {
-                    setWastageRole(v);
-                    setWastageStaff(null);
-                  }}
-                  disabled={!permissions?.edit}
-                  required
-                />
-                <RoleStaffSelect
-                  label="Wastage Staff Member"
-                  name="wastageStaff"
-                  value={wastageStaff}
-                  onChange={(_, v) => setWastageStaff(v)}
-                  roleFilter={wastageRole?.label || ""}
-                  disabled={!permissions?.edit || !wastageRole}
-                  required
-                />
                 <ThemeInput
-                  labelName="Wastage Reason"
+                  labelName="Finish Date"
+                  type="date"
                   fullWidth
-                  value={wastageReason}
-                  onChange={(e) => setWastageReason(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  value={factoryDeliveryDate}
+                  onChange={(e) => setFactoryDeliveryDate(e.target.value)}
                   disabled={!permissions?.edit}
                 />
-              </>
-            )}
+                <ThemeSelect
+                  label="Status"
+                  options={QP_STATUS_OPTIONS}
+                  value={QP_STATUS_OPTIONS.find((o) => o.value === qpStatus) || null}
+                  onChange={(_, v) => setQpStatus(v ? String(v.value) : "Pending")}
+                  disabled={!permissions?.edit}
+                  required
+                />
+                {permissions?.edit && (
+                  <ThemeButton onClick={handleUpdateProduction} disabled={loading} sx={{ background: "#175CD3" }}>
+                    Update Production
+                  </ThemeButton>
+                )}
+              </Stack>
+            </>
+          ) : (
+            <>
+              <Typography fontWeight={600} mb={2}>
+                Advance Stage
+              </Typography>
+              <Stack spacing={2}>
+                <ThemeSelect
+                  label="Stage"
+                  options={STAGES.map((s) => ({ label: s, value: s }))}
+                  value={stage ? { label: stage, value: stage } : null}
+                  onChange={(_, v) => handleStageChange(v)}
+                  disabled={!permissions?.edit}
+                  required
+                />
+                <ThemeSelect
+                  label="Status"
+                  options={STAGE_STATUSES.map((s) => ({ label: s, value: s }))}
+                  value={stageStatus ? { label: stageStatus, value: stageStatus } : null}
+                  onChange={(_, v) => setStageStatus(v ? String(v.value) : "")}
+                  disabled={!permissions?.edit}
+                  required
+                />
+                {MACHINE_STAGES.includes(stage) && (
+                  <ThemeSelect
+                    label="Machine (optional)"
+                    options={machineOptions}
+                    value={selectedMachine}
+                    onChange={(_, v) => setSelectedMachine(v)}
+                    disabled={!permissions?.edit}
+                    placeholder={machineOptions.length ? "Select a machine" : `No ${stage} machines set up`}
+                  />
+                )}
+                <RoleStaffSelect
+                  label="Assign To"
+                  name="assignedTo"
+                  value={assignedTo}
+                  onChange={(_, v) => setAssignedTo(v)}
+                  roleFilter={stage}
+                  disabled={!permissions?.edit}
+                />
 
-            <ThemeInput
-              labelName="Remarks"
-              fullWidth
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
-              disabled={!permissions?.edit}
-            />
-            {permissions?.edit && (
-              <ThemeButton onClick={handleAdvanceStage} disabled={loading} sx={{ background: "#175CD3" }}>
-                Update Stage
-              </ThemeButton>
-            )}
-          </Stack>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                  <ThemeInput
+                    labelName="Completed Qty"
+                    type="number"
+                    fullWidth
+                    value={completedQty}
+                    onChange={(e) => setCompletedQty(e.target.value)}
+                    disabled={!permissions?.edit}
+                  />
+                  <ThemeInput
+                    labelName="Rejected Qty"
+                    type="number"
+                    fullWidth
+                    value={rejectedQty}
+                    onChange={(e) => setRejectedQty(e.target.value)}
+                    disabled={!permissions?.edit}
+                  />
+                  <ThemeInput
+                    labelName="Rework Qty"
+                    type="number"
+                    fullWidth
+                    value={reworkQty}
+                    onChange={(e) => setReworkQty(e.target.value)}
+                    disabled={!permissions?.edit}
+                  />
+                </Stack>
+
+                {stage === "QC" && (
+                  <>
+                    <Typography fontSize={12} color="text.secondary" mt={-1}>
+                      QC is advisory: a Failed result is recorded here but does not block the card from moving to
+                      Delivery.
+                    </Typography>
+                    <ThemeSelect
+                      label="QC Result"
+                      options={[
+                        { label: "Passed", value: "Passed" },
+                        { label: "Failed", value: "Failed" },
+                      ]}
+                      value={qcResult}
+                      onChange={(_, v) => setQcResult(v)}
+                      disabled={!permissions?.edit}
+                    />
+                    {qcResult?.value === "Failed" && (
+                      <>
+                        <ThemeSelect
+                          label="Defect Category"
+                          options={DEFECT_CATEGORIES.map((c) => ({ label: c, value: c }))}
+                          value={defectCategory}
+                          onChange={(_, v) => setDefectCategory(v)}
+                          disabled={!permissions?.edit}
+                        />
+                        <ThemeInput
+                          labelName="Defect Reason"
+                          fullWidth
+                          value={defectReason}
+                          onChange={(e) => setDefectReason(e.target.value)}
+                          disabled={!permissions?.edit}
+                        />
+                      </>
+                    )}
+                  </>
+                )}
+
+                {NON_MATERIAL_STAGES.includes(stage) && (
+                  <Typography fontSize={12} color="text.secondary" mt={-1}>
+                    {stage} isn't a material-consuming stage -- leave this at 0 unless something genuinely was used or
+                    spoiled here.
+                  </Typography>
+                )}
+                <ThemeInput
+                  labelName="Wasted Sheets"
+                  type="number"
+                  fullWidth
+                  value={wastedSheet}
+                  onChange={(e) => setWastedSheet(e.target.value)}
+                  disabled={!permissions?.edit}
+                />
+                {Number(wastedSheet) > 0 && (
+                  <>
+                    <Typography fontSize={12} color="text.secondary" mt={-1}>
+                      Recording wastage writes a real inventory movement, so it needs the material and who's
+                      responsible.
+                    </Typography>
+                    <ThemeSelect
+                      label="Wasted Material"
+                      options={materialOptions}
+                      value={wastageMaterial}
+                      onChange={(_, v) => setWastageMaterial(v)}
+                      disabled={!permissions?.edit}
+                      required
+                    />
+                    <ThemeSelect
+                      label="Wastage Role"
+                      options={roleOptions}
+                      value={wastageRole}
+                      onChange={(_, v) => {
+                        setWastageRole(v);
+                        setWastageStaff(null);
+                      }}
+                      disabled={!permissions?.edit}
+                      required
+                    />
+                    <RoleStaffSelect
+                      label="Wastage Staff Member"
+                      name="wastageStaff"
+                      value={wastageStaff}
+                      onChange={(_, v) => setWastageStaff(v)}
+                      roleFilter={wastageRole?.label || ""}
+                      disabled={!permissions?.edit || !wastageRole}
+                      required
+                    />
+                    <ThemeInput
+                      labelName="Wastage Reason"
+                      fullWidth
+                      value={wastageReason}
+                      onChange={(e) => setWastageReason(e.target.value)}
+                      disabled={!permissions?.edit}
+                    />
+                  </>
+                )}
+
+                <ThemeInput
+                  labelName="Remarks"
+                  fullWidth
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  disabled={!permissions?.edit}
+                />
+                {permissions?.edit && (
+                  <ThemeButton onClick={handleAdvanceStage} disabled={loading} sx={{ background: "#175CD3" }}>
+                    Update Stage
+                  </ThemeButton>
+                )}
+              </Stack>
+            </>
+          )}
 
           <Divider sx={{ my: 2 }} />
 

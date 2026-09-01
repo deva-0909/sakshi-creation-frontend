@@ -61,6 +61,12 @@ const permissionMapping: { [key: string]: string } = {
   "Assign Task": "assign_task",
   "Party call": "party_call",
   "All Orders": "all_orders",
+  // Order To Factory page (Build 4, Godown Manager role, 2026-08-27): a
+  // filtered view of the same All Orders data (orderFrom === "GODOWN"),
+  // not a separate module with its own permission category yet -- gated on
+  // the same "all_orders" permission so it's visible to exactly whoever
+  // can already see All Orders, same as this list's own row-level scoping.
+  "Order To Factory": "all_orders",
   "Quality Packaging": "quality_packaging",
   // Two-company Phase 3 Part A: "All Complains" top-level nav item, per the
   // Figma reference's confirmed-differences table (two-company-gap-analysis.md).
@@ -118,6 +124,12 @@ const menuItems = [
   { label: "Assign Task", icon: <MdWork size={18} />, path: "/admin/assign-task" },
   { label: "Party call", icon: <MdGroup size={18} />, path: "/admin/party-call" },
   { label: "All Orders", icon: <MdAssignment size={18} />, path: "/admin/all-orders" },
+  // Order To Factory page (Build 4, Godown Manager role, 2026-08-27 Figma
+  // audit -- claude/full-figma-slide-scan.md Slide 16): QP-only, but not
+  // enforced by company here -- the page itself has nothing to show for
+  // Sakshi Creation (orderFrom is QP-only data), same "just an empty list"
+  // treatment as other QP-only pages that aren't company-gated in this nav.
+  { label: "Order To Factory", icon: <MdWarehouse size={18} />, path: "/admin/order-to-factory" },
   { label: "Quotation", icon: <MdLibraryBooks size={18} />, path: "/admin/quotation" },
   { label: "CRM Pipeline", icon: <MdTrendingUp size={18} />, path: "/admin/crm/opportunities" },
   { label: "Job Card", icon: <MdWork size={18} />, path: "/admin/job-card" },
